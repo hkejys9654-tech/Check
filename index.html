@@ -1,246 +1,364 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>구역 출석체크</title>
-    <!-- 테마 색상 설정 (모바일 브라우저 상단바) -->
     <meta name="theme-color" content="#4a90e2">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
             --bg-color: #f4f7f6;
-            --silver-color: #E0E0E0; /* 은장회 - 회색 */
-            --service-color: #4A90E2; /* 봉사회 - 파랑 */
-            --mother-color: #2ECC71;  /* 어머니회 - 초록 */
-            --youth-color: #E67E22;   /* 청년회 - 주황 */
+            --silver-color: #9E9E9E;
+            --service-color: #4A90E2;
+            --mother-color: #2ECC71;
+            --youth-color: #E67E22;
             --border-inactive: #ddd;
+            --save-color: #27ae60;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: #333;
-            user-select: none; /* 텍스트 선택 방지 (앱 느낌) */
-            -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
-        }
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-color);
+        color: #333;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-        /* 헤더 고정 */
-        header {
-            position: sticky;
-            top: 0;
-            background-color: white;
-            padding: 10px 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 100;
-        }
+    header {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        padding: 10px 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        z-index: 100;
+    }
 
-        h1 {
-            font-size: 1.2rem;
-            margin: 0 0 10px 0;
-            text-align: center;
-            color: var(--primary-color);
-        }
+    h1 {
+        font-size: 1.2rem;
+        margin: 0 0 10px 0;
+        text-align: center;
+        color: var(--primary-color);
+    }
 
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+    .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
 
-        input[type="date"], select {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            appearance: none; /* 기본 화살표 제거 */
-            -webkit-appearance: none;
-            background-color: white;
-        }
+    input[type="date"], select {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: white;
+        min-width: 0;
+    }
 
-        .main-actions {
-            display: flex;
-            gap: 10px;
-        }
+    .main-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-        button {
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
+    button {
+        border: none;
+        border-radius: 8px;
+        padding: 12px 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        button:active {
-            transform: scale(0.97);
-        }
+    .btn-setup { background-color: #E0E0E0; color: #333; flex: 1; }
+    .btn-save-record { background-color: var(--save-color); color: white; flex: 1.3; }
+    .btn-share { background-color: var(--primary-color); color: white; flex: 1.3; }
+    .btn-stats { background-color: #34495e; color: white; flex: 1; }
 
-        .btn-setup { background-color: var(--silver-color); color: #333; flex: 1; }
-        .btn-share { background-color: var(--primary-color); color: white; flex: 2; }
-        .btn-stats { background-color: #34495e; color: white; flex: 1; }
+    .save-indicator {
+        text-align: center;
+        font-size: 0.8rem;
+        margin-top: 6px;
+        min-height: 16px;
+        color: #888;
+    }
+    .save-indicator.unsaved { color: #e67e22; font-weight: 600; }
+    .save-indicator.saved { color: var(--save-color); font-weight: 600; }
 
-        /* 메인 컨텐츠 영역 */
-        main {
-            padding: 15px;
-            padding-bottom: 80px; /* 푸터 공간 */
-        }
+    main {
+        padding: 15px;
+        padding-bottom: 80px;
+    }
 
-        .category-section {
-            margin-bottom: 20px;
-        }
+    .category-section { margin-bottom: 20px; }
 
-        .category-title {
-            font-size: 1rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            padding-left: 5px;
-            border-left: 4px solid;
-        }
+    .category-title {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        padding-left: 8px;
+        border-left: 4px solid;
+    }
 
-        /* 범주별 색상 */
-        .title-eun { border-left-color: var(--silver-color); }
-        .title-bong { border-left-color: var(--service-color); color: var(--service-color); }
-        .title-mom { border-left-color: var(--mother-color); color: var(--mother-color); }
-        .title-youth { border-left-color: var(--youth-color); color: var(--youth-color); }
+    .title-eun { border-left-color: var(--silver-color); color: var(--silver-color); }
+    .title-bong { border-left-color: var(--service-color); color: var(--service-color); }
+    .title-mom { border-left-color: var(--mother-color); color: var(--mother-color); }
+    .title-youth { border-left-color: var(--youth-color); color: var(--youth-color); }
 
-        .member-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
+    .member-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 10px;
+    }
 
-        /* 출석 버튼 스타일 */
-        .member-btn {
-            background-color: white;
-            border: 2px solid var(--border-inactive);
-            color: #777;
-            padding: 15px 10px;
-            text-align: center;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: normal;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-        }
+    .member-btn {
+        background-color: white;
+        border: 2px solid var(--border-inactive);
+        color: #777;
+        padding: 15px 8px;
+        text-align: center;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: normal;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s, transform 0.08s;
+    }
 
-        /* 활성화 상태 (출석함) */
-        .member-btn.active.eun { border-color: var(--silver-color); color: var(--silver-color); font-weight: bold; background-color: #f8f8f8;}
-        .member-btn.active.bong { border-color: var(--service-color); color: var(--service-color); font-weight: bold; background-color: #eef5fc;}
-        .member-btn.active.mom { border-color: var(--mother-color); color: var(--mother-color); font-weight: bold; background-color: #edfcf3;}
-        .member-btn.active.youth { border-color: var(--youth-color); color: var(--youth-color); font-weight: bold; background-color: #fef5ed;}
+    .member-btn.active {
+        font-weight: bold;
+        border-width: 3px;
+        background-color: white;
+    }
+    .member-btn.active.eun   { border-color: var(--silver-color);  color: #555; }
+    .member-btn.active.bong  { border-color: var(--service-color); color: var(--service-color); }
+    .member-btn.active.mom   { border-color: var(--mother-color);  color: var(--mother-color); }
+    .member-btn.active.youth { border-color: var(--youth-color);   color: var(--youth-color); }
 
-        /* 설정/통계 모달 스타일 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+        background-color: white;
+        width: 90%;
+        max-width: 500px;
+        max-height: 85vh;
+        border-radius: 15px;
+        padding: 20px;
+        overflow-y: auto;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .modal-header h2 { font-size: 1.1rem; margin: 0; }
+    .close-modal {
+        font-size: 1.5rem; cursor: pointer; color: #aaa;
+        background: none; padding: 0; border: none;
+    }
 
-        .modal.show { display: flex; }
+    textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    .help-text { font-size: 0.8rem; color: #666; margin-bottom: 15px; line-height: 1.4; }
+    .btn-save { background-color: var(--primary-color); color: white; width: 100%; }
 
-        .modal-content {
-            background-color: white;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+    .share-options { display: flex; gap: 10px; margin-bottom: 10px; }
+    .share-options button { flex: 1; padding: 16px; }
+    .btn-share-text { background-color: #34495e; color: white; }
+    .btn-share-image { background-color: #27ae60; color: white; }
+    .share-preview {
+        background-color: #f8f9fa;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        font-size: 0.9rem;
+        white-space: pre-line;
+        line-height: 1.6;
+        margin-top: 10px;
+        color: #333;
+    }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+    .image-preview-wrap {
+        margin-top: 15px;
+        text-align: center;
+        display: none;
+    }
+    .image-preview-wrap.show { display: block; }
+    .image-preview-wrap img {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+    }
+    .image-preview-wrap .hint {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 8px;
+        line-height: 1.5;
+    }
 
-        .modal-header h2 { font-size: 1.1rem; margin: 0; }
-        .close-modal { font-size: 1.5rem; cursor: pointer; color: #aaa; background: none; padding: 0; }
+    .capture-card {
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        width: 380px;
+        background: linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%);
+        padding: 25px 20px;
+        border-radius: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .cap-title { font-size: 1.15rem; font-weight: bold; color: #1B3A6B; text-align: center; margin-bottom: 6px; }
+    .cap-sub {
+        text-align: center; color: #666; font-size: 0.85rem;
+        margin-bottom: 18px; padding-bottom: 12px;
+        border-bottom: 1.5px dashed #cfd8e3;
+    }
+    .cap-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 9px 12px; margin-bottom: 7px;
+        border-radius: 8px; font-size: 1rem;
+    }
+    .cap-row.eun   { background: #f0f0f0; color: #555; border-left: 4px solid var(--silver-color); }
+    .cap-row.bong  { background: #eef5fc; color: var(--service-color); border-left: 4px solid var(--service-color); }
+    .cap-row.mom   { background: #edfcf3; color: var(--mother-color); border-left: 4px solid var(--mother-color); }
+    .cap-row.youth { background: #fef5ed; color: var(--youth-color); border-left: 4px solid var(--youth-color); }
+    .cap-row .lbl  { font-weight: 600; }
+    .cap-row .val  { font-weight: bold; }
+    .cap-total {
+        margin-top: 14px; padding: 12px;
+        background: var(--primary-color); color: white;
+        text-align: center; border-radius: 8px;
+        font-size: 1.1rem; font-weight: bold;
+    }
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
+    .stats-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 0;
+    }
+    .stats-tab {
+        flex: 1;
+        background: none;
+        color: #888;
+        font-size: 0.9rem;
+        padding: 10px 4px;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-weight: 600;
+        border-radius: 0;
+        margin-bottom: -2px;
+    }
+    .stats-tab.active.sunday    { color: #c0392b;            border-bottom-color: #c0392b; }
+    .stats-tab.active.wednesday { color: #8e44ad;            border-bottom-color: #8e44ad; }
+    .stats-tab.active.gathering { color: var(--primary-color); border-bottom-color: var(--primary-color); }
 
-        .help-text { font-size: 0.8rem; color: #666; margin-bottom: 15px; line-height: 1.4; }
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .stats-table th, .stats-table td {
+        border: 1px solid #eee;
+        padding: 10px 6px;
+        text-align: center;
+    }
+    .stats-table th { background-color: #f8f9fa; color: #444; font-weight: 600; }
+    .stats-month-title {
+        font-size: 1rem;
+        font-weight: bold;
+        margin: 18px 0 8px 0;
+        padding-bottom: 4px;
+        border-bottom: 2px solid;
+    }
+    .stats-month-title:first-child { margin-top: 0; }
+    .stats-month-title.sunday    { color: #c0392b; border-bottom-color: #c0392b; }
+    .stats-month-title.wednesday { color: #8e44ad; border-bottom-color: #8e44ad; }
+    .stats-month-title.gathering { color: var(--primary-color); border-bottom-color: var(--primary-color); }
 
-        .btn-save { background-color: var(--primary-color); color: white; width: 100%; }
+    .empty-msg { text-align: center; color: #999; padding: 30px 0; font-size: 0.9rem; }
 
-        /* 통계 표 스타일 */
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        .stats-table th, .stats-table td {
-            border: 1px solid #eee;
-            padding: 8px 4px;
-            text-align: center;
-        }
-        .stats-table th { background-color: #f8f9fa; color: #666; }
-        
-        .empty-msg { text-align: center; color: #999; padding: 30px 0; font-size: 0.9rem; }
+    .record-status {
+        background: #e8f5e9;
+        border-left: 3px solid var(--save-color);
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        color: #1b5e20;
+        margin-bottom: 12px;
+        border-radius: 4px;
+    }
+</style>
+```
 
-    </style>
 </head>
 <body>
 
 <header>
     <h1>🏡 구역 출석체크</h1>
     <div class="controls">
-        <select id="district-select">
-            <option value="1구역">1구역</option>
-            <option value="2구역">2구역</option>
-            <option value="11구역" selected>11구역</option>
-            <!-- 필요한 만큼 구역 추가 가능 -->
-        </select>
+        <select id="district-select"></select>
         <input type="date" id="date-select">
         <select id="meeting-type">
-            <option value="주일교제">주일교제</option>
-            <option value="수요교제">수요교제</option>
+            <option value="주일말씀">주일말씀</option>
+            <option value="수요말씀">수요말씀</option>
             <option value="구역모임">구역모임</option>
         </select>
     </div>
     <div class="main-actions">
         <button class="btn-setup">명단설정</button>
-        <button class="btn-share">공유하기</button>
+        <button class="btn-save-record" id="btn-save-record">💾 저장</button>
+        <button class="btn-share">공유</button>
         <button class="btn-stats">통계</button>
     </div>
+    <div class="save-indicator" id="save-indicator">&nbsp;</div>
 </header>
 
 <main>
-    <div id="attendance-content">
-        <!-- 자바스크립트로 명단이 여기에 생성됩니다 -->
-    </div>
+    <div id="record-status-wrap"></div>
+    <div id="attendance-content"></div>
 </main>
 
-<!-- 명단 설정 모달 -->
 <div class="modal" id="setup-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>⚙️ 구역 명단 설정</h2>
+            <h2>⚙️ 구역 명단 설정 <span id="setup-district-label" style="color:#888;font-size:0.85rem;font-weight:normal;"></span></h2>
             <button class="close-modal">&times;</button>
         </div>
         <div class="help-text">
-            아래 형식에 맞춰 범주별로 이름을 쉼표(,)로 구분해 입력하세요.<br>
-            예) 은장회: 이름1, 이름2
+            구역별로 명단이 따로 저장됩니다.<br>
+            아래 형식대로 범주별 이름을 쉼표(,)로 구분해 입력하세요.
         </div>
         <textarea id="setup-textarea" placeholder="은장회: 배선례, 조순옥, 김두례, 민지순
 봉사회: 박이름, 최이름
@@ -250,191 +368,277 @@
     </div>
 </div>
 
-<!-- 통계 모달 -->
+<div class="modal" id="share-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📤 공유하기</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="share-options">
+            <button class="btn-share-text" id="btn-share-text">📋 텍스트 복사</button>
+            <button class="btn-share-image" id="btn-share-image">🖼️ 이미지 만들기</button>
+        </div>
+        <div class="help-text">미리보기</div>
+        <div class="share-preview" id="share-preview"></div>
+
+```
+    <div class="image-preview-wrap" id="image-preview-wrap">
+        <img id="image-preview" src="" alt="출석 이미지">
+        <div class="hint">
+            📱 모바일: 이미지를 <b>꾹 눌러서</b> '이미지 저장' 또는 '카톡으로 공유' 가능<br>
+            💻 PC: 아래 [다운로드] 버튼 또는 이미지 우클릭 → '저장'
+        </div>
+        <button class="btn-share" id="btn-download-image" style="margin-top:10px;width:100%;">⬇️ 이미지 파일 다운로드</button>
+    </div>
+</div>
+```
+
+</div>
+
 <div class="modal" id="stats-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>📊 출석 통계 요약</h2>
+            <h2>📊 범주별 월간 평균 출석</h2>
             <button class="close-modal">&times;</button>
         </div>
-        <div id="stats-container">
-            <!-- 통계 표가 여기에 생성됩니다 -->
+        <div class="stats-tabs" id="stats-tabs">
+            <button class="stats-tab active sunday"  data-type="주일말씀">주일말씀</button>
+            <button class="stats-tab"                data-type="수요말씀">수요말씀</button>
+            <button class="stats-tab"                data-type="구역모임">구역모임</button>
         </div>
+        <div id="stats-container"></div>
     </div>
 </div>
 
+<div class="capture-card" id="capture-card">
+    <div class="cap-title" id="cap-title"></div>
+    <div class="cap-sub" id="cap-sub"></div>
+    <div id="cap-rows"></div>
+    <div class="cap-total" id="cap-total"></div>
+</div>
+
 <script>
-    /**
-     * 구역 출석체크 어플리케이션 로직
-     * 데이터는 LocalStorage를 사용하여 브라우저에 반영구적으로 저장됩니다.
-     */
+    const STORAGE_KEY_MEMBERS = 'guAttendance_members_v2';
+    const STORAGE_KEY_RECORDS = 'guAttendance_records_v2';
+    const STORAGE_KEY_LASTDISTRICT = 'guAttendance_lastDistrict';
 
-    // --- 상수 및 상태 변수 ---
-    const STORAGE_KEY_MEMBERS = 'guAttendance_members';
-    const STORAGE_KEY_RECORDS = 'guAttendance_records';
-    
-    // 범주 정의 (HTML CSS 클래스와 매핑)
     const CATEGORIES = {
-        EUN: { key: 'eun', name: '은장회', titleClass: 'title-eun', btnClass: 'eun' },
-        BONG: { key: 'bong', name: '봉사회', titleClass: 'title-bong', btnClass: 'bong' },
-        MOM: { key: 'mom', name: '어머니회', titleClass: 'title-mom', btnClass: 'mom' },
-        YOUTH: { key: 'youth', name: '청년회', titleClass: 'title-youth', btnClass: 'youth' }
+        EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun' },
+        BONG:  { key: 'bong',  name: '봉사회',   titleClass: 'title-bong',  btnClass: 'bong' },
+        MOM:   { key: 'mom',   name: '어머니회', titleClass: 'title-mom',   btnClass: 'mom' },
+        YOUTH: { key: 'youth', name: '청년회',   titleClass: 'title-youth', btnClass: 'youth' }
     };
-    const CAT_ORDER = ['EUN', 'BONG', 'MOM', 'YOUTH']; // 화면 표시 순서
+    const CAT_ORDER = ['EUN', 'BONG', 'MOM', 'YOUTH'];
+    const KEY_TO_ENUM = { eun: 'EUN', bong: 'BONG', mom: 'MOM', youth: 'YOUTH' };
 
-    let membersData = null; // { eun: [], bong: [], ... }
-    let attendanceRecords = {}; // { '2023-10-27': { '주일교제': ['이름1', '이름2'], ... }, ... }
+    let allMembersData = {};
+    let allAttendanceRecords = {};
+    let workingRecord = [];
+    let isDirty = false;
+    let lastGeneratedImageBlob = null;
+    let lastGeneratedImageFilename = '';
+    let currentStatsType = '주일말씀';
 
-    // --- UI 요소 요소 ---
+    const TYPE_CLASS = { '주일말씀': 'sunday', '수요말씀': 'wednesday', '구역모임': 'gathering' };
+    const TYPE_BG    = { '주일말씀': '#fdedec',  '수요말씀': '#f5eef8',    '구역모임': '#eef5fc' };
+    const TYPE_COLOR = { '주일말씀': '#c0392b',  '수요말씀': '#8e44ad',    '구역모임': '#4A90E2' };
+
     const elDistrict = document.getElementById('district-select');
     const elDate = document.getElementById('date-select');
     const elType = document.getElementById('meeting-type');
     const elAttendance = document.getElementById('attendance-content');
     const elSetupText = document.getElementById('setup-textarea');
+    const elSetupDistrictLabel = document.getElementById('setup-district-label');
+    const elSaveIndicator = document.getElementById('save-indicator');
+    const elBtnSaveRecord = document.getElementById('btn-save-record');
+    const elRecordStatusWrap = document.getElementById('record-status-wrap');
 
-    // --- 초기화 ---
-    function init() {
-        // 1. 날짜 설정 (오늘)
-        const today = new Date().toISOString().split('T')[0];
-        elDate.value = today;
-
-        // 2. 데이터 불러오기
-        loadData();
-
-        // 3. UI 렌더링
-        renderAttendanceGrid();
-
-        // 4. 이벤트 리스너 등록
-        initEventListeners();
+    function buildDistrictDropdown() {
+        const groups = [10, 20, 30, 40];
+        let html = '';
+        groups.forEach(base => {
+            for (let i = 1; i <= 5; i++) {
+                const name = `${base + i}구역`;
+                html += `<option value="${name}">${name}</option>`;
+            }
+        });
+        elDistrict.innerHTML = html;
+        const last = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
+        elDistrict.value = last;
     }
 
-    // --- 데이터 관리 ---
     function loadData() {
-        // 명단 데이터
-        const storedMembers = localStorage.getItem(STORAGE_KEY_MEMBERS);
-        if (storedMembers) {
-            membersData = JSON.parse(storedMembers);
+        const m = localStorage.getItem(STORAGE_KEY_MEMBERS);
+        allMembersData = m ? JSON.parse(m) : {};
+        const r = localStorage.getItem(STORAGE_KEY_RECORDS);
+        allAttendanceRecords = r ? JSON.parse(r) : {};
+    }
+    function saveMembers() { localStorage.setItem(STORAGE_KEY_MEMBERS, JSON.stringify(allMembersData)); }
+    function saveRecords() { localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allAttendanceRecords)); }
+
+    function getMembers() {
+        const d = elDistrict.value;
+        if (!allMembersData[d]) allMembersData[d] = { eun: [], bong: [], mom: [], youth: [] };
+        return allMembersData[d];
+    }
+    function getRecords() {
+        const d = elDistrict.value;
+        if (!allAttendanceRecords[d]) allAttendanceRecords[d] = {};
+        return allAttendanceRecords[d];
+    }
+
+    function loadWorkingRecord() {
+        const records = getRecords();
+        const date = elDate.value;
+        const type = elType.value;
+        const saved = (records[date] && records[date][type]) || null;
+        workingRecord = saved ? [...saved] : [];
+        isDirty = false;
+        updateSaveIndicator(saved !== null);
+        updateRecordStatusBanner(saved !== null);
+    }
+
+    function updateSaveIndicator(isSaved) {
+        if (isDirty) {
+            elSaveIndicator.textContent = '● 저장되지 않은 변경사항 있음';
+            elSaveIndicator.className = 'save-indicator unsaved';
+            elBtnSaveRecord.textContent = '💾 저장하기';
+            elBtnSaveRecord.disabled = false;
+        } else if (isSaved) {
+            elSaveIndicator.textContent = '✓ 저장됨';
+            elSaveIndicator.className = 'save-indicator saved';
+            elBtnSaveRecord.textContent = '✓ 저장됨';
+            elBtnSaveRecord.disabled = true;
         } else {
-            // 기본 명단 (예시)
-            membersData = { eun: ['배선례', '조순옥', '김두례', '민지순'], bong: [], mom: [], youth: [] };
-            saveMembers();
-        }
-
-        // 출석 기록 데이터
-        const storedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
-        if (storedRecords) {
-            attendanceRecords = JSON.parse(storedRecords);
+            elSaveIndicator.textContent = '※ 출석 체크 후 [저장] 눌러줘';
+            elSaveIndicator.className = 'save-indicator';
+            elBtnSaveRecord.textContent = '💾 저장하기';
+            elBtnSaveRecord.disabled = false;
         }
     }
 
-    function saveMembers() {
-        localStorage.setItem(STORAGE_KEY_MEMBERS, JSON.stringify(membersData));
+    function updateRecordStatusBanner(isSaved) {
+        if (isSaved) {
+            elRecordStatusWrap.innerHTML = `<div class="record-status">📌 이 날짜에 저장된 기록을 불러왔어. 수정 후 다시 [저장] 누르면 덮어쓰기 됨.</div>`;
+        } else {
+            elRecordStatusWrap.innerHTML = '';
+        }
     }
 
-    function saveRecords() {
-        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(attendanceRecords));
-    }
-
-    // --- UI 렌더링 (메인 그리드) ---
     function renderAttendanceGrid() {
-        const selectedDate = elDate.value;
-        const meetingType = elType.value;
-        
-        // 데이터 존재 여부 확인
-        const hasMembers = CAT_ORDER.some(key => membersData[CATEGORIES[key].key] && membersData[CATEGORIES[key].key].length > 0);
-        
-        if (!hasMembers) {
-            elAttendance.innerHTML = '<div class="empty-msg">상단 \'명단설정\'을 눌러<br>구역원 이름을 입력해주세요.</div>';
+        const members = getMembers();
+        const hasAny = CAT_ORDER.some(k => members[CATEGORIES[k].key].length > 0);
+
+        if (!hasAny) {
+            elAttendance.innerHTML = `<div class="empty-msg">${elDistrict.value} 명단이 비었어.<br>상단 '명단설정'을 눌러 입력해줘.</div>`;
             return;
         }
 
-        elAttendance.innerHTML = ''; // 초기화
+        elAttendance.innerHTML = '';
 
-        // 해당 날짜/교제의 출석 명단 가져오기
-        const currentRecord = (attendanceRecords[selectedDate] && attendanceRecords[selectedDate][meetingType]) || [];
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key];
+            if (!names || names.length === 0) return;
 
-        CAT_ORDER.forEach(key => {
-            const cat = CATEGORIES[key];
-            const names = membersData[cat.key];
+            const section = document.createElement('section');
+            section.className = 'category-section';
 
-            if (names && names.length > 0) {
-                // 섹션 생성
-                const section = document.createElement('section');
-                section.className = 'category-section';
+            const title = document.createElement('div');
+            title.className = `category-title ${cat.titleClass}`;
+            const attendedCount = names.filter(n => workingRecord.includes(n)).length;
+            title.textContent = `${cat.name}  ${attendedCount}/${names.length}`;
+            section.appendChild(title);
 
-                // 타이틀 생성
-                const title = document.createElement('div');
-                title.className = `category-title ${cat.titleClass}`;
-                title.textContent = `${cat.name} (${names.length})`;
-                section.appendChild(title);
+            const grid = document.createElement('div');
+            grid.className = 'member-grid';
 
-                // 그리드 생성
-                const grid = document.createElement('div');
-                grid.className = 'member-grid';
+            names.forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = `member-btn ${cat.btnClass}`;
+                if (workingRecord.includes(name)) btn.classList.add('active');
+                btn.textContent = name;
+                btn.addEventListener('click', () => toggleAttendance(name, btn));
+                grid.appendChild(btn);
+            });
 
-                // 버튼 생성
-                names.forEach(name => {
-                    const btn = document.createElement('button');
-                    btn.className = `member-btn ${cat.btnClass}`;
-                    if (currentRecord.includes(name)) {
-                        btn.classList.add('active');
-                    }
-                    btn.textContent = name;
-
-                    // 클릭 이벤트
-                    btn.addEventListener('click', () => toggleAttendance(name, btn));
-
-                    grid.appendChild(btn);
-                });
-
-                section.appendChild(grid);
-                elAttendance.appendChild(section);
-            }
+            section.appendChild(grid);
+            elAttendance.appendChild(section);
         });
     }
 
-    // --- 출석 토글 로직 ---
     function toggleAttendance(name, btnEl) {
-        const selectedDate = elDate.value;
-        const meetingType = elType.value;
-
-        // UI 업데이트
-        btnEl.classList.toggle('active');
-
-        // 데이터 업데이트
-        if (!attendanceRecords[selectedDate]) {
-            attendanceRecords[selectedDate] = {};
-        }
-        if (!attendanceRecords[selectedDate][meetingType]) {
-            attendanceRecords[selectedDate][meetingType] = [];
-        }
-
-        const recordArray = attendanceRecords[selectedDate][meetingType];
-        const index = recordArray.indexOf(name);
-
-        if (index > -1) {
-            // 이미 있으면 제거 (결석 처리)
-            recordArray.splice(index, 1);
+        const idx = workingRecord.indexOf(name);
+        if (idx > -1) {
+            workingRecord.splice(idx, 1);
+            btnEl.classList.remove('active');
         } else {
-            // 없으면 추가 (출석 처리)
-            recordArray.push(name);
+            workingRecord.push(name);
+            btnEl.classList.add('active');
         }
-
-        // 저장
-        saveRecords();
+        isDirty = true;
+        updateSaveIndicator(false);
+        updateCategoryTitles();
     }
 
-    // --- 설정 모달 로직 ---
+    function updateCategoryTitles() {
+        const members = getMembers();
+        document.querySelectorAll('.category-section').forEach(section => {
+            const titleEl = section.querySelector('.category-title');
+            const cls = Array.from(titleEl.classList).find(c => c.startsWith('title-'));
+            const map = { 'title-eun': 'EUN', 'title-bong': 'BONG', 'title-mom': 'MOM', 'title-youth': 'YOUTH' };
+            const k = map[cls];
+            if (!k) return;
+            const cat = CATEGORIES[k];
+            const names = members[cat.key];
+            const attended = names.filter(n => workingRecord.includes(n)).length;
+            titleEl.textContent = `${cat.name}  ${attended}/${names.length}`;
+        });
+    }
+
+    // 요건 #1: 저장 (수정 가능)
+    function saveCurrentRecord() {
+        const records = getRecords();
+        const date = elDate.value;
+        const type = elType.value;
+
+        if (workingRecord.length === 0) {
+            if (!confirm('출석자가 0명인데 저장할까?\n(기존 기록이 있다면 0명으로 덮어쓰기 됨)')) return;
+        }
+
+        if (!records[date]) records[date] = {};
+        records[date][type] = [...workingRecord];
+
+        if (records[date][type].length === 0) {
+            delete records[date][type];
+            if (Object.keys(records[date]).length === 0) delete records[date];
+        }
+
+        saveRecords();
+        isDirty = false;
+        const stillExists = records[date] && records[date][type];
+        updateSaveIndicator(!!stillExists);
+        updateRecordStatusBanner(!!stillExists);
+
+        elBtnSaveRecord.textContent = '✓ 저장 완료';
+        setTimeout(() => updateSaveIndicator(!!stillExists), 1200);
+    }
+
+    function confirmIfDirty() {
+        if (isDirty) {
+            return confirm('저장하지 않은 변경사항이 있어. 버리고 이동할까?');
+        }
+        return true;
+    }
+
     function openSetup() {
-        // 현재 데이터를 텍스트 영역에 로드
+        const members = getMembers();
+        elSetupDistrictLabel.textContent = `(${elDistrict.value})`;
         let text = '';
-        CAT_ORDER.forEach(key => {
-            const cat = CATEGORIES[key];
-            if (membersData[cat.key] && membersData[cat.key].length > 0) {
-                text += `${cat.name}: ${membersData[cat.key].join(', ')}\n`;
-            } else {
-                 text += `${cat.name}: \n`;
-            }
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key] || [];
+            text += `${cat.name}: ${names.join(', ')}\n`;
         });
         elSetupText.value = text.trim();
         document.getElementById('setup-modal').classList.add('show');
@@ -443,155 +647,358 @@
     function saveSetup() {
         const text = elSetupText.value;
         const lines = text.split('\n');
-        const newMembersData = { eun: [], bong: [], mom: [], youth: [] };
+        const newData = { eun: [], bong: [], mom: [], youth: [] };
 
         lines.forEach(line => {
             const parts = line.split(':');
             if (parts.length < 2) return;
-
             const catName = parts[0].trim();
-            const namesText = parts[1].trim();
+            const namesText = parts.slice(1).join(':').trim();
             if (!namesText) return;
-
             const names = namesText.split(',').map(n => n.trim()).filter(n => n);
 
-            // 이름 매핑
-            if (catName.includes('은장')) newMembersData.eun = names;
-            else if (catName.includes('봉사')) newMembersData.bong = names;
-            else if (catName.includes('어머니')) newMembersData.mom = names;
-            else if (catName.includes('청년')) newMembersData.youth = names;
+            if (catName.includes('은장')) newData.eun = names;
+            else if (catName.includes('봉사')) newData.bong = names;
+            else if (catName.includes('어머니')) newData.mom = names;
+            else if (catName.includes('청년')) newData.youth = names;
         });
 
-        // 저장 및 반영
-        membersData = newMembersData;
+        allMembersData[elDistrict.value] = newData;
         saveMembers();
-        
         document.getElementById('setup-modal').classList.remove('show');
         renderAttendanceGrid();
     }
 
-    // --- 공유 로직 ---
-    function getAttendanceSummary() {
-        const selectedDate = elDate.value;
-        const meetingType = elType.value;
+    function getSummary() {
+        const members = getMembers();
+        const date = elDate.value;
+        const type = elType.value;
         const district = elDistrict.value;
-        const currentRecord = (attendanceRecords[selectedDate] && attendanceRecords[selectedDate][meetingType]) || [];
 
+        const rows = [];
         let total = 0;
-        const summary = [];
-
-        CAT_ORDER.forEach(key => {
-            const cat = CATEGORIES[key];
-            const names = membersData[cat.key];
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key];
             if (!names || names.length === 0) return;
-
-            const attendedCount = names.filter(name => currentRecord.includes(name)).length;
-            total += attendedCount;
-            summary.push(`${cat.name}: ${attendedCount}명`);
+            const cnt = names.filter(n => workingRecord.includes(n)).length;
+            total += cnt;
+            rows.push({ key: cat.key, name: cat.name, count: cnt });
         });
 
-        return { district, selectedDate, meetingType, summary, total };
+        const d = new Date(date);
+        const dateStr = `${String(d.getFullYear()).slice(2)}.${d.getMonth() + 1}.${d.getDate()}.`;
+        return { district, dateStr, type, rows, total };
+    }
+
+    function buildShareText() {
+        const s = getSummary();
+        let text = `${s.district} ${s.dateStr} ${s.type} 참석인원\n\n`;
+        if (s.rows.length === 0) { text += '명단이 등록되지 않았습니다.'; return text; }
+        s.rows.forEach(r => { text += `${r.name} ${r.count}\n`; });
+        text += `\n총 ${s.total}명 참석`;
+        return text;
+    }
+
+    function openShare() {
+        document.getElementById('share-preview').textContent = buildShareText();
+        document.getElementById('image-preview-wrap').classList.remove('show');
+        lastGeneratedImageBlob = null;
+        document.getElementById('share-modal').classList.add('show');
     }
 
     function shareAsText() {
-        const s = getAttendanceSummary();
-        
-        let text = `[구역 출석 보고]\n${s.selectedDate} | ${s.district} | ${s.meetingType}\n\n`;
-        if (s.summary.length === 0) {
-            text += "출석 데이터가 없습니다.";
-        } else {
-            text += s.summary.join('\n');
-            text += `\n---\n✅ 총 출석: ${s.total}명`;
-        }
-
-        // 클립보드 복사
+        const text = buildShareText();
         navigator.clipboard.writeText(text).then(() => {
-            alert('출석 보고가 클립보드에 복사되었습니다.\n카톡방에 붙여넣기 하세요.');
-        }).catch(err => {
-            alert('복사 실패. 직접 복사해서 공유해주세요.');
-            // 폴백으로 텍스트 영역에 보여줄 수도 있음
+            alert('텍스트가 복사됐어!\n카톡방에 붙여넣기 해.');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); alert('텍스트가 복사됐어!'); }
+            catch(e) { alert('복사 실패. 직접 복사해줘.'); }
+            document.body.removeChild(ta);
         });
     }
 
-    // --- 통계 로직 ---
-    function openStats() {
+    // 요건 #2: 이미지 파일 생성
+    function shareAsImage() {
+        const s = getSummary();
+        const card = document.getElementById('capture-card');
+        document.getElementById('cap-title').textContent = `${s.district} ${s.type} 참석인원`;
+        document.getElementById('cap-sub').textContent = s.dateStr;
+
+        const rowsEl = document.getElementById('cap-rows');
+        rowsEl.innerHTML = '';
+        s.rows.forEach(r => {
+            const div = document.createElement('div');
+            div.className = `cap-row ${r.key}`;
+            div.innerHTML = `<span class="lbl">${r.name}</span><span class="val">${r.count}명</span>`;
+            rowsEl.appendChild(div);
+        });
+        document.getElementById('cap-total').textContent = `총 ${s.total}명 참석`;
+
+        card.style.top = '0';
+        card.style.left = '0';
+        card.style.zIndex = '-1';
+
+        html2canvas(card, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+            card.style.top = '-9999px';
+            card.style.left = '-9999px';
+
+            canvas.toBlob(blob => {
+                if (!blob) { alert('이미지 생성 실패'); return; }
+                lastGeneratedImageBlob = blob;
+                lastGeneratedImageFilename = `출석_${s.district}_${s.dateStr.replace(/\./g, '')}.png`;
+
+                const dataUrl = canvas.toDataURL('image/png');
+                document.getElementById('image-preview').src = dataUrl;
+                document.getElementById('image-preview-wrap').classList.add('show');
+            }, 'image/png');
+        }).catch(err => {
+            card.style.top = '-9999px';
+            card.style.left = '-9999px';
+            alert('이미지 생성 실패: ' + err.message);
+        });
+    }
+
+    function downloadImage() {
+        if (!lastGeneratedImageBlob) { alert('먼저 [이미지 만들기]를 눌러줘.'); return; }
+
+        // Web Share API (모바일 - 카톡 등으로 바로 공유)
+        if (navigator.canShare && navigator.canShare({ files: [new File([lastGeneratedImageBlob], lastGeneratedImageFilename, { type: 'image/png' })] })) {
+            const file = new File([lastGeneratedImageBlob], lastGeneratedImageFilename, { type: 'image/png' });
+            navigator.share({ files: [file], title: '구역 출석' }).catch(() => {
+                // 공유 취소되면 다운로드 폴백
+                fallbackDownload();
+            });
+        } else {
+            fallbackDownload();
+        }
+    }
+
+    function fallbackDownload() {
+        const url = URL.createObjectURL(lastGeneratedImageBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = lastGeneratedImageFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // 요건 #3: 모임 종류별 통계 (범주별 평균을 보여줌)
+    function renderStats() {
+        const records = getRecords();
+        const members = getMembers();
         const container = document.getElementById('stats-container');
         container.innerHTML = '';
 
-        // 날짜별로 정렬
-        const sortedDates = Object.keys(attendanceRecords).sort().reverse();
+        const dates = Object.keys(records).sort();
+        if (dates.length === 0) {
+            container.innerHTML = '<div class="empty-msg">아직 저장된 출석 기록이 없어.<br>출석체크 후 [저장] 버튼 눌러줘.</div>';
+            return;
+        }
 
-        if (sortedDates.length === 0) {
-            container.innerHTML = '<div class="empty-msg">출석 데이터가 없습니다.</div>';
-        } else {
+        const selectedType = currentStatsType;
+        const typeClass = TYPE_CLASS[selectedType];
+
+        // 헤더
+        const headerInfo = document.createElement('div');
+        headerInfo.style.cssText = `background:${TYPE_BG[selectedType]};padding:10px 12px;border-radius:8px;margin-bottom:15px;font-size:0.9rem;color:${TYPE_COLOR[selectedType]};`;
+        headerInfo.innerHTML = `📍 <b>${elDistrict.value} · ${selectedType}</b> 의 월별 범주별 평균 출석`;
+        container.appendChild(headerInfo);
+
+        // 월별로 묶기: 각 범주(은장/봉사/어머니/청년)별 출석자 수를 회차별로 누적
+        // monthMap[ym][catKey] = [count, count, ...]
+        const monthMap = {};
+        let hasAnyData = false;
+
+        dates.forEach(date => {
+            const dayRec = records[date];
+            if (!dayRec[selectedType]) return; // 해당 모임 종류 기록 없는 날짜는 skip
+
+            const ym = date.substring(0, 7);
+            if (!monthMap[ym]) {
+                monthMap[ym] = { eun: [], bong: [], mom: [], youth: [] };
+            }
+
+            const attendees = dayRec[selectedType];
+            CAT_ORDER.forEach(k => {
+                const cat = CATEGORIES[k];
+                const catNames = members[cat.key] || [];
+                const cnt = attendees.filter(n => catNames.includes(n)).length;
+                monthMap[ym][cat.key].push(cnt);
+            });
+            hasAnyData = true;
+        });
+
+        if (!hasAnyData) {
+            container.innerHTML += `<div class="empty-msg">${selectedType} 기록이 아직 없어.</div>`;
+            return;
+        }
+
+        const sortedMonths = Object.keys(monthMap).sort().reverse();
+
+        sortedMonths.forEach(ym => {
+            const [y, m] = ym.split('-');
+            const monthTitle = document.createElement('div');
+            monthTitle.className = `stats-month-title ${typeClass}`;
+            const sessionCount = monthMap[ym].eun.length; // 모든 범주 길이 동일
+            monthTitle.textContent = `${y}년 ${parseInt(m, 10)}월  (${sessionCount}회 진행)`;
+            container.appendChild(monthTitle);
+
             const table = document.createElement('table');
             table.className = 'stats-table';
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>날짜</th>
-                        <th>구분</th>
-                        <th>인원</th>
+                        <th>범주</th>
+                        <th>전체</th>
+                        <th>평균 출석</th>
+                        <th>출석률</th>
                     </tr>
                 </thead>
-                <tbody id="stats-body">
-                </tbody>
             `;
-            const tbody = table.getElementById('stats-body');
-            
-            // 최근 10개 기록만 표시
-            sortedDates.slice(0, 10).forEach(date => {
-                const dayRecords = attendanceRecords[date];
-                for (const type in dayRecords) {
-                    const attendees = dayRecords[type];
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${date.substring(5)}</td>
-                        <td>${type}</td>
-                        <td>${attendees.length}명</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            });
-            container.appendChild(table);
-        }
+            const tbody = document.createElement('tbody');
 
+            let monthTotalAvg = 0;
+            let monthTotalMembers = 0;
+
+            CAT_ORDER.forEach(k => {
+                const cat = CATEGORIES[k];
+                const catNames = members[cat.key] || [];
+                const counts = monthMap[ym][cat.key];
+
+                const tr = document.createElement('tr');
+                if (catNames.length === 0) {
+                    tr.innerHTML = `<td style="color:#bbb;">${cat.name}</td><td colspan="3" style="color:#bbb;">명단없음</td>`;
+                } else {
+                    const sum = counts.reduce((a, b) => a + b, 0);
+                    const avg = sum / counts.length;
+                    const rate = (avg / catNames.length * 100).toFixed(0);
+                    monthTotalAvg += avg;
+                    monthTotalMembers += catNames.length;
+
+                    // 범주별 색상 dot
+                    const dotColors = { eun: '#9E9E9E', bong: '#4A90E2', mom: '#2ECC71', youth: '#E67E22' };
+                    tr.innerHTML = `
+                        <td style="text-align:left;padding-left:14px;">
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColors[cat.key]};margin-right:6px;"></span>
+                            ${cat.name}
+                        </td>
+                        <td>${catNames.length}명</td>
+                        <td><b>${avg.toFixed(1)}명</b></td>
+                        <td>${rate}%</td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+
+            // 합계 행
+            if (monthTotalMembers > 0) {
+                const totalRate = (monthTotalAvg / monthTotalMembers * 100).toFixed(0);
+                const totalRow = document.createElement('tr');
+                totalRow.style.cssText = 'background:#f8f9fa;font-weight:bold;';
+                totalRow.innerHTML = `
+                    <td>합계</td>
+                    <td>${monthTotalMembers}명</td>
+                    <td style="color:${TYPE_COLOR[selectedType]};">${monthTotalAvg.toFixed(1)}명</td>
+                    <td>${totalRate}%</td>
+                `;
+                tbody.appendChild(totalRow);
+            }
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+        });
+    }
+
+    function openStats() {
+        document.querySelectorAll('.stats-tab').forEach(t => {
+            t.classList.remove('active', 'sunday', 'wednesday', 'gathering');
+            if (t.dataset.type === currentStatsType) {
+                t.classList.add('active', TYPE_CLASS[currentStatsType]);
+            }
+        });
+        renderStats();
         document.getElementById('stats-modal').classList.add('show');
     }
 
-    // --- 이벤트 리스너 정의 ---
     function initEventListeners() {
-        // 날짜/교제 변경시 그리드 갱신
-        elDate.addEventListener('change', renderAttendanceGrid);
-        elType.addEventListener('change', renderAttendanceGrid);
+        elDistrict.addEventListener('change', (e) => {
+            if (!confirmIfDirty()) {
+                e.target.value = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
+            loadWorkingRecord();
+            renderAttendanceGrid();
+        });
+        elDate.addEventListener('change', () => {
+            if (!confirmIfDirty()) return;
+            loadWorkingRecord();
+            renderAttendanceGrid();
+        });
+        elType.addEventListener('change', () => {
+            if (!confirmIfDirty()) return;
+            loadWorkingRecord();
+            renderAttendanceGrid();
+        });
 
-        // 모달 열기/닫기
         document.querySelector('.btn-setup').addEventListener('click', openSetup);
         document.getElementById('save-setup').addEventListener('click', saveSetup);
-        
+
+        elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
+
+        document.querySelector('.btn-share').addEventListener('click', openShare);
+        document.getElementById('btn-share-text').addEventListener('click', shareAsText);
+        document.getElementById('btn-share-image').addEventListener('click', shareAsImage);
+        document.getElementById('btn-download-image').addEventListener('click', downloadImage);
+
         document.querySelector('.btn-stats').addEventListener('click', openStats);
 
-        // 공유 실행
-        document.querySelector('.btn-share').addEventListener('click', shareAsText);
+        document.querySelectorAll('.stats-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                currentStatsType = tab.dataset.type;
+                document.querySelectorAll('.stats-tab').forEach(t => {
+                    t.classList.remove('active', 'sunday', 'wednesday', 'gathering');
+                });
+                tab.classList.add('active', TYPE_CLASS[currentStatsType]);
+                renderStats();
+            });
+        });
 
-        // 모달 닫기 버튼 공통
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
             });
         });
-
-        // 모달 바깥 클릭시 닫기
         window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('show');
+            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
             }
         });
     }
 
-    // 앱 시작
-    init();
+    function init() {
+        buildDistrictDropdown();
+        elDate.value = new Date().toISOString().split('T')[0];
+        loadData();
+        loadWorkingRecord();
+        renderAttendanceGrid();
+        initEventListeners();
+    }
 
+    init();
 </script>
+
 </body>
 </html>
