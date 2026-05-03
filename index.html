@@ -83,7 +83,7 @@
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-setup { background-color: #E0E0E0; color: #333; flex: 1; }
-    .btn-save-record { background-color: var(--save-color); color: white; flex: 1.3; }
+    .btn-save-record { background-color: var(--save-color); color: white; flex: 1.3; font-size: 0.82rem; padding: 12px 4px; }
     .btn-share { background-color: var(--primary-color); color: white; flex: 1.3; }
     .btn-stats { background-color: #34495e; color: white; flex: 1; }
 
@@ -358,7 +358,7 @@
         </div>
         <div class="help-text">
             구역별로 명단이 따로 저장됩니다.<br>
-            아래 형식대로 범주별 이름을 쉼표(,)로 구분해 입력하세요.
+            아래 형식에 맞게 범주별 이름을 쉼표(,)로 구분해 입력해주세요.
         </div>
         <textarea id="setup-textarea" placeholder="은장회: 배선례, 조순옥, 김두례, 민지순
 봉사회: 박이름, 최이름
@@ -385,8 +385,8 @@
     <div class="image-preview-wrap" id="image-preview-wrap">
         <img id="image-preview" src="" alt="출석 이미지">
         <div class="hint">
-            📱 모바일: 이미지를 <b>꾹 눌러서</b> '이미지 저장' 또는 '카톡으로 공유' 가능<br>
-            💻 PC: 아래 [다운로드] 버튼 또는 이미지 우클릭 → '저장'
+            📱 모바일: 이미지를 <b>꾹 눌러</b> '이미지 저장' 또는 '카톡으로 공유'할 수 있습니다.<br>
+            💻 PC: 아래 [다운로드] 버튼을 누르거나 이미지 우클릭 → '저장'을 이용해주세요.
         </div>
         <button class="btn-share" id="btn-download-image" style="margin-top:10px;width:100%;">⬇️ 이미지 파일 다운로드</button>
     </div>
@@ -500,17 +500,17 @@
 
     function updateSaveIndicator(isSaved) {
         if (isDirty) {
-            elSaveIndicator.textContent = '● 저장되지 않은 변경사항 있음';
+            elSaveIndicator.textContent = '● 저장되지 않은 변경사항이 있습니다';
             elSaveIndicator.className = 'save-indicator unsaved';
             elBtnSaveRecord.textContent = '💾 저장하기';
             elBtnSaveRecord.disabled = false;
         } else if (isSaved) {
-            elSaveIndicator.textContent = '✓ 저장됨';
+            elSaveIndicator.textContent = '✓ 저장되었습니다';
             elSaveIndicator.className = 'save-indicator saved';
             elBtnSaveRecord.textContent = '✓ 저장됨';
             elBtnSaveRecord.disabled = true;
         } else {
-            elSaveIndicator.textContent = '※ 출석 체크 후 [저장] 눌러줘';
+            elSaveIndicator.textContent = '※ 출석 체크 후 [저장] 버튼을 눌러주세요';
             elSaveIndicator.className = 'save-indicator';
             elBtnSaveRecord.textContent = '💾 저장하기';
             elBtnSaveRecord.disabled = false;
@@ -519,7 +519,7 @@
 
     function updateRecordStatusBanner(isSaved) {
         if (isSaved) {
-            elRecordStatusWrap.innerHTML = `<div class="record-status">📌 이 날짜에 저장된 기록을 불러왔어. 수정 후 다시 [저장] 누르면 덮어쓰기 됨.</div>`;
+            elRecordStatusWrap.innerHTML = `<div class="record-status">📌 이 날짜에 저장된 기록을 불러왔습니다. 수정 후 다시 [저장]을 누르시면 덮어쓰기 됩니다.</div>`;
         } else {
             elRecordStatusWrap.innerHTML = '';
         }
@@ -530,7 +530,7 @@
         const hasAny = CAT_ORDER.some(k => members[CATEGORIES[k].key].length > 0);
 
         if (!hasAny) {
-            elAttendance.innerHTML = `<div class="empty-msg">${elDistrict.value} 명단이 비었어.<br>상단 '명단설정'을 눌러 입력해줘.</div>`;
+            elAttendance.innerHTML = `<div class="empty-msg">${elDistrict.value} 명단이 비어있습니다.<br>상단 '명단설정'을 눌러 입력해주세요.</div>`;
             return;
         }
 
@@ -603,7 +603,7 @@
         const type = elType.value;
 
         if (workingRecord.length === 0) {
-            if (!confirm('출석자가 0명인데 저장할까?\n(기존 기록이 있다면 0명으로 덮어쓰기 됨)')) return;
+            if (!confirm('출석자가 0명입니다. 저장하시겠습니까?\n(기존 기록이 있다면 0명으로 덮어쓰기 됩니다)')) return;
         }
 
         if (!records[date]) records[date] = {};
@@ -626,7 +626,7 @@
 
     function confirmIfDirty() {
         if (isDirty) {
-            return confirm('저장하지 않은 변경사항이 있어. 버리고 이동할까?');
+            return confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동하시겠습니까?');
         }
         return true;
     }
@@ -710,14 +710,14 @@
     function shareAsText() {
         const text = buildShareText();
         navigator.clipboard.writeText(text).then(() => {
-            alert('텍스트가 복사됐어!\n카톡방에 붙여넣기 해.');
+            alert('텍스트가 복사되었습니다.\n카톡방에 붙여넣기 해주세요.');
         }).catch(() => {
             const ta = document.createElement('textarea');
             ta.value = text;
             document.body.appendChild(ta);
             ta.select();
-            try { document.execCommand('copy'); alert('텍스트가 복사됐어!'); }
-            catch(e) { alert('복사 실패. 직접 복사해줘.'); }
+            try { document.execCommand('copy'); alert('텍스트가 복사되었습니다.'); }
+            catch(e) { alert('복사에 실패했습니다. 직접 복사해주세요.'); }
             document.body.removeChild(ta);
         });
     }
@@ -748,7 +748,7 @@
             card.style.left = '-9999px';
 
             canvas.toBlob(blob => {
-                if (!blob) { alert('이미지 생성 실패'); return; }
+                if (!blob) { alert('이미지 생성에 실패했습니다.'); return; }
                 lastGeneratedImageBlob = blob;
                 lastGeneratedImageFilename = `출석_${s.district}_${s.dateStr.replace(/\./g, '')}.png`;
 
@@ -759,12 +759,12 @@
         }).catch(err => {
             card.style.top = '-9999px';
             card.style.left = '-9999px';
-            alert('이미지 생성 실패: ' + err.message);
+            alert('이미지 생성에 실패했습니다: ' + err.message);
         });
     }
 
     function downloadImage() {
-        if (!lastGeneratedImageBlob) { alert('먼저 [이미지 만들기]를 눌러줘.'); return; }
+        if (!lastGeneratedImageBlob) { alert('먼저 [이미지 만들기]를 눌러주세요.'); return; }
 
         // Web Share API (모바일 - 카톡 등으로 바로 공유)
         if (navigator.canShare && navigator.canShare({ files: [new File([lastGeneratedImageBlob], lastGeneratedImageFilename, { type: 'image/png' })] })) {
@@ -798,7 +798,7 @@
 
         const dates = Object.keys(records).sort();
         if (dates.length === 0) {
-            container.innerHTML = '<div class="empty-msg">아직 저장된 출석 기록이 없어.<br>출석체크 후 [저장] 버튼 눌러줘.</div>';
+            container.innerHTML = '<div class="empty-msg">아직 저장된 출석 기록이 없습니다.<br>출석체크 후 [저장] 버튼을 눌러주세요.</div>';
             return;
         }
 
@@ -836,7 +836,7 @@
         });
 
         if (!hasAnyData) {
-            container.innerHTML += `<div class="empty-msg">${selectedType} 기록이 아직 없어.</div>`;
+            container.innerHTML += `<div class="empty-msg">${selectedType} 기록이 아직 없습니다.</div>`;
             return;
         }
 
