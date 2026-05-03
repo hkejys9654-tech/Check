@@ -69,6 +69,12 @@
             appearance: none; /* 기본 화살표 제거 */
             -webkit-appearance: none;
             background-color: white;
+            color: #333; /* 폰트 색상 명시 */
+        }
+        
+        select:disabled {
+            opacity: 0.6;
+            color: #999;
         }
 
         .main-actions {
@@ -274,10 +280,34 @@
     <div class="controls">
         <select id="district-select">
             <option value="" disabled selected>구역 선택</option>
-            <option value="11~15">11~15 구역</option>
-            <option value="21~25">21~25 구역</option>
-            <option value="31~35">31~35 구역</option>
-            <option value="41~45">41~45 구역</option>
+            <optgroup label="11~15 구역">
+                <option value="11">11 구역</option>
+                <option value="12">12 구역</option>
+                <option value="13">13 구역</option>
+                <option value="14">14 구역</option>
+                <option value="15">15 구역</option>
+            </optgroup>
+            <optgroup label="21~25 구역">
+                <option value="21">21 구역</option>
+                <option value="22">22 구역</option>
+                <option value="23">23 구역</option>
+                <option value="24">24 구역</option>
+                <option value="25">25 구역</option>
+            </optgroup>
+            <optgroup label="31~35 구역">
+                <option value="31">31 구역</option>
+                <option value="32">32 구역</option>
+                <option value="33">33 구역</option>
+                <option value="34">34 구역</option>
+                <option value="35">35 구역</option>
+            </optgroup>
+            <optgroup label="41~45 구역">
+                <option value="41">41 구역</option>
+                <option value="42">42 구역</option>
+                <option value="43">43 구역</option>
+                <option value="44">44 구역</option>
+                <option value="45">45 구역</option>
+            </optgroup>
         </select>
         <div class="controls-row">
             <input type="date" id="date-select">
@@ -403,6 +433,15 @@
         };
     }
 
+    // 구역 선택 여부 확인 및 알림 Helper
+    function checkDistrictSelected() {
+        if (!elDistrict.value || elDistrict.value === "") {
+            alert('🏡 상단에서 구역을 먼저 선택해주세요.');
+            return false;
+        }
+        return true;
+    }
+
     // --- 초기화 ---
     function init() {
         // 1. 날짜 설정 (오늘)
@@ -411,7 +450,7 @@
 
         // 2. 이전에 선택한 구역 불러오기 (임시)
         const lastDist = localStorage.getItem('guAttendance_lastDistrict');
-        if (lastDist) {
+        if (lastDist && lastDist !== "") {
             elDistrict.value = lastDist;
         }
 
@@ -427,14 +466,12 @@
         const keys = getDistrictKeys();
         if (!keys.members) {
             elAttendance.innerHTML = '<div class="empty-msg">🏡 상단에서 구역을 먼저 선택해주세요.</div>';
-            document.querySelectorAll('.main-actions button').forEach(b => b.disabled = true);
             elDate.disabled = true;
             elType.disabled = true;
             return;
         }
 
         // 컨트롤 활성화
-        document.querySelectorAll('.main-actions button').forEach(b => b.disabled = false);
         elDate.disabled = false;
         elType.disabled = false;
 
@@ -568,9 +605,9 @@
 
     // --- 설정 모달 로직 ---
     function openSetup() {
-        const dist = elDistrict.value;
-        if (!dist) return;
+        if (!checkDistrictSelected()) return;
 
+        const dist = elDistrict.value;
         document.getElementById('setup-modal-title').textContent = `⚙️ ${dist} 구역 명단 설정`;
 
         // 현재 데이터를 텍스트 영역에 로드
@@ -702,10 +739,10 @@
 
     // 이미지 공유 (html2canvas)
     function shareAsImage() {
-        closeShareSheets();
         const keys = getDistrictKeys();
         if (!keys.members) return;
 
+        closeShareSheets();
         const loading = document.getElementById('loading-overlay');
         const capArea = document.getElementById('capture-area');
         const capHeader = document.getElementById('capture-header');
@@ -778,6 +815,8 @@
 
     // --- 통계 로직 ---
     function openStats() {
+        if (!checkDistrictSelected()) return;
+
         const keys = getDistrictKeys();
         if (!keys.records) return;
 
@@ -882,17 +921,1014 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td style="font-weight:500; text-align:left; padding-left:5px;">${type}<span style="font-size:0.7rem; color:#999; font-weight:normal;"> (${d}회)</span></td>
-                        <td>${avgEun}To consolidate the interface, I will eliminate the duplicate "Meeting Type" dropdown inside the attendance section and utilize the one in the header. To fulfill the requests for district selection, accurate terminology in the statistics table, and a specific text share format, I will refine the code.
+                        <td>${avgEun}</td>
+                        <td>${avgBong}</td>
+                        <td>${avgMom}</td>
+                        <td>${avgYouth}</td>
+                        <td style="font-weight:bold; background-color:#fcfcfc">${avgTotal}깃허브 파지스(GitHub Pages)를 통해 배포하기 가장 적합한 형태인 단일 `index.html` 파일 코드를 짜드렸습니다.
 
-Here are the key implementation steps:
+이 코드를 복사하여 메모장이나 코드 에디터에 붙여넣고 `index.html`로 저장한 뒤, 깃허브 리포지토리에 업로드하고 Pages 설정을 하시면 바로 스마트폰에서 접속 가능한 어플이 됩니다.
 
-**1. Refinement of Header and HTML Structure**
-I will update the `<header>` block to include a new `<select>` element for district ranges ("11~15", "21~25", etc.). I will also refine the CSS for the `.controls` class to stack these three input elements (district, date, meeting type) vertically on mobile devices, ensuring a cleaner layout.
+### 사용 방법 요약
 
-**2. JavaScript Modifications for Dynamic Data and Text Sharing**
-In the JavaScript section, I will introduce a global variable, `elDistrict`, for the new dropdown. I will also helper functions to dynamically generate LocalStorage keys based on the selected district range. This approach ensures that data for "11~15 Family" is stored separately from "21~25 Family," preventing data overwrites.
+1.  **깃허브 업로드**: 리포지토리를 만들고 이 코드를 `index.html`이라는 이름으로 올립니다.
+2.  **Pages 설정**: 리포지토리 Settings -> Pages에서 Source를 `Deploy from a branch`, branch를 `main` (또는 master) / `/(root)`로 설정하고 저장합니다.
+3.  **접속**: 잠시 후 상단에 생성되는 URL(예: `https://유저명.github.io/리포지토리명`)로 접속합니다.
 
-A crucial part of this update involves modifying the `shareAsText()` function. I will create a custom date formatter to convert `YYYY-MM-DD` dates into the `YY.M.D.` format. The shared text will then be constructed according to the specific template, including the district range, formatted date, meeting type, and counts for each group, followed by the total attendance.
+---
 
-**3. Cleanup and Terminology Check**
-To remove redundancy, I will refactor the `renderAttendanceGrid()` function by eliminating the JavaScript blocks that dynamically generated the duplicate "Meeting Type" dropdown. I will also verify the terminology within the statistics section, specifically in `CAT_MAP`, to ensure "어머니회" (Mother's Society) is used as requested. Finally, I will assemble the modifications into a single `index.html` file and verify that the district selection dropdown correctly triggers a re-render and that the text sharing functionality follows the new template.
+### 구역 출석체크 어플 단일 파일 소스코드 (최종 수정본)
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>구역 출석체크</title>
+    <!-- 테마 색상 설정 (모바일 브라우저 상단바) -->
+    <meta name="theme-color" content="#4a90e2">
+    
+    <!-- 이미지 저장 기능용 라이브러리 (CDN) -->
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
+    
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f7f6;
+            --silver-color: #A0A0A0; /* 은장회 - 회색 */
+            --service-color: #4A90E2; /* 봉사회 - 파랑 */
+            --mother-color: #2ECC71;  /* 어머니회 - 초록 */
+            --youth-color: #E67E22;   /* 청년회 - 주황 */
+            --border-inactive: #ddd;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: #333;
+            user-select: none; /* 텍스트 선택 방지 (앱 느낌) */
+            -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
+        }
+
+        /* 헤더 고정 */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 10px 0;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column; /* 모바일에서 스택 */
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="date"], select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            appearance: none; /* 기본 화살표 제거 */
+            -webkit-appearance: none;
+            background-color: white;
+            color: #333; /* 폰트 색상 명시 */
+        }
+        
+        select:disabled {
+            opacity: 0.6;
+            color: #999;
+        }
+
+        .main-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .btn-setup { background-color: #e0e0e0; color: #333; flex: 1; }
+        .btn-share { background-color: var(--primary-color); color: white; flex: 2; }
+        .btn-stats { background-color: #34495e; color: white; flex: 1; }
+
+        /* 메인 컨텐츠 영역 */
+        main {
+            padding: 15px;
+            padding-bottom: 80px; /* 푸터 공간 */
+        }
+
+        /* 캡쳐 영역 스타일 */
+        #capture-area {
+            background-color: var(--bg-color);
+            padding: 10px 5px;
+        }
+
+        .cap-header {
+            display: none; /* 평소엔 숨김, 캡쳐시에만 노출 */
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .category-section {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-left: 5px;
+            border-left: 4px solid;
+        }
+
+        /* 범주별 색상 */
+        .title-eun { border-left-color: var(--silver-color); color: #666; }
+        .title-bong { border-left-color: var(--service-color); color: var(--service-color); }
+        .title-mom { border-left-color: var(--mother-color); color: var(--mother-color); }
+        .title-youth { border-left-color: var(--youth-color); color: var(--youth-color); }
+
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        /* 출석 버튼 스타일 */
+        .member-btn {
+            background-color: white;
+            border: 2px solid var(--border-inactive);
+            color: #777;
+            padding: 15px 10px;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: normal;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        /* 활성화 상태 (출석함) */
+        .member-btn.active.eun { border-color: var(--silver-color); color: var(--silver-color); font-weight: bold; background-color: #f8f8f8;}
+        .member-btn.active.bong { border-color: var(--service-color); color: var(--service-color); font-weight: bold; background-color: #eef5fc;}
+        .member-btn.active.mom { border-color: var(--mother-color); color: var(--mother-color); font-weight: bold; background-color: #edfcf3;}
+        .member-btn.active.youth { border-color: var(--youth-color); color: var(--youth-color); font-weight: bold; background-color: #fef5ed;}
+
+        /* 설정/통계 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h2 { font-size: 1.1rem; margin: 0; }
+        .close-modal { font-size: 1.5rem; cursor: pointer; color: #aaa; background: none; padding: 0; }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .help-text { font-size: 0.8rem; color: #666; margin-bottom: 15px; line-height: 1.4; }
+
+        .btn-save { background-color: var(--primary-color); color: white; width: 100%; }
+
+        /* 공유 옵션 시트 */
+        .share-sheet {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background-color: white;
+            border-top-radius: 15px;
+            border-top: 1px solid #eee;
+            z-index: 1001;
+            padding: 20px;
+            box-sizing: border-box;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .share-sheet.show { display: block; transform: translateY(0); }
+
+        .share-sheet-header { text-align: center; margin-bottom: 15px; color: #666; font-size: 0.9rem;}
+
+        .share-options { display: flex; gap: 15px; }
+        .btn-opt { flex: 1; text-align: center; background-color: #f0f0f0; color: #333; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;}
+        .share-icon { font-size: 1.5rem; }
+
+        /* 통계 표 스타일 */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #eee;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .stats-table th { background-color: #f8f9fa; color: #666; }
+        .stats-table .month-row { background-color: var(--bg-color); font-weight: bold; text-align: left; padding-left: 10px;}
+        
+        .empty-msg { text-align: center; color: #999; padding: 30px 0; font-size: 0.9rem; }
+
+        /* 유틸리티 */
+        .hidden { display: none !important; }
+        
+        /* 로딩 바 */
+        #loading-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000; justify-content: center; align-items: center; flex-direction: column;
+        }
+        #loading-overlay.show { display: flex; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color);
+            border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏡 구역 출석체크</h1>
+    <div class="controls">
+        <select id="district-select">
+            <option value="" disabled selected>구역 선택</option>
+            <optgroup label="11~15 구역">
+                <option value="11">11 구역</option>
+                <option value="12">12 구역</option>
+                <option value="13">13 구역</option>
+                <option value="14">14 구역</option>
+                <option value="15">15 구역</option>
+            </optgroup>
+            <optgroup label="21~25 구역">
+                <option value="21">21 구역</option>
+                <option value="22">22 구역</option>
+                <option value="23">23 구역</option>
+                <option value="24">24 구역</option>
+                <option value="25">25 구역</option>
+            </optgroup>
+            <optgroup label="31~35 구역">
+                <option value="31">31 구역</option>
+                <option value="32">32 구역</option>
+                <option value="33">33 구역</option>
+                <option value="34">34 구역</option>
+                <option value="35">35 구역</option>
+            </optgroup>
+            <optgroup label="41~45 구역">
+                <option value="41">41 구역</option>
+                <option value="42">42 구역</option>
+                <option value="43">43 구역</option>
+                <option value="44">44 구역</option>
+                <option value="45">45 구역</option>
+            </optgroup>
+        </select>
+        <div class="controls-row">
+            <input type="date" id="date-select">
+            <select id="meeting-type">
+                <option value="주일말씀">주일말씀</option>
+                <option value="수요말씀">수요말씀</option>
+                <option value="구역모임">구역모임</option>
+            </select>
+        </div>
+    </div>
+    <div class="main-actions">
+        <button class="btn-setup" id="open-setup">명단설정</button>
+        <button class="btn-share" id="open-share">공유하기</button>
+        <button class="btn-stats" id="open-stats">통계</button>
+    </div>
+</header>
+
+<main>
+    <div id="capture-area">
+        <!-- 캡쳐용 헤더 (평소 숨김) -->
+        <div class="cap-header" id="capture-header">
+            <div style="font-size:1.2rem; font-weight:bold;">구역 출석 보고</div>
+            <div id="capture-date-info" style="margin-top:5px; color:#555;"></div>
+        </div>
+
+        <div id="attendance-content">
+            <!-- 자바스크립트로 명단이 여기에 생성됩니다 -->
+             <div class="empty-msg">상단 '명단설정'을 눌러<br>구역원 이름을 입력해주세요.</div>
+        </div>
+    </div>
+</main>
+
+<!-- 명단 설정 모달 -->
+<div class="modal" id="setup-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="setup-modal-title">⚙️ 구역 명단 설정</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="help-text">
+            아래 형식에 맞춰 범주별로 이름을 쉼표(,)로 구분해 입력하세요.<br>
+            데이터는 해당 구역 범위 내에 저장됩니다.
+        </div>
+        <textarea id="setup-textarea" placeholder="은장회: 김은장, 이은장
+봉사회: 박봉사, 최봉사
+어머니회: 정어머, 조어머
+청년회: 강청년, 윤청년"></textarea>
+        <button class="btn-save" id="save-setup">저장하기</button>
+    </div>
+</div>
+
+<!-- 통계 모달 -->
+<div class="modal" id="stats-modal">
+    <div class="modal-content" style="width: 95%; max-width: 600px;">
+        <div class="modal-header">
+            <h2>📊 월별 평균 출석 통계</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div id="stats-container">
+            <!-- 통계 표가 여기에 생성됩니다 -->
+        </div>
+    </div>
+</div>
+
+<!-- 공유 옵션 시트 -->
+<div class="share-sheet" id="share-sheet">
+    <div class="share-sheet-header">공유 형식 선택</div>
+    <div class="share-options">
+        <button class="btn-opt" id="share-text">
+            <span class="share-icon">📝</span>
+            <span>텍스트</span>
+        </button>
+        <button class="btn-opt" id="share-image">
+            <span class="share-icon">🖼️</span>
+            <span>이미지</span>
+        </button>
+    </div>
+    <button style="width:100%; background:#eee; margin-top:15px; color:#333;" id="close-share">취소</button>
+</div>
+
+<!-- 로딩 오버레이 -->
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="color:#555; font-size:0.9rem;">이미지 생성 중...</div>
+</div>
+
+<script>
+    /**
+     * 구역 출석체크 어플리케이션 로직
+     * 데이터는 LocalStorage를 사용하여 브라우저에 반영구적으로 저장됩니다.
+     * 구역별로 키를 구분하여 저장합니다.
+     */
+
+    // --- 상수 및 상태 변수 ---
+    const BASE_STORAGE_KEY_MEMBERS = 'guAttendance_members';
+    const BASE_STORAGE_KEY_RECORDS = 'guAttendance_records';
+    
+    const CAT_MAP = {
+        EUN: { id: 'eun', name: '은장회', class: 'title-eun', btnClass: 'eun' },
+        BONG: { id: 'bong', name: '봉사회', class: 'title-bong', btnClass: 'bong' },
+        MOM: { id: 'mom', name: '어머니회', class: 'title-mom', btnClass: 'mom' },
+        YOUTH: { id: 'youth', name: '청년회', class: 'title-youth', btnClass: 'youth' }
+    };
+    const CAT_ORDER = ['EUN', 'BONG', 'MOM', 'YOUTH'];
+
+    let membersData = null; // { eun: [], bong: [], ... }
+    let attendanceRecords = {}; // { '2023-10-27': { '주일말씀': ['이름1', '이름2'], ... }, ... }
+
+    // --- UI 요소 요소 ---
+    const elDistrict = document.getElementById('district-select');
+    const elAttendance = document.getElementById('attendance-content');
+    const elDate = document.getElementById('date-select');
+    const elType = document.getElementById('meeting-type');
+    const elSetupText = document.getElementById('setup-textarea');
+
+    // 구역별 저장 키 가져오기
+    function getDistrictKeys() {
+        const dist = elDistrict.value;
+        if (!dist) return { members: null, records: null };
+        return {
+            members: `${BASE_STORAGE_KEY_MEMBERS}_${dist}`,
+            records: `${BASE_STORAGE_KEY_RECORDS}_${dist}`
+        };
+    }
+
+    // 구역 선택 여부 확인 및 알림 Helper
+    function checkDistrictSelected() {
+        if (!elDistrict.value || elDistrict.value === "") {
+            alert('🏡 상단에서 구역을 먼저 선택해주세요.');
+            return false;
+        }
+        return true;
+    }
+
+    // --- 초기화 ---
+    function init() {
+        // 1. 날짜 설정 (오늘)
+        const today = new Date().toISOString().split('T')[0];
+        elDate.value = today;
+
+        // 2. 이전에 선택한 구역 불러오기 (임시)
+        const lastDist = localStorage.getItem('guAttendance_lastDistrict');
+        if (lastDist && lastDist !== "") {
+            elDistrict.value = lastDist;
+        }
+
+        // 3. 데이터 불러오기 및 UI 렌더링
+        loadDataAndRender();
+
+        // 4. 이벤트 리스너 등록
+        initEventListeners();
+    }
+
+    // 구역 변경 시 데이터 로드 및 렌더링
+    function loadDataAndRender() {
+        const keys = getDistrictKeys();
+        if (!keys.members) {
+            elAttendance.innerHTML = '<div class="empty-msg">🏡 상단에서 구역을 먼저 선택해주세요.</div>';
+            elDate.disabled = true;
+            elType.disabled = true;
+            return;
+        }
+
+        // 컨트롤 활성화
+        elDate.disabled = false;
+        elType.disabled = false;
+
+        // 현재 구역 저장
+        localStorage.setItem('guAttendance_lastDistrict', elDistrict.value);
+
+        // 데이터 불러오기
+        loadData(keys);
+
+        // UI 렌더링
+        renderAttendanceGrid();
+    }
+
+    // --- 데이터 관리 ---
+    function loadData(keys) {
+        const storedMembers = localStorage.getItem(keys.members);
+        if (storedMembers) {
+            membersData = JSON.parse(storedMembers);
+        } else {
+            membersData = { eun: [], bong: [], mom: [], youth: [] };
+        }
+
+        const storedRecords = localStorage.getItem(keys.records);
+        if (storedRecords) {
+            attendanceRecords = JSON.parse(storedRecords);
+        } else {
+            attendanceRecords = {};
+        }
+    }
+
+    function saveData() {
+        const keys = getDistrictKeys();
+        if (!keys.records) return;
+        localStorage.setItem(keys.records, JSON.stringify(attendanceRecords));
+    }
+
+    // --- UI 렌더링 (메인 그리드) ---
+    function renderAttendanceGrid() {
+        const selectedDate = elDate.value;
+        const meetingType = elType.value;
+        const keys = getDistrictKeys();
+
+        if (!keys.members) return;
+
+        // 데이터 존재 여부 확인
+        const hasMembers = CAT_ORDER.some(key => membersData[CAT_MAP[key].id] && membersData[CAT_MAP[key].id].length > 0);
+
+        if (!hasMembers) {
+            elAttendance.innerHTML = `<div class="empty-msg">${elDistrict.value} 구역 명단이 없습니다.<br>'명단설정'을 눌러 입력해주세요.</div>`;
+            return;
+        }
+
+        elAttendance.innerHTML = ''; // 초기화
+
+        // 해당 날짜/예배의 출석 명단 가져오기
+        const currentRecord = (attendanceRecords[selectedDate] && attendanceRecords[selectedDate][meetingType]) || [];
+
+        CAT_ORDER.forEach(key => {
+            const cat = CAT_MAP[key];
+            const names = membersData[cat.id];
+
+            if (names && names.length > 0) {
+                // 섹션 생성
+                const section = document.createElement('section');
+                section.className = 'category-section';
+
+                // 타이틀 생성
+                const title = document.createElement('div');
+                title.className = `category-title ${cat.class}`;
+                title.textContent = `${cat.name} (${names.length})`;
+                section.appendChild(title);
+
+                // 그리드 생성
+                const grid = document.createElement('div');
+                grid.className = 'member-grid';
+
+                // 버튼 생성
+                names.forEach(name => {
+                    const btn = document.createElement('button');
+                    btn.className = `member-btn ${cat.btnClass}`;
+                    if (currentRecord.includes(name)) {
+                        btn.classList.add('active');
+                    }
+                    btn.textContent = name;
+
+                    // 터치/클릭 이벤트 (테두리 활성화 로직)
+                    btn.addEventListener('click', () => toggleAttendance(name, btn));
+
+                    grid.appendChild(btn);
+                });
+
+                section.appendChild(grid);
+                elAttendance.appendChild(section);
+            }
+        });
+    }
+
+    // --- 출석 토글 로직 ---
+    function toggleAttendance(name, btnEl) {
+        const selectedDate = elDate.value;
+        const meetingType = elType.value;
+        const keys = getDistrictKeys();
+
+        if (!keys.records) return;
+
+        // UI 업데이트
+        btnEl.classList.toggle('active');
+
+        // 데이터 업데이트
+        if (!attendanceRecords[selectedDate]) {
+            attendanceRecords[selectedDate] = {};
+        }
+        if (!attendanceRecords[selectedDate][meetingType]) {
+            attendanceRecords[selectedDate][meetingType] = [];
+        }
+
+        const recordArray = attendanceRecords[selectedDate][meetingType];
+        const index = recordArray.indexOf(name);
+
+        if (index > -1) {
+            // 이미 있으면 제거 (결석 처리)
+            recordArray.splice(index, 1);
+        } else {
+            // 없으면 추가 (출석 처리)
+            recordArray.push(name);
+        }
+
+        // 저장
+        saveData();
+    }
+
+    // --- 설정 모달 로직 ---
+    function openSetup() {
+        if (!checkDistrictSelected()) return;
+
+        const dist = elDistrict.value;
+        document.getElementById('setup-modal-title').textContent = `⚙️ ${dist} 구역 명단 설정`;
+
+        // 현재 데이터를 텍스트 영역에 로드
+        let text = '';
+        CAT_ORDER.forEach(key => {
+            const cat = CAT_MAP[key];
+            if (membersData[cat.id] && membersData[cat.id].length > 0) {
+                text += `${cat.name}: ${membersData[cat.id].join(', ')}\n`;
+            } else {
+                 text += `${cat.name}: \n`;
+            }
+        });
+        elSetupText.value = text.trim();
+        document.getElementById('setup-modal').classList.add('show');
+    }
+
+    function saveSetup() {
+        const keys = getDistrictKeys();
+        if (!keys.members) return;
+
+        const text = elSetupText.value;
+        const lines = text.split('\n');
+        const newMembersData = { eun: [], bong: [], mom: [], youth: [] };
+
+        lines.forEach(line => {
+            const parts = line.split(':');
+            if (parts.length < 2) return;
+
+            const catName = parts[0].trim();
+            const namesText = parts[1].trim();
+            if (!namesText) return;
+
+            const names = namesText.split(',').map(n => n.trim()).filter(n => n);
+
+            // 이름 매핑 (어머니회 포함 정확한 매핑)
+            if (catName.includes('은장')) newMembersData.eun = names;
+            else if (catName.includes('봉사')) newMembersData.bong = names;
+            else if (catName.includes('어머니회')) newMembersData.mom = names;
+            else if (catName.includes('청년')) newMembersData.youth = names;
+        });
+
+        // 저장 및 반영
+        membersData = newMembersData;
+        localStorage.setItem(keys.members, JSON.stringify(membersData));
+        
+        document.getElementById('setup-modal').classList.remove('show');
+        renderAttendanceGrid();
+    }
+
+    // --- 공유 로직 ---
+    function getAttendanceSummary() {
+        const selectedDate = elDate.value;
+        const meetingType = elType.value;
+        const dist = elDistrict.value;
+        const currentRecord = (attendanceRecords[selectedDate] && attendanceRecords[selectedDate][meetingType]) || [];
+
+        const catStats = [];
+        let total = 0;
+
+        CAT_ORDER.forEach(key => {
+            const cat = CAT_MAP[key];
+            const names = membersData[cat.id];
+            if (!names || names.length === 0) return;
+
+            const attendedCount = names.filter(name => currentRecord.includes(name)).length;
+            total += attendedCount;
+            catStats.push({ name: cat.name, count: attendedCount });
+        });
+
+        return { dist, selectedDate, meetingType, catStats, total };
+    }
+
+    // 날짜 형식 변환 (YYYY-MM-DD -> YY.M.D.)
+    function formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const yy = String(date.getFullYear()).slice(-2);
+        const m = date.getMonth() + 1;
+        const d = date.getDate();
+        return `${yy}.${m}.${d}.`;
+    }
+
+    // 텍스트 공유
+    function shareAsText() {
+        const s = getAttendanceSummary();
+        const shortDate = formatShortDate(s.selectedDate);
+        
+        // 요청한 양식대로 포맷팅
+        let text = `${s.dist} 구역 ${shortDate} ${s.meetingType} 참석인원\n\n`;
+        
+        if (s.catStats.length === 0) {
+            text += "출석 데이터가 없습니다.\n";
+        } else {
+            s.catStats.forEach(cat => {
+                text += `${cat.name} ${cat.count}\n`;
+            });
+        }
+        
+        text += `\n총 ${s.total}명 참석`;
+
+        // 모바일 웹 공유 API 사용 시도
+        if (navigator.share) {
+            navigator.share({
+                title: '구역 출석 보고',
+                text: text
+            }).catch(err => {
+                copyFallback(text);
+            });
+        } else {
+            copyFallback(text);
+        }
+        closeShareSheets();
+    }
+
+    function copyFallback(text) {
+        // 클립보드 복사 폴백
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('출석 보고가 클립보드에 복사되었습니다.\n카톡방에 붙여넣기 하세요.');
+        } catch (err) {
+            alert('복사 실패. 직접 복사해서 공유해주세요.');
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // 이미지 공유 (html2canvas)
+    function shareAsImage() {
+        const keys = getDistrictKeys();
+        if (!keys.members) return;
+
+        closeShareSheets();
+        const loading = document.getElementById('loading-overlay');
+        const capArea = document.getElementById('capture-area');
+        const capHeader = document.getElementById('capture-header');
+        const capDateInfo = document.getElementById('capture-date-info');
+
+        loading.classList.add('show');
+
+        // 1. 캡쳐용 UI 임시 노출
+        capHeader.style.display = 'block';
+        capDateInfo.textContent = `${elDistrict.value} 구역 / ${elDate.value} (${elType.value})`;
+
+        // 2. 캡쳐 실행 (약간의 지연을 주어 UI 반영 확인)
+        setTimeout(() => {
+            html2canvas(capArea, {
+                backgroundColor: "#f4f7f6",
+                scale: 2, // 고해상도
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // 3. UI 원복
+                capHeader.style.display = 'none';
+                loading.classList.remove('show');
+
+                // 4. 이미지 결과 처리
+                try {
+                    // 모바일 share api 시도 (파일 공유)
+                    canvas.toBlob(blob => {
+                        const file = new File([blob], `gu_attendance_${elDate.value}.png`, { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                files: [file],
+                                title: '구역 출석 보고 이미지',
+                            });
+                        } else {
+                            // 공유 불가시 다운로드 유도
+                            downloadCanvas(canvas);
+                        }
+                    });
+                } catch (e) {
+                    // PC 등 폴백
+                    downloadCanvas(canvas);
+                }
+            });
+        }, 100);
+    }
+
+    function downloadCanvas(canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `gu_attendance_${elDate.value}.png`;
+        link.href = dataUrl;
+        
+        // 아이폰 등 일부 모바일 브라우저에서 다운로드 링크가 안먹힐 경우에 대한 처리
+        if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+             alert('이미지 생성 완료. 이미지를 길게 눌러 "사진 앱에 저장"한 후 공유하세요.');
+             const img = new Image();
+             img.src = dataUrl;
+             img.style.width = '100%';
+             
+             // 통계 모달을 빌려 이미지 보여주기
+             const container = document.getElementById('stats-container');
+             container.innerHTML = '<div style="text-align:center; font-size:0.8rem; color:#666; margin-bottom:10px;">👇 길게 눌러 저장 👇</div>';
+             container.appendChild(img);
+             document.getElementById('stats-modal').classList.add('show');
+        } else {
+            link.click();
+            alert('이미지가 다운로드 폴더에 저장되었습니다.\n갤러리에서 확인 후 공유하세요.');
+        }
+    }
+
+    // --- 통계 로직 ---
+    function openStats() {
+        if (!checkDistrictSelected()) return;
+
+        const keys = getDistrictKeys();
+        if (!keys.records) return;
+
+        const container = document.getElementById('stats-container');
+        container.innerHTML = '';
+
+        // 1. 데이터 집계
+        const stats = processStatsData();
+
+        if (Object.keys(stats).length === 0) {
+            container.innerHTML = `<div class="empty-msg">${elDistrict.value} 구역 출석 데이터가 부족하여<br>통계를 낼 수 없습니다.</div>`;
+        } else {
+            // 2. HTML 생성
+            renderStatsTable(container, stats);
+        }
+
+        document.getElementById('stats-modal').classList.add('show');
+    }
+
+    // 데이터 처리 (월별 -> 예배별 -> 범주별 합계 및 횟수)
+    function processStatsData() {
+        const stats = {}; // { '2023-10': { '주일말씀': { count: 횟수, eun: 합계, ... } } }
+
+        for (const date in attendanceRecords) {
+            const month = date.substring(0, 7); // YYYY-MM
+            const dayRecords = attendanceRecords[date];
+
+            if (!stats[month]) stats[month] = {};
+
+            for (const type in dayRecords) {
+                if (!stats[month][type]) {
+                    stats[month][type] = {
+                        days: 0,
+                        eunSum: 0, bongSum: 0, momSum: 0, youthSum: 0
+                    };
+                }
+
+                stats[month][type].days++;
+
+                // 출석 인원 계산
+                const attendees = dayRecords[type];
+                
+                // 범주별 출석자 필터링 (최적화 가능하지만 데이터가 작으므로 심플하게)
+                if (membersData.eun) stats[month][type].eunSum += membersData.eun.filter(name => attendees.includes(name)).length;
+                if (membersData.bong) stats[month][type].bongSum += membersData.bong.filter(name => attendees.includes(name)).length;
+                if (membersData.mom) stats[month][type].momSum += membersData.mom.filter(name => attendees.includes(name)).length;
+                if (membersData.youth) stats[month][type].youthSum += membersData.youth.filter(name => attendees.includes(name)).length;
+            }
+        }
+        return stats;
+    }
+
+    function renderStatsTable(container, stats) {
+        // 최근 달부터 정렬
+        const sortedMonths = Object.keys(stats).sort().reverse();
+
+        // 현재 구역 표시
+        const distHeader = document.createElement('div');
+        distHeader.style.cssText = 'text-align:center; font-weight:bold; margin-bottom:15px; color:#555;';
+        distHeader.textContent = `[ ${elDistrict.value} 구역 통계 ]`;
+        container.appendChild(distHeader);
+
+        sortedMonths.forEach(month => {
+            const monthDiv = document.createElement('div');
+            
+            const table = document.createElement('table');
+            table.className = 'stats-table';
+
+            // 헤더 (어머니회로 정확히 수정)
+            table.innerHTML = `
+                <thead>
+                    <tr><th colspan="6" class="month-row">${month}</th></tr>
+                    <tr>
+                        <th style="width:25%">구분</th>
+                        <th style="color:var(--silver-color)">은장</th>
+                        <th style="color:var(--service-color)">봉사</th>
+                        <th style="color:var(--mother-color)">어머니회</th>
+                        <th style="color:var(--youth-color)">청년</th>
+                        <th style="font-weight:bold">계</th>
+                    </tr>
+                </thead>
+            `;
+
+            // 바디 (주일 -> 수요 -> 구역 순)
+            const tbody = document.createElement('tbody');
+            const types = ['주일말씀', '수요말씀', '구역모임'];
+            
+            let hasData = false;
+            types.forEach(type => {
+                const data = stats[month][type];
+                if (data && data.days > 0) {
+                    hasData = true;
+                    const d = data.days;
+                    // 평균 계산 (소수점 1자리)
+                    const avgEun = (data.eunSum / d).toFixed(1);
+                    const avgBong = (data.bongSum / d).toFixed(1);
+                    const avgMom = (data.momSum / d).toFixed(1);
+                    const avgYouth = (data.youthSum / d).toFixed(1);
+                    
+                    const avgTotal = (parseFloat(avgEun) + parseFloat(avgBong) + parseFloat(avgMom) + parseFloat(avgYouth)).toFixed(1);
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="font-weight:500; text-align:left; padding-left:5px;">${type}<span style="font-size:0.7rem; color:#999; font-weight:normal;"> (${d}회)</span></td>
+                        <td>${avgEun}</td>
+                        <td>${avgBong}</td>
+                        <td>${avgMom}</td>
+                        <td>${avgYouth}</td>
+                        <td style="font-weight:bold; background-color:#fcfcfc">${avgTotal}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+
+            if(hasData) {
+                table.appendChild(tbody);
+                monthDiv.appendChild(table);
+                container.appendChild(monthDiv);
+            }
+        });
+    }
+
+
+    // --- 이벤트 리스너 정의 ---
+    function initEventListeners() {
+        // 구역 변경시 데이터 다시 로드
+        elDistrict.addEventListener('change', loadDataAndRender);
+
+        // 날짜/예배 변경시 그리드 갱신
+        elDate.addEventListener('change', renderAttendanceGrid);
+        elType.addEventListener('change', renderAttendanceGrid);
+
+        // 모달 열기/닫기
+        document.getElementById('open-setup').addEventListener('click', openSetup);
+        document.getElementById('save-setup').addEventListener('click', saveSetup);
+        
+        document.getElementById('open-stats').addEventListener('click', openStats);
+
+        // 공유 시트 열기/닫기
+        document.getElementById('open-share').addEventListener('click', () => {
+             if (!checkDistrictSelected()) return;
+            document.getElementById('share-sheet').classList.add('show');
+        });
+        document.getElementById('close-share').addEventListener('click', closeShareSheets);
+
+        // 공유 실행
+        document.getElementById('share-text').addEventListener('click', shareAsText);
+        document.getElementById('share-image').addEventListener('click', shareAsImage);
+
+        // 모달 닫기 버튼 공통
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+            });
+        });
+
+        // 모달 바깥 클릭시 닫기
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        });
+    }
+
+    function closeShareSheets() {
+        document.getElementById('share-sheet').classList.remove('show');
+    }
+
+    // 앱 시작
+    init();
+
+</script>
+</body>
+</html>
