@@ -231,35 +231,64 @@
         position: fixed;
         top: -9999px;
         left: -9999px;
-        width: 380px;
+        width: 480px;
         background: linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%);
-        padding: 25px 20px;
+        padding: 28px 24px;
         border-radius: 16px;
         font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
         box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
-    .cap-title { font-size: 1.15rem; font-weight: bold; color: #1B3A6B; text-align: center; margin-bottom: 6px; }
+    .cap-title { font-size: 1.3rem; font-weight: bold; color: #1B3A6B; text-align: center; margin-bottom: 6px; }
     .cap-sub {
-        text-align: center; color: #666; font-size: 0.85rem;
-        margin-bottom: 18px; padding-bottom: 12px;
+        text-align: center; color: #666; font-size: 0.95rem;
+        margin-bottom: 18px; padding-bottom: 14px;
         border-bottom: 1.5px dashed #cfd8e3;
     }
-    .cap-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 9px 12px; margin-bottom: 7px;
-        border-radius: 8px; font-size: 1rem;
+
+    /* 캡처용 카테고리 섹션 */
+    .cap-cat-section { margin-bottom: 16px; }
+    .cap-cat-title {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        padding-left: 9px;
+        border-left: 4px solid;
     }
-    .cap-row.eun   { background: #f0f0f0; color: #555; border-left: 4px solid var(--silver-color); }
-    .cap-row.bong  { background: #eef5fc; color: var(--service-color); border-left: 4px solid var(--service-color); }
-    .cap-row.mom   { background: #edfcf3; color: var(--mother-color); border-left: 4px solid var(--mother-color); }
-    .cap-row.youth { background: #fef5ed; color: var(--youth-color); border-left: 4px solid var(--youth-color); }
-    .cap-row .lbl  { font-weight: 600; }
-    .cap-row .val  { font-weight: bold; }
+    .cap-cat-title.eun   { border-left-color: var(--silver-color);  color: #777; }
+    .cap-cat-title.bong  { border-left-color: var(--service-color); color: var(--service-color); }
+    .cap-cat-title.mom   { border-left-color: var(--mother-color);  color: var(--mother-color); }
+    .cap-cat-title.youth { border-left-color: var(--youth-color);   color: var(--youth-color); }
+
+    /* 캡처용 이름 그리드 - 3열 고정 */
+    .cap-name-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .cap-name-btn {
+        background-color: white;
+        border: 2px solid var(--border-inactive);
+        color: #aaa;
+        padding: 14px 6px;
+        text-align: center;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: normal;
+    }
+    .cap-name-btn.active {
+        font-weight: bold;
+        border-width: 3px;
+    }
+    .cap-name-btn.active.eun   { border-color: var(--silver-color);  color: #555; }
+    .cap-name-btn.active.bong  { border-color: var(--service-color); color: var(--service-color); }
+    .cap-name-btn.active.mom   { border-color: var(--mother-color);  color: var(--mother-color); }
+    .cap-name-btn.active.youth { border-color: var(--youth-color);   color: var(--youth-color); }
+
     .cap-total {
-        margin-top: 14px; padding: 12px;
+        margin-top: 18px; padding: 14px;
         background: var(--primary-color); color: white;
         text-align: center; border-radius: 8px;
-        font-size: 1.1rem; font-weight: bold;
+        font-size: 1.15rem; font-weight: bold;
     }
 
     .stats-tabs {
@@ -413,7 +442,7 @@
 <div class="capture-card" id="capture-card">
     <div class="cap-title" id="cap-title"></div>
     <div class="cap-sub" id="cap-sub"></div>
-    <div id="cap-rows"></div>
+    <div id="cap-categories"></div>
     <div class="cap-total" id="cap-total"></div>
 </div>
 
@@ -722,21 +751,48 @@
         });
     }
 
-    // 요건 #2: 이미지 파일 생성
+    // 요건 #2: 이미지 파일 생성 - 출석 체크 화면 그대로
     function shareAsImage() {
         const s = getSummary();
+        const members = getMembers();
         const card = document.getElementById('capture-card');
         document.getElementById('cap-title').textContent = `${s.district} ${s.type} 참석인원`;
         document.getElementById('cap-sub').textContent = s.dateStr;
 
-        const rowsEl = document.getElementById('cap-rows');
-        rowsEl.innerHTML = '';
-        s.rows.forEach(r => {
-            const div = document.createElement('div');
-            div.className = `cap-row ${r.key}`;
-            div.innerHTML = `<span class="lbl">${r.name}</span><span class="val">${r.count}명</span>`;
-            rowsEl.appendChild(div);
+        // 카테고리 섹션을 출석 그리드 그대로 그리기
+        const catWrap = document.getElementById('cap-categories');
+        catWrap.innerHTML = '';
+
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key] || [];
+            if (names.length === 0) return;
+
+            const attended = names.filter(n => workingRecord.includes(n)).length;
+
+            const section = document.createElement('div');
+            section.className = 'cap-cat-section';
+
+            const title = document.createElement('div');
+            title.className = `cap-cat-title ${cat.btnClass}`;
+            title.textContent = `${cat.name} ${attended}/${names.length}`;
+            section.appendChild(title);
+
+            const grid = document.createElement('div');
+            grid.className = 'cap-name-grid';
+
+            names.forEach(name => {
+                const btn = document.createElement('div');
+                btn.className = `cap-name-btn ${cat.btnClass}`;
+                if (workingRecord.includes(name)) btn.classList.add('active');
+                btn.textContent = name;
+                grid.appendChild(btn);
+            });
+
+            section.appendChild(grid);
+            catWrap.appendChild(section);
         });
+
         document.getElementById('cap-total').textContent = `총 ${s.total}명 참석`;
 
         card.style.top = '0';
