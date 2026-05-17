@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>출석 취합 대시보드</title>
+    <meta name="theme-color" content="#1B3A6B">
+    <style>
+        :root {
+            --primary: #1B3A6B;
+            --accent: #4a90e2;
+            --silver: #9E9E9E;
+            --service: #4A90E2;
+            --mother: #2ECC71;
+            --youth: #E67E22;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: var(--primary);
+            padding: 14px 16px 10px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-row select,
+        .filter-row input {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            text-align: center;
+        }
+
+        .filter-row select option { color: #333; background: white; }
+
+        .filter-row input[type="date"] {
+            color: white;
+            color-scheme: dark;
+        }
+
+        main { padding: 14px; padding-bottom: 60px; }
+
+        /* 탭 */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 14px;
+            background: white;
+            border-radius: 10px;
+            padding: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            background: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #999;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 카드 */
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eef2f7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 구역별 테이블 */
+        .district-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .district-table th {
+            background: #f8f9fa;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 700;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+
+        .district-table td {
+            padding: 10px 4px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 0.85rem;
+        }
+
+        .district-table tr:last-child td { border-bottom: none; }
+
+        .district-table td:first-child {
+            font-weight: 700;
+            color: var(--primary);
+            text-align: left;
+            padding-left: 6px;
+        }
+
+        .td-eun   { color: #666; }
+        .td-bong  { color: var(--service); font-weight: 600; }
+        .td-mom   { color: var(--mother); font-weight: 600; }
+        .td-youth { color: var(--youth); font-weight: 600; }
+        .td-total { font-weight: 800; color: var(--primary); }
+
+        /* 미제출 */
+        .not-submitted { color: #ccc !important; font-size: 0.8rem; }
+
+        /* 제출 시간 */
+        .submit-time {
+            font-size: 0.72rem;
+            color: #aaa;
+            display: block;
+            margin-top: 1px;
+        }
+
+        /* 전체 합산 박스 */
+        .total-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .total-item {
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .total-item .t-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .total-item .t-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .total-item.eun   { background: #f5f5f5; color: #555; }
+        .total-item.bong  { background: #eef5fc; color: var(--service); }
+        .total-item.mom   { background: #edfcf3; color: var(--mother); }
+        .total-item.youth { background: #fef5ed; color: var(--youth); }
+
+        .grand-total {
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        /* 통계 탭 */
+        .stats-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .stats-tab {
+            flex: 1;
+            padding: 9px 4px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .stats-tab.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eef2f7;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .stats-table th {
+            background: #f8f9fa;
+            padding: 9px 4px;
+            text-align: center;
+            font-weight: 700;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stats-table td {
+            padding: 9px 4px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .stats-table tr:last-child td { border-bottom: none; }
+        .stats-table td:first-child { font-weight: 700; text-align: left; padding-left: 6px; color: var(--primary); }
+
+        .month-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 14px 0 8px;
+            padding-left: 4px;
+        }
+
+        /* 새로고침 버튼 */
+        .refresh-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #bbb;
+            padding: 30px 0;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #999;
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        /* 제출 현황 배지 */
+        .badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+        .badge-ok  { background: #dcfce7; color: #166534; }
+        .badge-no  { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📋 출석 취합 대시보드</h1>
+    <div class="filter-row">
+        <input type="date" id="date-select">
+        <select id="type-select">
+            <option value="주일말씀">주일말씀</option>
+            <option value="수요말씀">수요말씀</option>
+            <option value="구역모임">구역모임</option>
+        </select>
+    </div>
+</header>
+
+<main>
+    <button class="refresh-btn" id="refresh-btn">🔄 데이터 새로고침</button>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="current">오늘 현황</button>
+        <button class="tab-btn" data-tab="stats">월별 통계</button>
+    </div>
+
+    <!-- 오늘 현황 탭 -->
+    <div id="tab-current">
+
+        <!-- 구역별 현황 -->
+        <div class="card">
+            <div class="card-title">🗂️ 구역별 출석 현황
+                <span id="submit-badge" class="badge badge-no">0개 제출</span>
+            </div>
+            <div id="district-table-wrap">
+                <div class="loading">데이터 불러오는 중...</div>
+            </div>
+        </div>
+
+        <!-- 전체 합산 -->
+        <div class="card">
+            <div class="card-title">✅ 전체 합산</div>
+            <div id="total-wrap">
+                <div class="empty-msg">제출된 데이터가 없습니다</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 월별 통계 탭 -->
+    <div id="tab-stats" style="display:none;">
+        <div class="card">
+            <div class="card-title">📊 월별 출석 통계</div>
+            <div class="stats-tabs">
+                <button class="stats-tab active" data-stats="all">전체 합산</button>
+                <button class="stats-tab" data-stats="district">구역별</button>
+            </div>
+            <div id="stats-wrap">
+                <div class="loading">데이터 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
+        authDomain: "bongsun-17d80.firebaseapp.com",
+        projectId: "bongsun-17d80",
+        storageBucket: "bongsun-17d80.firebasestorage.app",
+        messagingSenderId: "122450922261",
+        appId: "1:122450922261:web:f552a646f323e3a78b771c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window._db = db;
+    window._collection = collection;
+    window._getDocs = getDocs;
+    window._query = query;
+    window._where = where;
+    window._orderBy = orderBy;
+    window._firebaseReady = true;
+    window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<script>
+    const ALL_DISTRICTS = [];
+    const groups = [10, 20, 30, 40];
+    groups.forEach(base => {
+        for (let i = 1; i <= 5; i++) ALL_DISTRICTS.push(`${base + i}구역`);
+    });
+
+    const CAT_MAP = [
+        { name: '은장회', cls: 'td-eun',   key: 'eun' },
+        { name: '봉사회', cls: 'td-bong',  key: 'bong' },
+        { name: '어머니회', cls: 'td-mom', key: 'mom' },
+        { name: '청년회', cls: 'td-youth', key: 'youth' }
+    ];
+
+    const elDate = document.getElementById('date-select');
+    const elType = document.getElementById('type-select');
+    let currentTab = 'current';
+    let currentStatsTab = 'all';
+    let allSubmissions = []; // 전체 캐시
+
+    // 오늘 날짜 기본값
+    elDate.value = new Date().toISOString().split('T')[0];
+
+    // Firebase 준비 후 로드
+    window.addEventListener('firebaseReady', () => {
+        loadAll();
+    });
+
+    // 새로고침
+    document.getElementById('refresh-btn').addEventListener('click', loadAll);
+
+    // 날짜/모임 변경
+    elDate.addEventListener('change', renderCurrent);
+    elType.addEventListener('change', renderCurrent);
+
+    // 탭 전환
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentTab = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-current').style.display = currentTab === 'current' ? 'block' : 'none';
+            document.getElementById('tab-stats').style.display = currentTab === 'stats' ? 'block' : 'none';
+            if (currentTab === 'stats') renderStats();
+        });
+    });
+
+    // 통계 탭 전환
+    document.querySelectorAll('.stats-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentStatsTab = btn.dataset.stats;
+            document.querySelectorAll('.stats-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderStats();
+        });
+    });
+
+    // 전체 데이터 로드
+    async function loadAll() {
+        document.getElementById('district-table-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('total-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+
+        try {
+            allSubmissions = [];
+            // 구역별로 submissions 컬렉션 읽기
+            for (const district of ALL_DISTRICTS) {
+                const recordsRef = window._collection(window._db, 'submissions', district, 'records');
+                const snap = await window._getDocs(recordsRef);
+                snap.forEach(doc => {
+                    allSubmissions.push({ id: doc.id, ...doc.data() });
+                });
+            }
+            renderCurrent();
+            if (currentTab === 'stats') renderStats();
+        } catch (e) {
+            document.getElementById('district-table-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
+        }
+    }
+
+    // 오늘 현황 렌더
+    function renderCurrent() {
+        const date = elDate.value;
+        const type = elType.value;
+
+        // 해당 날짜+모임 필터
+        const todayData = {};
+        allSubmissions.forEach(s => {
+            if (s.날짜 === date && s.모임 === type) {
+                todayData[s.구역] = s;
+            }
+        });
+
+        const submittedCount = Object.keys(todayData).length;
+        document.getElementById('submit-badge').textContent = `${submittedCount}개 제출`;
+        document.getElementById('submit-badge').className = `badge ${submittedCount > 0 ? 'badge-ok' : 'badge-no'}`;
+
+        // 구역별 테이블
+        renderDistrictTable(todayData);
+
+        // 전체 합산
+        renderTotal(todayData);
+    }
+
+    function renderDistrictTable(todayData) {
+        const wrap = document.getElementById('district-table-wrap');
+
+        const table = document.createElement('table');
+        table.className = 'district-table';
+
+        // 헤더
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>구역</th>
+                    <th style="color:#777;">은장</th>
+                    <th style="color:var(--service);">봉사</th>
+                    <th style="color:var(--mother);">어머니</th>
+                    <th style="color:var(--youth);">청년</th>
+                    <th style="color:var(--primary);">합계</th>
+                </tr>
+            </thead>
+        `;
+
+        const tbody = document.createElement('tbody');
+
+        ALL_DISTRICTS.forEach(district => {
+            const s = todayData[district];
+            const tr = document.createElement('tr');
+
+            if (!s) {
+                tr.innerHTML = `
+                    <td>${district}</td>
+                    <td colspan="5" class="not-submitted">미제출</td>
+                `;
+            } else {
+                const d = s.출석데이터 || {};
+                const eun   = (d['은장회']   && d['은장회'].인원)   || 0;
+                const bong  = (d['봉사회']   && d['봉사회'].인원)   || 0;
+                const mom   = (d['어머니회'] && d['어머니회'].인원) || 0;
+                const youth = (d['청년회']   && d['청년회'].인원)   || 0;
+                const total = eun + bong + mom + youth;
+
+                // 제출 시간 포맷
+                let timeStr = '';
+                if (s.제출시간 && s.제출시간.toDate) {
+                    const t = s.제출시간.toDate();
+                    timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+                }
+
+                tr.innerHTML = `
+                    <td>${district}<span class="submit-time">${timeStr}</span></td>
+                    <td class="td-eun">${eun}</td>
+                    <td class="td-bong">${bong}</td>
+                    <td class="td-mom">${mom}</td>
+                    <td class="td-youth">${youth}</td>
+                    <td class="td-total">${total}</td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        wrap.innerHTML = '';
+        wrap.appendChild(table);
+    }
+
+    function renderTotal(todayData) {
+        const wrap = document.getElementById('total-wrap');
+        const submitted = Object.values(todayData);
+
+        if (submitted.length === 0) {
+            wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>';
+            return;
+        }
+
+        let totals = { eun: 0, bong: 0, mom: 0, youth: 0 };
+        submitted.forEach(s => {
+            const d = s.출석데이터 || {};
+            totals.eun   += (d['은장회']   && d['은장회'].인원)   || 0;
+            totals.bong  += (d['봉사회']   && d['봉사회'].인원)   || 0;
+            totals.mom   += (d['어머니회'] && d['어머니회'].인원) || 0;
+            totals.youth += (d['청년회']   && d['청년회'].인원)   || 0;
+        });
+        const grand = totals.eun + totals.bong + totals.mom + totals.youth;
+
+        wrap.innerHTML = `
+            <div class="total-grid">
+                <div class="total-item eun">
+                    <div class="t-name">은장회</div>
+                    <div class="t-num">${totals.eun}명</div>
+                </div>
+                <div class="total-item bong">
+                    <div class="t-name">봉사회</div>
+                    <div class="t-num">${totals.bong}명</div>
+                </div>
+                <div class="total-item mom">
+                    <div class="t-name">어머니회</div>
+                    <div class="t-num">${totals.mom}명</div>
+                </div>
+                <div class="total-item youth">
+                    <div class="t-name">청년회</div>
+                    <div class="t-num">${totals.youth}명</div>
+                </div>
+            </div>
+            <div class="grand-total">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>
+        `;
+    }
+
+    // 통계 렌더
+    function renderStats() {
+        const wrap = document.getElementById('stats-wrap');
+
+        if (allSubmissions.length === 0) {
+            wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>';
+            return;
+        }
+
+        // 월별로 묶기
+        const monthMap = {};
+        allSubmissions.forEach(s => {
+            if (!s.날짜) return;
+            const ym = s.날짜.substring(0, 7);
+            if (!monthMap[ym]) monthMap[ym] = {};
+            const key = `${s.구역}_${s.모임}`;
+            if (!monthMap[ym][key]) monthMap[ym][key] = [];
+            monthMap[ym][key].push(s);
+        });
+
+        const sortedMonths = Object.keys(monthMap).sort().reverse();
+        wrap.innerHTML = '';
+
+        if (currentStatsTab === 'all') {
+            // 전체 합산 통계
+            sortedMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = `${y}년 ${parseInt(m)}월`;
+                wrap.appendChild(label);
+
+                const table = document.createElement('table');
+                table.className = 'stats-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>모임</th>
+                            <th>회수</th>
+                            <th>은장</th>
+                            <th>봉사</th>
+                            <th>어머니</th>
+                            <th>청년</th>
+                            <th>평균합계</th>
+                        </tr>
+                    </thead>
+                `;
+                const tbody = document.createElement('tbody');
+
+                ['주일말씀', '수요말씀', '구역모임'].forEach(type => {
+                    // 해당 월+모임의 날짜별 데이터 수집
+                    const dateMap = {};
+                    Object.entries(monthMap[ym]).forEach(([key, records]) => {
+                        if (!key.endsWith(`_${type}`)) return;
+                        records.forEach(s => {
+                            if (!dateMap[s.날짜]) dateMap[s.날짜] = { eun: 0, bong: 0, mom: 0, youth: 0 };
+                            const d = s.출석데이터 || {};
+                            dateMap[s.날짜].eun   += (d['은장회']   && d['은장회'].인원)   || 0;
+                            dateMap[s.날짜].bong  += (d['봉사회']   && d['봉사회'].인원)   || 0;
+                            dateMap[s.날짜].mom   += (d['어머니회'] && d['어머니회'].인원) || 0;
+                            dateMap[s.날짜].youth += (d['청년회']   && d['청년회'].인원)   || 0;
+                        });
+                    });
+
+                    const dates = Object.values(dateMap);
+                    const tr = document.createElement('tr');
+                    if (dates.length === 0) {
+                        tr.innerHTML = `<td>${type}</td><td>-</td><td colspan="5" style="color:#bbb;">기록없음</td>`;
+                    } else {
+                        const avg = key => (dates.reduce((a, b) => a + b[key], 0) / dates.length).toFixed(1);
+                        const avgTotal = (parseFloat(avg('eun')) + parseFloat(avg('bong')) + parseFloat(avg('mom')) + parseFloat(avg('youth'))).toFixed(1);
+                        tr.innerHTML = `
+                            <td>${type}</td>
+                            <td>${dates.length}회</td>
+                            <td>${avg('eun')}</td>
+                            <td>${avg('bong')}</td>
+                            <td>${avg('mom')}</td>
+                            <td>${avg('youth')}</td>
+                            <td><b>${avgTotal}</b></td>
+                        `;
+                    }
+                    tbody.appendChild(tr);
+                });
+
+                table.appendChild(tbody);
+                wrap.appendChild(table);
+            });
+
+        } else {
+            // 구역별 통계
+            sortedMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = `${y}년 ${parseInt(m)}월`;
+                wrap.appendChild(label);
+
+                const table = document.createElement('table');
+                table.className = 'stats-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>구역</th>
+                            <th>주일</th>
+                            <th>수요</th>
+                            <th>구역</th>
+                        </tr>
+                    </thead>
+                `;
+                const tbody = document.createElement('tbody');
+
+                ALL_DISTRICTS.forEach(district => {
+                    const tr = document.createElement('tr');
+                    const getAvg = (type) => {
+                        const key = `${district}_${type}`;
+                        const records = monthMap[ym][key] || [];
+                        if (records.length === 0) return '-';
+                        const sum = records.reduce((a, s) => {
+                            const d = s.출석데이터 || {};
+                            return a + (d['은장회']?.인원||0) + (d['봉사회']?.인원||0) + (d['어머니회']?.인원||0) + (d['청년회']?.인원||0);
+                        }, 0);
+                        return (sum / records.length).toFixed(1);
+                    };
+
+                    const s = getAvg('주일말씀');
+                    const w = getAvg('수요말씀');
+                    const g = getAvg('구역모임');
+
+                    if (s === '-' && w === '-' && g === '-') return; // 데이터 없는 구역 숨김
+
+                    tr.innerHTML = `
+                        <td>${district}</td>
+                        <td>${s}</td>
+                        <td>${w}</td>
+                        <td>${g}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                table.appendChild(tbody);
+                wrap.appendChild(table);
+            });
+        }
+    }
+</script>
+</body>
+</html>
