@@ -657,10 +657,12 @@
     // 오늘 날짜 기본값
     elDate.value = new Date().toISOString().split('T')[0];
 
-    // Firebase 준비 후 로드
-    window.addEventListener('firebaseReady', () => {
+    // Firebase 준비 후 로드 (이미 준비됐으면 바로 실행)
+    if (window._firebaseReady) {
         loadAll();
-    });
+    } else {
+        window.addEventListener('firebaseReady', () => loadAll());
+    }
 
     // 새로고침
     document.getElementById('refresh-btn').addEventListener('click', loadAll);
@@ -699,17 +701,18 @@
 
         try {
             allSubmissions = [];
-            // 구역별로 submissions 컬렉션 읽기
             for (const district of ALL_DISTRICTS) {
                 const recordsRef = window._collection(window._db, 'submissions', district, 'records');
                 const snap = await window._getDocs(recordsRef);
-                snap.forEach(doc => {
-                    allSubmissions.push({ id: doc.id, ...doc.data() });
+                snap.forEach(docSnap => {
+                    allSubmissions.push({ id: docSnap.id, ...docSnap.data() });
                 });
             }
+            console.log('전체 로드된 데이터:', allSubmissions.length, '건');
             renderCurrent();
             if (currentTab === 'stats') renderStats();
         } catch (e) {
+            console.error('Firebase 오류:', e);
             document.getElementById('district-table-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
         }
     }
