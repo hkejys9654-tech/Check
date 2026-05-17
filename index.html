@@ -10,6 +10,31 @@
     <link rel="apple-touch-icon" href="./icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
+            authDomain: "bongsun-17d80.firebaseapp.com",
+            projectId: "bongsun-17d80",
+            storageBucket: "bongsun-17d80.firebasestorage.app",
+            messagingSenderId: "122450922261",
+            appId: "1:122450922261:web:f552a646f323e3a78b771c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 전역으로 노출 (일반 스크립트에서 접근 가능하게)
+        window._db = db;
+        window._firestoreSetDoc = setDoc;
+        window._firestoreDoc = doc;
+        window._firestoreServerTimestamp = serverTimestamp;
+        window._firebaseReady = true;
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -114,6 +139,32 @@
         }
         .save-indicator.unsaved { color: #e67e22; font-weight: 600; }
         .save-indicator.saved { color: var(--save-color); font-weight: 600; }
+
+        /* 제출 버튼 영역 */
+        .submit-wrap {
+            display: none;
+            padding: 0 15px 10px;
+            background: white;
+        }
+        .submit-wrap.show { display: block; }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white;
+            font-size: 1rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 10px rgba(192,57,43,0.3);
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit.submitted {
+            background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+            box-shadow: none;
+        }
 
         main {
             padding: 15px;
@@ -467,6 +518,9 @@
         <button class="btn-stats"><span class="btn-icon">📊</span>통계</button>
     </div>
     <div class="save-indicator" id="save-indicator">&nbsp;</div>
+    <div class="submit-wrap" id="submit-wrap">
+        <button class="btn-submit" id="btn-submit">📨 담당자에게 제출하기</button>
+    </div>
 </header>
 
 <main>
@@ -737,7 +791,72 @@
         updateRecordStatusBanner(!!stillExists);
 
         elBtnSaveRecord.innerHTML = '<span class="btn-icon">✅</span>저장 완료';
+
+        // 저장 완료 시 제출 버튼 표시
+        const submitWrap = document.getElementById('submit-wrap');
+        const btnSubmit = document.getElementById('btn-submit');
+        submitWrap.classList.add('show');
+        btnSubmit.classList.remove('submitted');
+        btnSubmit.textContent = '📨 담당자에게 제출하기';
+        btnSubmit.disabled = false;
+
         setTimeout(() => updateSaveIndicator(!!stillExists), 1200);
+    }
+
+    // 제출 함수
+    async function submitToAdmin() {
+        if (!window._firebaseReady) {
+            alert('잠시 후 다시 시도해주세요. (Firebase 연결 중)');
+            return;
+        }
+
+        if (!confirm('담당자에게 제출하시겠습니까?\n제출 후에도 수정하여 재제출할 수 있습니다.')) return;
+
+        const district = elDistrict.value;
+        const date = elDate.value;
+        const type = elType.value;
+        const members = getMembers();
+        const records = getRecords();
+        const savedRecord = (records[date] && records[date][type]) || [];
+
+        // 범주별 출석자 정리
+        const data = {};
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key] || [];
+            data[cat.name] = {
+                전체: names,
+                출석: names.filter(n => savedRecord.includes(n)),
+                인원: names.filter(n => savedRecord.includes(n)).length
+            };
+        });
+
+        const btnSubmit = document.getElementById('btn-submit');
+        btnSubmit.textContent = '제출 중...';
+        btnSubmit.disabled = true;
+
+        try {
+            const docRef = window._firestoreDoc(
+                window._db,
+                'submissions', district,
+                'records', `${date}_${type}`
+            );
+            await window._firestoreSetDoc(docRef, {
+                구역: district,
+                날짜: date,
+                모임: type,
+                출석데이터: data,
+                제출시간: window._firestoreServerTimestamp()
+            });
+
+            btnSubmit.textContent = '✅ 제출 완료';
+            btnSubmit.classList.add('submitted');
+            alert('담당자에게 제출되었습니다!\n수정이 필요하면 저장 후 다시 제출하세요.');
+        } catch (e) {
+            btnSubmit.textContent = '📨 담당자에게 제출하기';
+            btnSubmit.disabled = false;
+            alert('제출 실패: ' + e.message);
+        }
     }
 
     function confirmIfDirty() {
@@ -1157,17 +1276,20 @@
                 e.target.value = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
                 return;
             }
+            hideSubmitBtn();
             localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
             loadWorkingRecord();
             renderAttendanceGrid();
         });
         elDate.addEventListener('change', () => {
             if (!confirmIfDirty()) return;
+            hideSubmitBtn();
             loadWorkingRecord();
             renderAttendanceGrid();
         });
         elType.addEventListener('change', () => {
             if (!confirmIfDirty()) return;
+            hideSubmitBtn();
             loadWorkingRecord();
             renderAttendanceGrid();
         });
@@ -1176,6 +1298,12 @@
         document.getElementById('save-setup').addEventListener('click', saveSetup);
 
         elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
+        document.getElementById('btn-submit').addEventListener('click', submitToAdmin);
+
+        // 날짜/구역/모임 바꾸면 제출 버튼 숨김
+        const hideSubmitBtn = () => {
+            document.getElementById('submit-wrap').classList.remove('show');
+        };
 
         document.querySelector('.btn-share').addEventListener('click', openShare);
         document.getElementById('btn-share-text').addEventListener('click', shareAsText);
