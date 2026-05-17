@@ -304,8 +304,181 @@
             font-weight: 700;
             margin-left: 6px;
         }
-        .badge-ok  { background: #dcfce7; color: #166534; }
+        .badge-ok  { background: #dcfce7; color: #166634; }
         .badge-no  { background: #fee2e2; color: #991b1b; }
+
+        /* 모달 공통 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show { display: flex; }
+        .modal-box {
+            background: white;
+            width: 88%;
+            max-width: 420px;
+            border-radius: 16px;
+            padding: 22px 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        /* 비밀번호 모달 */
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .pin-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: background 0.15s;
+        }
+        .pin-dot.filled { background: var(--primary); }
+
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .pin-btn {
+            padding: 16px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            cursor: pointer;
+        }
+        .pin-btn:active { background: #f0f4f8; }
+        .pin-btn.del { color: #e53e3e; font-size: 1rem; }
+        .pin-error {
+            text-align: center;
+            color: #e53e3e;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            min-height: 18px;
+        }
+        .pin-cancel {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 수정/삭제 모달 */
+        .edit-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            font-size: 0.88rem;
+            color: #555;
+            line-height: 1.7;
+        }
+        .edit-info b { color: var(--primary); }
+
+        .edit-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .edit-row label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            width: 70px;
+            flex-shrink: 0;
+        }
+        .edit-row label.eun-l   { color: #777; }
+        .edit-row label.bong-l  { color: var(--service); }
+        .edit-row label.mom-l   { color: var(--mother); }
+        .edit-row label.youth-l { color: var(--youth); }
+
+        .edit-row input[type="number"] {
+            width: 70px;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .edit-row input[type="number"]:focus { border-color: var(--accent); outline: none; }
+
+        .edit-total-preview {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin: 4px 0 14px;
+        }
+        .edit-total-preview b { color: var(--primary); font-size: 1rem; }
+
+        .modal-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-edit-save {
+            flex: 2;
+            padding: 13px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-edit-delete {
+            flex: 1;
+            padding: 13px;
+            background: #fee2e2;
+            color: #c0392b;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-edit-cancel {
+            flex: 1;
+            padding: 13px;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 클릭 가능한 행 표시 */
+        .district-table tbody tr.has-data {
+            cursor: pointer;
+        }
+        .district-table tbody tr.has-data:active {
+            background: #f0f6ff;
+        }
     </style>
 </head>
 <body>
@@ -369,10 +542,72 @@
 
 </main>
 
+<!-- 비밀번호 모달 -->
+<div class="modal" id="pin-modal">
+    <div class="modal-box">
+        <h3>🔐 관리자 비밀번호</h3>
+        <div class="pin-display">
+            <div class="pin-dot" id="pd0"></div>
+            <div class="pin-dot" id="pd1"></div>
+            <div class="pin-dot" id="pd2"></div>
+            <div class="pin-dot" id="pd3"></div>
+        </div>
+        <div class="pin-pad">
+            <button class="pin-btn" data-n="1">1</button>
+            <button class="pin-btn" data-n="2">2</button>
+            <button class="pin-btn" data-n="3">3</button>
+            <button class="pin-btn" data-n="4">4</button>
+            <button class="pin-btn" data-n="5">5</button>
+            <button class="pin-btn" data-n="6">6</button>
+            <button class="pin-btn" data-n="7">7</button>
+            <button class="pin-btn" data-n="8">8</button>
+            <button class="pin-btn" data-n="9">9</button>
+            <button class="pin-btn" data-n="0" style="grid-column:2;">0</button>
+            <button class="pin-btn del" id="pin-del">⌫</button>
+        </div>
+        <div class="pin-error" id="pin-error"></div>
+        <button class="pin-cancel" id="pin-cancel">취소</button>
+    </div>
+</div>
+
+<!-- 수정/삭제 모달 -->
+<div class="modal" id="edit-modal">
+    <div class="modal-box">
+        <h3>✏️ 출석 수정 / 삭제</h3>
+        <div class="edit-info" id="edit-info"></div>
+        <div class="edit-row">
+            <label class="eun-l">은장회</label>
+            <input type="number" id="edit-eun" min="0" max="99">
+            <span style="font-size:0.85rem;color:#999;">명</span>
+        </div>
+        <div class="edit-row">
+            <label class="bong-l">봉사회</label>
+            <input type="number" id="edit-bong" min="0" max="99">
+            <span style="font-size:0.85rem;color:#999;">명</span>
+        </div>
+        <div class="edit-row">
+            <label class="mom-l">어머니회</label>
+            <input type="number" id="edit-mom" min="0" max="99">
+            <span style="font-size:0.85rem;color:#999;">명</span>
+        </div>
+        <div class="edit-row">
+            <label class="youth-l">청년회</label>
+            <input type="number" id="edit-youth" min="0" max="99">
+            <span style="font-size:0.85rem;color:#999;">명</span>
+        </div>
+        <div class="edit-total-preview" id="edit-total-preview">합계: <b>0명</b></div>
+        <div class="modal-btn-row">
+            <button class="btn-edit-cancel" id="edit-cancel">취소</button>
+            <button class="btn-edit-delete" id="edit-delete">🗑️ 삭제</button>
+            <button class="btn-edit-save" id="edit-save">💾 저장</button>
+        </div>
+    </div>
+</div>
+
 <!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -392,6 +627,9 @@
     window._query = query;
     window._where = where;
     window._orderBy = orderBy;
+    window._deleteDoc = deleteDoc;
+    window._doc = doc;
+    window._updateDoc = updateDoc;
     window._firebaseReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
 </script>
@@ -531,8 +769,7 @@
                     <td>${district}</td>
                     <td colspan="5" class="not-submitted">미제출</td>
                 `;
-            } else {
-                const d = s.출석데이터 || {};
+            } else {                const d = s.출석데이터 || {};
                 const eun   = (d['은장회']   && d['은장회'].인원)   || 0;
                 const bong  = (d['봉사회']   && d['봉사회'].인원)   || 0;
                 const mom   = (d['어머니회'] && d['어머니회'].인원) || 0;
@@ -546,6 +783,10 @@
                     timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
                 }
 
+                tr.classList.add('has-data');
+                tr.addEventListener('click', () => {
+                    openPinModal(() => openEditModal(s));
+                });
                 tr.innerHTML = `
                     <td>${district}<span class="submit-time">${timeStr}</span></td>
                     <td class="td-eun">${eun}</td>
@@ -748,7 +989,141 @@
                 wrap.appendChild(table);
             });
         }
+    // ── 비밀번호 & 수정/삭제 로직 ──
+
+    const ADMIN_PIN = '0000'; // 나중에 여기서 변경
+    let pinInput = '';
+    let pinCallback = null; // 인증 후 실행할 함수
+    let editingSubmission = null; // 현재 수정 중인 데이터
+
+    // 비밀번호 모달 열기
+    function openPinModal(callback) {
+        pinInput = '';
+        pinCallback = callback;
+        updatePinDots();
+        document.getElementById('pin-error').textContent = '';
+        document.getElementById('pin-modal').classList.add('show');
     }
+
+    function updatePinDots() {
+        for (let i = 0; i < 4; i++) {
+            const dot = document.getElementById(`pd${i}`);
+            dot.classList.toggle('filled', i < pinInput.length);
+        }
+    }
+
+    // 핀패드 버튼
+    document.querySelectorAll('.pin-btn[data-n]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (pinInput.length >= 4) return;
+            pinInput += btn.dataset.n;
+            updatePinDots();
+            if (pinInput.length === 4) {
+                setTimeout(() => {
+                    if (pinInput === ADMIN_PIN) {
+                        document.getElementById('pin-modal').classList.remove('show');
+                        pinCallback && pinCallback();
+                    } else {
+                        document.getElementById('pin-error').textContent = '비밀번호가 틀렸습니다.';
+                        pinInput = '';
+                        updatePinDots();
+                    }
+                }, 200);
+            }
+        });
+    });
+
+    document.getElementById('pin-del').addEventListener('click', () => {
+        pinInput = pinInput.slice(0, -1);
+        updatePinDots();
+        document.getElementById('pin-error').textContent = '';
+    });
+
+    document.getElementById('pin-cancel').addEventListener('click', () => {
+        document.getElementById('pin-modal').classList.remove('show');
+    });
+
+    // 수정 모달 열기
+    function openEditModal(submission) {
+        editingSubmission = submission;
+        const d = submission.출석데이터 || {};
+
+        document.getElementById('edit-info').innerHTML =
+            `<b>${submission.구역}</b> · ${submission.날짜} · ${submission.모임}`;
+
+        document.getElementById('edit-eun').value   = d['은장회']?.인원   || 0;
+        document.getElementById('edit-bong').value  = d['봉사회']?.인원   || 0;
+        document.getElementById('edit-mom').value   = d['어머니회']?.인원 || 0;
+        document.getElementById('edit-youth').value = d['청년회']?.인원   || 0;
+
+        updateEditTotal();
+        document.getElementById('edit-modal').classList.add('show');
+    }
+
+    function updateEditTotal() {
+        const eun   = parseInt(document.getElementById('edit-eun').value)   || 0;
+        const bong  = parseInt(document.getElementById('edit-bong').value)  || 0;
+        const mom   = parseInt(document.getElementById('edit-mom').value)   || 0;
+        const youth = parseInt(document.getElementById('edit-youth').value) || 0;
+        document.getElementById('edit-total-preview').innerHTML =
+            `합계: <b>${eun + bong + mom + youth}명</b>`;
+    }
+
+    ['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateEditTotal);
+    });
+
+    document.getElementById('edit-cancel').addEventListener('click', () => {
+        document.getElementById('edit-modal').classList.remove('show');
+    });
+
+    // 저장
+    document.getElementById('edit-save').addEventListener('click', async () => {
+        if (!editingSubmission) return;
+        const s = editingSubmission;
+
+        const eun   = parseInt(document.getElementById('edit-eun').value)   || 0;
+        const bong  = parseInt(document.getElementById('edit-bong').value)  || 0;
+        const mom   = parseInt(document.getElementById('edit-mom').value)   || 0;
+        const youth = parseInt(document.getElementById('edit-youth').value) || 0;
+
+        // 기존 데이터 유지하면서 인원만 수정
+        const newData = { ...(s.출석데이터 || {}) };
+        if (newData['은장회'])   newData['은장회'].인원   = eun;
+        if (newData['봉사회'])   newData['봉사회'].인원   = bong;
+        if (newData['어머니회']) newData['어머니회'].인원 = mom;
+        if (newData['청년회'])   newData['청년회'].인원   = youth;
+
+        try {
+            const docRef = window._doc(window._db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`);
+            await window._updateDoc(docRef, { 출석데이터: newData });
+
+            document.getElementById('edit-modal').classList.remove('show');
+            alert('수정되었습니다.');
+            await loadAll();
+        } catch (e) {
+            alert('수정 실패: ' + e.message);
+        }
+    });
+
+    // 삭제
+    document.getElementById('edit-delete').addEventListener('click', async () => {
+        if (!editingSubmission) return;
+        const s = editingSubmission;
+
+        if (!confirm(`${s.구역} ${s.날짜} ${s.모임} 기록을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`)) return;
+
+        try {
+            const docRef = window._doc(window._db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`);
+            await window._deleteDoc(docRef);
+
+            document.getElementById('edit-modal').classList.remove('show');
+            alert('삭제되었습니다.');
+            await loadAll();
+        } catch (e) {
+            alert('삭제 실패: ' + e.message);
+        }
+    });
 </script>
 </body>
 </html>
