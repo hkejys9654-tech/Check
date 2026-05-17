@@ -607,7 +607,7 @@
 <!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, collectionGroup, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -621,55 +621,217 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    window._db = db;
-    window._collection = collection;
-    window._collectionGroup = collectionGroup;
-    window._getDocs = getDocs;
-    window._deleteDoc = deleteDoc;
-    window._doc = doc;
-    window._updateDoc = updateDoc;
-    window._firebaseReady = true;
-    window.dispatchEvent(new Event('firebaseReady'));
-</script>
-
-<script>
+    // ── 상수 ──
     const ALL_DISTRICTS = [];
     const groups = [10, 20, 30, 40];
-    groups.forEach(base => {
-        for (let i = 1; i <= 5; i++) ALL_DISTRICTS.push(`${base + i}구역`);
-    });
+    groups.forEach(base => { for (let i = 1; i <= 5; i++) ALL_DISTRICTS.push(`${base + i}구역`); });
 
-    const CAT_MAP = [
-        { name: '은장회', cls: 'td-eun',   key: 'eun' },
-        { name: '봉사회', cls: 'td-bong',  key: 'bong' },
-        { name: '어머니회', cls: 'td-mom', key: 'mom' },
-        { name: '청년회', cls: 'td-youth', key: 'youth' }
-    ];
+    const ADMIN_PIN = '0000';
+    let pinInput = '';
+    let pinCallback = null;
+    let editingSubmission = null;
+    let currentTab = 'current';
+    let currentStatsTab = 'all';
+    let allSubmissions = [];
 
     const elDate = document.getElementById('date-select');
     const elType = document.getElementById('type-select');
-    let currentTab = 'current';
-    let currentStatsTab = 'all';
-    let allSubmissions = []; // 전체 캐시
-
-    // 오늘 날짜 기본값
     elDate.value = new Date().toISOString().split('T')[0];
 
-    // Firebase 준비 후 로드 (이미 준비됐으면 바로 실행)
-    if (window._firebaseReady) {
-        loadAll();
-    } else {
-        window.addEventListener('firebaseReady', () => loadAll());
+    // ── 데이터 로드 ──
+    async function loadAll() {
+        document.getElementById('district-table-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('total-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+
+        try {
+            allSubmissions = [];
+            for (const district of ALL_DISTRICTS) {
+                const ref = collection(db, 'submissions', district, 'records');
+                const snap = await getDocs(ref);
+                snap.forEach(d => allSubmissions.push({ id: d.id, ...d.data() }));
+            }
+            renderCurrent();
+            if (currentTab === 'stats') renderStats();
+        } catch (e) {
+            document.getElementById('district-table-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
+        }
     }
 
-    // 새로고침
-    document.getElementById('refresh-btn').addEventListener('click', loadAll);
+    // ── 오늘 현황 ──
+    function renderCurrent() {
+        const date = elDate.value;
+        const type = elType.value;
+        const todayData = {};
+        allSubmissions.forEach(s => {
+            if (s.날짜 === date && s.모임 === type) todayData[s.구역] = s;
+        });
+        const count = Object.keys(todayData).length;
+        document.getElementById('submit-badge').textContent = `${count}개 제출`;
+        document.getElementById('submit-badge').className = `badge ${count > 0 ? 'badge-ok' : 'badge-no'}`;
+        renderDistrictTable(todayData);
+        renderTotal(todayData);
+    }
 
-    // 날짜/모임 변경
-    elDate.addEventListener('change', renderCurrent);
-    elType.addEventListener('change', renderCurrent);
+    function renderDistrictTable(todayData) {
+        const wrap = document.getElementById('district-table-wrap');
+        const table = document.createElement('table');
+        table.className = 'district-table';
+        table.innerHTML = `<thead><tr>
+            <th>구역</th>
+            <th style="color:#777;">은장</th>
+            <th style="color:var(--service);">봉사</th>
+            <th style="color:var(--mother);">어머니</th>
+            <th style="color:var(--youth);">청년</th>
+            <th style="color:var(--primary);">합계</th>
+        </tr></thead>`;
+        const tbody = document.createElement('tbody');
 
-    // 탭 전환
+        ALL_DISTRICTS.forEach(district => {
+            const s = todayData[district];
+            const tr = document.createElement('tr');
+            if (!s) {
+                tr.innerHTML = `<td>${district}</td><td colspan="5" class="not-submitted">미제출</td>`;
+            } else {
+                const d = s.출석데이터 || {};
+                const eun   = d['은장회']?.인원   || 0;
+                const bong  = d['봉사회']?.인원   || 0;
+                const mom   = d['어머니회']?.인원 || 0;
+                const youth = d['청년회']?.인원   || 0;
+                const total = eun + bong + mom + youth;
+                let timeStr = '';
+                if (s.제출시간?.toDate) {
+                    const t = s.제출시간.toDate();
+                    timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+                }
+                tr.classList.add('has-data');
+                tr.addEventListener('click', () => openPinModal(() => openEditModal(s)));
+                tr.innerHTML = `
+                    <td>${district}<span class="submit-time">${timeStr}</span></td>
+                    <td class="td-eun">${eun}</td>
+                    <td class="td-bong">${bong}</td>
+                    <td class="td-mom">${mom}</td>
+                    <td class="td-youth">${youth}</td>
+                    <td class="td-total">${total}</td>`;
+            }
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        wrap.innerHTML = '';
+        wrap.appendChild(table);
+    }
+
+    function renderTotal(todayData) {
+        const wrap = document.getElementById('total-wrap');
+        const submitted = Object.values(todayData);
+        if (submitted.length === 0) { wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>'; return; }
+        let t = { eun: 0, bong: 0, mom: 0, youth: 0 };
+        submitted.forEach(s => {
+            const d = s.출석데이터 || {};
+            t.eun   += d['은장회']?.인원   || 0;
+            t.bong  += d['봉사회']?.인원   || 0;
+            t.mom   += d['어머니회']?.인원 || 0;
+            t.youth += d['청년회']?.인원   || 0;
+        });
+        const grand = t.eun + t.bong + t.mom + t.youth;
+        wrap.innerHTML = `
+            <div class="total-grid">
+                <div class="total-item eun"><div class="t-name">은장회</div><div class="t-num">${t.eun}명</div></div>
+                <div class="total-item bong"><div class="t-name">봉사회</div><div class="t-num">${t.bong}명</div></div>
+                <div class="total-item mom"><div class="t-name">어머니회</div><div class="t-num">${t.mom}명</div></div>
+                <div class="total-item youth"><div class="t-name">청년회</div><div class="t-num">${t.youth}명</div></div>
+            </div>
+            <div class="grand-total">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>`;
+    }
+
+    // ── 통계 ──
+    function renderStats() {
+        const wrap = document.getElementById('stats-wrap');
+        if (allSubmissions.length === 0) { wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>'; return; }
+        const monthMap = {};
+        allSubmissions.forEach(s => {
+            if (!s.날짜) return;
+            const ym = s.날짜.substring(0, 7);
+            if (!monthMap[ym]) monthMap[ym] = {};
+            const key = `${s.구역}_${s.모임}`;
+            if (!monthMap[ym][key]) monthMap[ym][key] = [];
+            monthMap[ym][key].push(s);
+        });
+        const sortedMonths = Object.keys(monthMap).sort().reverse();
+        wrap.innerHTML = '';
+
+        if (currentStatsTab === 'all') {
+            sortedMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = `${y}년 ${parseInt(m)}월`;
+                wrap.appendChild(label);
+                const table = document.createElement('table');
+                table.className = 'stats-table';
+                table.innerHTML = `<thead><tr><th>모임</th><th>회수</th><th>은장</th><th>봉사</th><th>어머니</th><th>청년</th><th>합계평균</th></tr></thead>`;
+                const tbody = document.createElement('tbody');
+                ['주일말씀','수요말씀','구역모임'].forEach(type => {
+                    const dateMap = {};
+                    Object.entries(monthMap[ym]).forEach(([key, records]) => {
+                        if (!key.endsWith(`_${type}`)) return;
+                        records.forEach(s => {
+                            if (!dateMap[s.날짜]) dateMap[s.날짜] = { eun:0, bong:0, mom:0, youth:0 };
+                            const d = s.출석데이터 || {};
+                            dateMap[s.날짜].eun   += d['은장회']?.인원   || 0;
+                            dateMap[s.날짜].bong  += d['봉사회']?.인원   || 0;
+                            dateMap[s.날짜].mom   += d['어머니회']?.인원 || 0;
+                            dateMap[s.날짜].youth += d['청년회']?.인원   || 0;
+                        });
+                    });
+                    const dates = Object.values(dateMap);
+                    const tr = document.createElement('tr');
+                    if (dates.length === 0) {
+                        tr.innerHTML = `<td>${type}</td><td>-</td><td colspan="5" style="color:#bbb;">기록없음</td>`;
+                    } else {
+                        const avg = k => (dates.reduce((a,b) => a+b[k], 0) / dates.length).toFixed(1);
+                        const avgTotal = (parseFloat(avg('eun'))+parseFloat(avg('bong'))+parseFloat(avg('mom'))+parseFloat(avg('youth'))).toFixed(1);
+                        tr.innerHTML = `<td>${type}</td><td>${dates.length}회</td><td>${avg('eun')}</td><td>${avg('bong')}</td><td>${avg('mom')}</td><td>${avg('youth')}</td><td><b>${avgTotal}</b></td>`;
+                    }
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                wrap.appendChild(table);
+            });
+        } else {
+            sortedMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = `${y}년 ${parseInt(m)}월`;
+                wrap.appendChild(label);
+                const table = document.createElement('table');
+                table.className = 'stats-table';
+                table.innerHTML = `<thead><tr><th>구역</th><th>주일</th><th>수요</th><th>구역모임</th></tr></thead>`;
+                const tbody = document.createElement('tbody');
+                ALL_DISTRICTS.forEach(district => {
+                    const getAvg = type => {
+                        const records = monthMap[ym][`${district}_${type}`] || [];
+                        if (!records.length) return '-';
+                        const sum = records.reduce((a,s) => {
+                            const d = s.출석데이터 || {};
+                            return a+(d['은장회']?.인원||0)+(d['봉사회']?.인원||0)+(d['어머니회']?.인원||0)+(d['청년회']?.인원||0);
+                        }, 0);
+                        return (sum/records.length).toFixed(1);
+                    };
+                    const s=getAvg('주일말씀'), w=getAvg('수요말씀'), g=getAvg('구역모임');
+                    if (s==='-' && w==='-' && g==='-') return;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${district}</td><td>${s}</td><td>${w}</td><td>${g}</td>`;
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                wrap.appendChild(table);
+            });
+        }
+    }
+
+    // ── 탭 ──
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             currentTab = btn.dataset.tab;
@@ -680,8 +842,6 @@
             if (currentTab === 'stats') renderStats();
         });
     });
-
-    // 통계 탭 전환
     document.querySelectorAll('.stats-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             currentStatsTab = btn.dataset.stats;
@@ -690,329 +850,22 @@
             renderStats();
         });
     });
+    document.getElementById('refresh-btn').addEventListener('click', loadAll);
+    elDate.addEventListener('change', renderCurrent);
+    elType.addEventListener('change', renderCurrent);
 
-    // 전체 데이터 로드
-    async function loadAll() {
-        document.getElementById('district-table-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-        document.getElementById('total-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-        document.getElementById('stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-
-        try {
-            allSubmissions = [];
-            // collectionGroup으로 모든 구역의 records를 한번에 읽기
-            const recordsGroup = window._collectionGroup(window._db, 'records');
-            const snap = await window._getDocs(recordsGroup);
-            snap.forEach(docSnap => {
-                allSubmissions.push({ id: docSnap.id, ...docSnap.data() });
-            });
-            console.log('전체 로드된 데이터:', allSubmissions.length, '건');
-            renderCurrent();
-            if (currentTab === 'stats') renderStats();
-        } catch (e) {
-            console.error('Firebase 오류:', e);
-            document.getElementById('district-table-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
-        }
-    }
-
-    // 오늘 현황 렌더
-    function renderCurrent() {
-        const date = elDate.value;
-        const type = elType.value;
-
-        // 해당 날짜+모임 필터
-        const todayData = {};
-        allSubmissions.forEach(s => {
-            if (s.날짜 === date && s.모임 === type) {
-                todayData[s.구역] = s;
-            }
-        });
-
-        const submittedCount = Object.keys(todayData).length;
-        document.getElementById('submit-badge').textContent = `${submittedCount}개 제출`;
-        document.getElementById('submit-badge').className = `badge ${submittedCount > 0 ? 'badge-ok' : 'badge-no'}`;
-
-        // 구역별 테이블
-        renderDistrictTable(todayData);
-
-        // 전체 합산
-        renderTotal(todayData);
-    }
-
-    function renderDistrictTable(todayData) {
-        const wrap = document.getElementById('district-table-wrap');
-
-        const table = document.createElement('table');
-        table.className = 'district-table';
-
-        // 헤더
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>구역</th>
-                    <th style="color:#777;">은장</th>
-                    <th style="color:var(--service);">봉사</th>
-                    <th style="color:var(--mother);">어머니</th>
-                    <th style="color:var(--youth);">청년</th>
-                    <th style="color:var(--primary);">합계</th>
-                </tr>
-            </thead>
-        `;
-
-        const tbody = document.createElement('tbody');
-
-        ALL_DISTRICTS.forEach(district => {
-            const s = todayData[district];
-            const tr = document.createElement('tr');
-
-            if (!s) {
-                tr.innerHTML = `
-                    <td>${district}</td>
-                    <td colspan="5" class="not-submitted">미제출</td>
-                `;
-            } else {                const d = s.출석데이터 || {};
-                const eun   = (d['은장회']   && d['은장회'].인원)   || 0;
-                const bong  = (d['봉사회']   && d['봉사회'].인원)   || 0;
-                const mom   = (d['어머니회'] && d['어머니회'].인원) || 0;
-                const youth = (d['청년회']   && d['청년회'].인원)   || 0;
-                const total = eun + bong + mom + youth;
-
-                // 제출 시간 포맷
-                let timeStr = '';
-                if (s.제출시간 && s.제출시간.toDate) {
-                    const t = s.제출시간.toDate();
-                    timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-                }
-
-                tr.classList.add('has-data');
-                tr.addEventListener('click', () => {
-                    openPinModal(() => openEditModal(s));
-                });
-                tr.innerHTML = `
-                    <td>${district}<span class="submit-time">${timeStr}</span></td>
-                    <td class="td-eun">${eun}</td>
-                    <td class="td-bong">${bong}</td>
-                    <td class="td-mom">${mom}</td>
-                    <td class="td-youth">${youth}</td>
-                    <td class="td-total">${total}</td>
-                `;
-            }
-            tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-        wrap.innerHTML = '';
-        wrap.appendChild(table);
-    }
-
-    function renderTotal(todayData) {
-        const wrap = document.getElementById('total-wrap');
-        const submitted = Object.values(todayData);
-
-        if (submitted.length === 0) {
-            wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>';
-            return;
-        }
-
-        let totals = { eun: 0, bong: 0, mom: 0, youth: 0 };
-        submitted.forEach(s => {
-            const d = s.출석데이터 || {};
-            totals.eun   += (d['은장회']   && d['은장회'].인원)   || 0;
-            totals.bong  += (d['봉사회']   && d['봉사회'].인원)   || 0;
-            totals.mom   += (d['어머니회'] && d['어머니회'].인원) || 0;
-            totals.youth += (d['청년회']   && d['청년회'].인원)   || 0;
-        });
-        const grand = totals.eun + totals.bong + totals.mom + totals.youth;
-
-        wrap.innerHTML = `
-            <div class="total-grid">
-                <div class="total-item eun">
-                    <div class="t-name">은장회</div>
-                    <div class="t-num">${totals.eun}명</div>
-                </div>
-                <div class="total-item bong">
-                    <div class="t-name">봉사회</div>
-                    <div class="t-num">${totals.bong}명</div>
-                </div>
-                <div class="total-item mom">
-                    <div class="t-name">어머니회</div>
-                    <div class="t-num">${totals.mom}명</div>
-                </div>
-                <div class="total-item youth">
-                    <div class="t-name">청년회</div>
-                    <div class="t-num">${totals.youth}명</div>
-                </div>
-            </div>
-            <div class="grand-total">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>
-        `;
-    }
-
-    // 통계 렌더
-    function renderStats() {
-        const wrap = document.getElementById('stats-wrap');
-
-        if (allSubmissions.length === 0) {
-            wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>';
-            return;
-        }
-
-        // 월별로 묶기
-        const monthMap = {};
-        allSubmissions.forEach(s => {
-            if (!s.날짜) return;
-            const ym = s.날짜.substring(0, 7);
-            if (!monthMap[ym]) monthMap[ym] = {};
-            const key = `${s.구역}_${s.모임}`;
-            if (!monthMap[ym][key]) monthMap[ym][key] = [];
-            monthMap[ym][key].push(s);
-        });
-
-        const sortedMonths = Object.keys(monthMap).sort().reverse();
-        wrap.innerHTML = '';
-
-        if (currentStatsTab === 'all') {
-            // 전체 합산 통계
-            sortedMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
-                const label = document.createElement('div');
-                label.className = 'month-label';
-                label.textContent = `${y}년 ${parseInt(m)}월`;
-                wrap.appendChild(label);
-
-                const table = document.createElement('table');
-                table.className = 'stats-table';
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>모임</th>
-                            <th>회수</th>
-                            <th>은장</th>
-                            <th>봉사</th>
-                            <th>어머니</th>
-                            <th>청년</th>
-                            <th>평균합계</th>
-                        </tr>
-                    </thead>
-                `;
-                const tbody = document.createElement('tbody');
-
-                ['주일말씀', '수요말씀', '구역모임'].forEach(type => {
-                    // 해당 월+모임의 날짜별 데이터 수집
-                    const dateMap = {};
-                    Object.entries(monthMap[ym]).forEach(([key, records]) => {
-                        if (!key.endsWith(`_${type}`)) return;
-                        records.forEach(s => {
-                            if (!dateMap[s.날짜]) dateMap[s.날짜] = { eun: 0, bong: 0, mom: 0, youth: 0 };
-                            const d = s.출석데이터 || {};
-                            dateMap[s.날짜].eun   += (d['은장회']   && d['은장회'].인원)   || 0;
-                            dateMap[s.날짜].bong  += (d['봉사회']   && d['봉사회'].인원)   || 0;
-                            dateMap[s.날짜].mom   += (d['어머니회'] && d['어머니회'].인원) || 0;
-                            dateMap[s.날짜].youth += (d['청년회']   && d['청년회'].인원)   || 0;
-                        });
-                    });
-
-                    const dates = Object.values(dateMap);
-                    const tr = document.createElement('tr');
-                    if (dates.length === 0) {
-                        tr.innerHTML = `<td>${type}</td><td>-</td><td colspan="5" style="color:#bbb;">기록없음</td>`;
-                    } else {
-                        const avg = key => (dates.reduce((a, b) => a + b[key], 0) / dates.length).toFixed(1);
-                        const avgTotal = (parseFloat(avg('eun')) + parseFloat(avg('bong')) + parseFloat(avg('mom')) + parseFloat(avg('youth'))).toFixed(1);
-                        tr.innerHTML = `
-                            <td>${type}</td>
-                            <td>${dates.length}회</td>
-                            <td>${avg('eun')}</td>
-                            <td>${avg('bong')}</td>
-                            <td>${avg('mom')}</td>
-                            <td>${avg('youth')}</td>
-                            <td><b>${avgTotal}</b></td>
-                        `;
-                    }
-                    tbody.appendChild(tr);
-                });
-
-                table.appendChild(tbody);
-                wrap.appendChild(table);
-            });
-
-        } else {
-            // 구역별 통계
-            sortedMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
-                const label = document.createElement('div');
-                label.className = 'month-label';
-                label.textContent = `${y}년 ${parseInt(m)}월`;
-                wrap.appendChild(label);
-
-                const table = document.createElement('table');
-                table.className = 'stats-table';
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>구역</th>
-                            <th>주일</th>
-                            <th>수요</th>
-                            <th>구역</th>
-                        </tr>
-                    </thead>
-                `;
-                const tbody = document.createElement('tbody');
-
-                ALL_DISTRICTS.forEach(district => {
-                    const tr = document.createElement('tr');
-                    const getAvg = (type) => {
-                        const key = `${district}_${type}`;
-                        const records = monthMap[ym][key] || [];
-                        if (records.length === 0) return '-';
-                        const sum = records.reduce((a, s) => {
-                            const d = s.출석데이터 || {};
-                            return a + (d['은장회']?.인원||0) + (d['봉사회']?.인원||0) + (d['어머니회']?.인원||0) + (d['청년회']?.인원||0);
-                        }, 0);
-                        return (sum / records.length).toFixed(1);
-                    };
-
-                    const s = getAvg('주일말씀');
-                    const w = getAvg('수요말씀');
-                    const g = getAvg('구역모임');
-
-                    if (s === '-' && w === '-' && g === '-') return; // 데이터 없는 구역 숨김
-
-                    tr.innerHTML = `
-                        <td>${district}</td>
-                        <td>${s}</td>
-                        <td>${w}</td>
-                        <td>${g}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                table.appendChild(tbody);
-                wrap.appendChild(table);
-            });
-        }
-    // ── 비밀번호 & 수정/삭제 로직 ──
-
-    const ADMIN_PIN = '0000'; // 나중에 여기서 변경
-    let pinInput = '';
-    let pinCallback = null; // 인증 후 실행할 함수
-    let editingSubmission = null; // 현재 수정 중인 데이터
-
-    // 비밀번호 모달 열기
+    // ── 비밀번호 ──
     function openPinModal(callback) {
-        pinInput = '';
-        pinCallback = callback;
+        pinInput = ''; pinCallback = callback;
         updatePinDots();
         document.getElementById('pin-error').textContent = '';
         document.getElementById('pin-modal').classList.add('show');
     }
-
     function updatePinDots() {
         for (let i = 0; i < 4; i++) {
-            const dot = document.getElementById(`pd${i}`);
-            dot.classList.toggle('filled', i < pinInput.length);
+            document.getElementById(`pd${i}`).classList.toggle('filled', i < pinInput.length);
         }
     }
-
-    // 핀패드 버튼
     document.querySelectorAll('.pin-btn[data-n]').forEach(btn => {
         btn.addEventListener('click', () => {
             if (pinInput.length >= 4) return;
@@ -1025,105 +878,76 @@
                         pinCallback && pinCallback();
                     } else {
                         document.getElementById('pin-error').textContent = '비밀번호가 틀렸습니다.';
-                        pinInput = '';
-                        updatePinDots();
+                        pinInput = ''; updatePinDots();
                     }
                 }, 200);
             }
         });
     });
-
     document.getElementById('pin-del').addEventListener('click', () => {
-        pinInput = pinInput.slice(0, -1);
-        updatePinDots();
+        pinInput = pinInput.slice(0,-1); updatePinDots();
         document.getElementById('pin-error').textContent = '';
     });
-
     document.getElementById('pin-cancel').addEventListener('click', () => {
         document.getElementById('pin-modal').classList.remove('show');
     });
 
-    // 수정 모달 열기
+    // ── 수정/삭제 ──
     function openEditModal(submission) {
         editingSubmission = submission;
         const d = submission.출석데이터 || {};
-
-        document.getElementById('edit-info').innerHTML =
-            `<b>${submission.구역}</b> · ${submission.날짜} · ${submission.모임}`;
-
+        document.getElementById('edit-info').innerHTML = `<b>${submission.구역}</b> · ${submission.날짜} · ${submission.모임}`;
         document.getElementById('edit-eun').value   = d['은장회']?.인원   || 0;
         document.getElementById('edit-bong').value  = d['봉사회']?.인원   || 0;
         document.getElementById('edit-mom').value   = d['어머니회']?.인원 || 0;
         document.getElementById('edit-youth').value = d['청년회']?.인원   || 0;
-
         updateEditTotal();
         document.getElementById('edit-modal').classList.add('show');
     }
-
     function updateEditTotal() {
-        const eun   = parseInt(document.getElementById('edit-eun').value)   || 0;
-        const bong  = parseInt(document.getElementById('edit-bong').value)  || 0;
-        const mom   = parseInt(document.getElementById('edit-mom').value)   || 0;
-        const youth = parseInt(document.getElementById('edit-youth').value) || 0;
-        document.getElementById('edit-total-preview').innerHTML =
-            `합계: <b>${eun + bong + mom + youth}명</b>`;
+        const total = ['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id) => a+(parseInt(document.getElementById(id).value)||0), 0);
+        document.getElementById('edit-total-preview').innerHTML = `합계: <b>${total}명</b>`;
     }
-
     ['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateEditTotal);
     });
-
     document.getElementById('edit-cancel').addEventListener('click', () => {
         document.getElementById('edit-modal').classList.remove('show');
     });
-
-    // 저장
     document.getElementById('edit-save').addEventListener('click', async () => {
         if (!editingSubmission) return;
         const s = editingSubmission;
-
-        const eun   = parseInt(document.getElementById('edit-eun').value)   || 0;
-        const bong  = parseInt(document.getElementById('edit-bong').value)  || 0;
-        const mom   = parseInt(document.getElementById('edit-mom').value)   || 0;
-        const youth = parseInt(document.getElementById('edit-youth').value) || 0;
-
-        // 기존 데이터 유지하면서 인원만 수정
         const newData = { ...(s.출석데이터 || {}) };
-        if (newData['은장회'])   newData['은장회'].인원   = eun;
-        if (newData['봉사회'])   newData['봉사회'].인원   = bong;
-        if (newData['어머니회']) newData['어머니회'].인원 = mom;
-        if (newData['청년회'])   newData['청년회'].인원   = youth;
-
+        if (newData['은장회'])   newData['은장회'].인원   = parseInt(document.getElementById('edit-eun').value)   || 0;
+        if (newData['봉사회'])   newData['봉사회'].인원   = parseInt(document.getElementById('edit-bong').value)  || 0;
+        if (newData['어머니회']) newData['어머니회'].인원 = parseInt(document.getElementById('edit-mom').value)   || 0;
+        if (newData['청년회'])   newData['청년회'].인원   = parseInt(document.getElementById('edit-youth').value) || 0;
         try {
-            const docRef = window._doc(window._db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`);
-            await window._updateDoc(docRef, { 출석데이터: newData });
-
+            await updateDoc(doc(db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`), { 출석데이터: newData });
             document.getElementById('edit-modal').classList.remove('show');
             alert('수정되었습니다.');
             await loadAll();
-        } catch (e) {
-            alert('수정 실패: ' + e.message);
-        }
+        } catch (e) { alert('수정 실패: ' + e.message); }
     });
-
-    // 삭제
     document.getElementById('edit-delete').addEventListener('click', async () => {
         if (!editingSubmission) return;
         const s = editingSubmission;
-
         if (!confirm(`${s.구역} ${s.날짜} ${s.모임} 기록을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`)) return;
-
         try {
-            const docRef = window._doc(window._db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`);
-            await window._deleteDoc(docRef);
-
+            await deleteDoc(doc(db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`));
             document.getElementById('edit-modal').classList.remove('show');
             alert('삭제되었습니다.');
             await loadAll();
-        } catch (e) {
-            alert('삭제 실패: ' + e.message);
-        }
+        } catch (e) { alert('삭제 실패: ' + e.message); }
     });
+
+    // 모달 닫기
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+    });
+
+    // ── 시작 ──
+    loadAll();
 </script>
 </body>
 </html>
