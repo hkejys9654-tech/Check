@@ -607,7 +607,7 @@
 <!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import { getFirestore, collection, collectionGroup, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -623,10 +623,8 @@
 
     window._db = db;
     window._collection = collection;
+    window._collectionGroup = collectionGroup;
     window._getDocs = getDocs;
-    window._query = query;
-    window._where = where;
-    window._orderBy = orderBy;
     window._deleteDoc = deleteDoc;
     window._doc = doc;
     window._updateDoc = updateDoc;
@@ -701,13 +699,12 @@
 
         try {
             allSubmissions = [];
-            for (const district of ALL_DISTRICTS) {
-                const recordsRef = window._collection(window._db, 'submissions', district, 'records');
-                const snap = await window._getDocs(recordsRef);
-                snap.forEach(docSnap => {
-                    allSubmissions.push({ id: docSnap.id, ...docSnap.data() });
-                });
-            }
+            // collectionGroup으로 모든 구역의 records를 한번에 읽기
+            const recordsGroup = window._collectionGroup(window._db, 'records');
+            const snap = await window._getDocs(recordsGroup);
+            snap.forEach(docSnap => {
+                allSubmissions.push({ id: docSnap.id, ...docSnap.data() });
+            });
             console.log('전체 로드된 데이터:', allSubmissions.length, '건');
             renderCurrent();
             if (currentTab === 'stats') renderStats();
