@@ -45,7 +45,7 @@
         h1 { font-size: 1.2rem; margin: 0 0 10px 0; text-align: center; color: var(--primary-color); }
         .controls { display: flex; gap: 10px; margin-bottom: 10px; }
         input[type="date"], select { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; appearance: none; -webkit-appearance: none; background-color: white; min-width: 0; }
-        .main-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .main-actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
         button { border: none; border-radius: 8px; padding: 12px 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, transform 0.1s, opacity 0.2s; }
         button:active { transform: scale(0.97); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -55,6 +55,7 @@
         .btn-save-record { background-color: var(--save-color); color: white; }
         .btn-share { background-color: var(--primary-color); color: white; }
         .btn-stats { background-color: #34495e; color: white; }
+        .btn-admin-submit { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; }
         .save-indicator { text-align: center; font-size: 0.8rem; margin-top: 6px; min-height: 16px; color: #888; }
         .save-indicator.unsaved { color: #e67e22; font-weight: 600; }
         .save-indicator.saved { color: var(--save-color); font-weight: 600; }
@@ -202,6 +203,7 @@
     <div class="main-actions">
         <button class="btn-setup"><span class="btn-icon">⚙️</span>명단설정</button>
         <button class="btn-save-record" id="btn-save-record"><span class="btn-icon">💾</span>저장</button>
+        <button class="btn-admin-submit" id="btn-admin-submit"><span class="btn-icon">📨</span>담당자제출</button>
         <button class="btn-share"><span class="btn-icon">📤</span>공유</button>
         <button class="btn-stats"><span class="btn-icon">📊</span>통계</button>
     </div>
@@ -222,12 +224,12 @@
 <div class="modal" id="bulk-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>📦 일괄 제출</h2>
+            <h2>📨 담당자 제출</h2>
             <button class="close-modal">&times;</button>
         </div>
-        <div class="help-text">저장된 기록 중 제출할 항목을 선택하세요.</div>
+        <div class="help-text">저장된 기록 중 담당자에게 제출할 항목을 선택하세요.</div>
         <div id="bulk-list"></div>
-        <button class="btn-save" id="btn-bulk-confirm" style="margin-top:12px;background:#8e44ad;">선택 항목 제출하기</button>
+        <button class="btn-save" id="btn-bulk-confirm" style="margin-top:12px;background:#8e44ad;">선택 항목 담당자 제출하기</button>
     </div>
 </div>
 
@@ -503,12 +505,7 @@
         updateSaveIndicator(!!stillExists);
         updateRecordStatusBanner(!!stillExists);
         elBtnSaveRecord.innerHTML = '<span class="btn-icon">✅</span>저장 완료';
-        const submitWrap = document.getElementById('submit-wrap');
-        const btnSubmit = document.getElementById('btn-submit');
-        submitWrap.classList.add('show');
-        btnSubmit.classList.remove('submitted');
-        btnSubmit.textContent = '📨 담당자에게 제출하기';
-        btnSubmit.disabled = false;
+        hideSubmitBtn();
         setTimeout(() => updateSaveIndicator(!!stillExists), 1200);
     }
 
@@ -603,7 +600,7 @@
                 ok++;
             } catch(e) { fail++; }
         }
-        btn.textContent = '선택 항목 제출하기'; btn.disabled = false;
+        btn.textContent = '선택 항목 담당자 제출하기'; btn.disabled = false;
         document.getElementById('bulk-modal').classList.remove('show');
         alert(fail === 0 ? `✅ ${ok}개 항목이 모두 제출되었습니다!` : `${ok}개 완료, ${fail}개 실패`);
     }
@@ -954,8 +951,9 @@
         document.querySelector('.btn-setup').addEventListener('click', openSetup);
         document.getElementById('save-setup').addEventListener('click', saveSetup);
         elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
-        document.getElementById('btn-submit').addEventListener('click', submitToAdmin);
+        document.getElementById('btn-submit').addEventListener('click', openBulkSubmit);
         document.getElementById('btn-bulk-submit').addEventListener('click', openBulkSubmit);
+        document.getElementById('btn-admin-submit').addEventListener('click', openBulkSubmit);
         document.getElementById('btn-bulk-confirm').addEventListener('click', confirmBulkSubmit);
         document.querySelector('.btn-share').addEventListener('click', openShare);
         document.getElementById('btn-share-text').addEventListener('click', shareAsText);
