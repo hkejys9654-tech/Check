@@ -842,13 +842,13 @@
                 'records', `${date}_${type}`
             );
             await window._firestoreSetDoc(docRef, {
-                구역: district,
-                날짜: date,
-                모임: type,
-                출석데이터: data,
-                제출시간: window._firestoreServerTimestamp()
-            });
-
+    구역: district,
+    날짜: date,
+    모임: type,
+    출석데이터: data,
+    명단: { 은장회: members.eun, 봉사회: members.bong, 어머니회: members.mom, 청년회: members.youth },
+    제출시간: window._firestoreServerTimestamp()
+});
             btnSubmit.textContent = '✅ 제출 완료';
             btnSubmit.classList.add('submitted');
             alert('담당자에게 제출되었습니다!\n수정이 필요하면 저장 후 다시 제출하세요.');
