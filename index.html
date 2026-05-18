@@ -141,6 +141,49 @@
         .btn-add-name { width: 100%; padding: 11px; border-radius: 10px; border: 2px dashed #d0d7de; background: #f8f9fa; color: #666; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
         .btn-add-name:active { background: #e9ecef; }
         .setup-cat-divider { height: 1px; background: #f0f0f0; margin: 4px 0 18px; }
+
+        /* 개인별현황 */
+        .stats-main-tabs { display:flex; border-bottom:2px solid #eee; margin-bottom:14px; }
+        .stats-main-tab { flex:1; padding:11px 4px; border:none; background:none; font-size:0.9rem; font-weight:700; color:#999; border-bottom:3px solid transparent; margin-bottom:-2px; cursor:pointer; }
+        .stats-main-tab.active { color:var(--primary-color); border-bottom-color:var(--primary-color); }
+        .personal-cat-tabs { display:flex; gap:6px; margin-bottom:10px; }
+        .personal-cat-tab { flex:1; padding:9px 4px; border:2px solid #e0e0e0; border-radius:8px; background:white; font-size:0.78rem; font-weight:700; color:#aaa; cursor:pointer; text-align:center; }
+        .personal-cat-tab.active.eun   { border-color:var(--silver-color);  color:#666; background:#f5f5f5; }
+        .personal-cat-tab.active.bong  { border-color:var(--service-color); color:var(--service-color); background:#eef5fc; }
+        .personal-cat-tab.active.mom   { border-color:var(--mother-color);  color:var(--mother-color); background:#edfcf3; }
+        .personal-cat-tab.active.youth { border-color:var(--youth-color);   color:var(--youth-color); background:#fef5ed; }
+        .personal-type-tabs { display:flex; gap:6px; margin-bottom:10px; }
+        .personal-type-tab { flex:1; padding:8px 4px; border-radius:8px; border:1.5px solid #e0e0e0; background:white; font-size:0.78rem; font-weight:700; color:#888; cursor:pointer; text-align:center; }
+        .personal-type-tab.active { background:#1B3A6B; color:white; border-color:#1B3A6B; }
+        .personal-month-select { width:100%; padding:10px 12px; border:2px solid #e0e0e0; border-radius:10px; font-size:0.95rem; font-weight:700; color:#1B3A6B; background:white; appearance:none; -webkit-appearance:none; margin-bottom:12px; }
+        .member-stat-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#f8fbff; border-radius:10px; margin-bottom:7px; cursor:pointer; border-left:3px solid #e0e0e0; }
+        .member-stat-row.eun-row   { border-left-color:var(--silver-color); }
+        .member-stat-row.bong-row  { border-left-color:var(--service-color); }
+        .member-stat-row.mom-row   { border-left-color:var(--mother-color); }
+        .member-stat-row.youth-row { border-left-color:var(--youth-color); }
+        .member-stat-name { font-size:0.9rem; font-weight:700; color:#1B3A6B; width:54px; flex-shrink:0; }
+        .member-stat-bar-wrap { flex:1; background:#e8eef5; border-radius:6px; height:12px; overflow:hidden; }
+        .member-stat-bar { height:100%; border-radius:6px; }
+        .bar-high { background:#2ECC71; } .bar-mid { background:#f39c12; } .bar-low { background:#e74c3c; } .bar-zero { background:#e0e0e0; }
+        .member-stat-count { font-size:0.85rem; font-weight:700; color:#555; width:36px; text-align:right; flex-shrink:0; }
+        .personal-detail-box { background:#f0f6ff; border-radius:12px; padding:14px; margin-top:10px; border:1.5px solid #cdd9f0; }
+        .personal-detail-title { font-size:1rem; font-weight:800; color:#1B3A6B; margin-bottom:12px; display:flex; align-items:center; }
+        .personal-detail-close { margin-left:auto; font-size:1.1rem; color:#aaa; cursor:pointer; background:none; border:none; padding:0; }
+        .personal-detail-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+        .personal-detail-label { font-size:0.82rem; color:#666; width:58px; flex-shrink:0; }
+        .personal-detail-bar-wrap { flex:1; background:#dde8f5; border-radius:5px; height:10px; overflow:hidden; }
+        .personal-detail-bar { height:100%; border-radius:5px; }
+        .personal-detail-val { font-size:0.82rem; font-weight:700; color:#333; width:30px; text-align:right; flex-shrink:0; }
+        .dot-section { margin-top:10px; }
+        .dot-section-label { font-size:0.78rem; color:#888; margin-bottom:5px; }
+        .dot-section-inner { display:flex; flex-wrap:wrap; gap:5px; }
+        .date-dot { padding:5px 7px; border-radius:7px; font-size:0.72rem; font-weight:700; }
+        .date-dot.present { background:#4a90e2; color:white; }
+        .date-dot.absent  { background:#fee2e2; color:#e74c3c; }
+        .personal-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid #cdd9f0; }
+        .ps-item { text-align:center; }
+        .ps-val { font-size:1.15rem; font-weight:800; color:#1B3A6B; }
+        .ps-label { font-size:0.72rem; color:#888; margin-top:2px; }
     </style>
 </head>
 <body>
@@ -176,7 +219,6 @@
     <div id="attendance-content"></div>
 </main>
 
-<!-- ★ 모달들은 모두 script 태그보다 앞에 위치 ★ -->
 <div class="modal" id="bulk-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -226,15 +268,39 @@
 <div class="modal" id="stats-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>📊 범주별 월간 평균 출석</h2>
+            <h2>📊 출석 통계</h2>
             <button class="close-modal">&times;</button>
         </div>
-        <div class="stats-tabs" id="stats-tabs">
-            <button class="stats-tab active sunday" data-type="주일말씀">주일말씀</button>
-            <button class="stats-tab" data-type="수요말씀">수요말씀</button>
-            <button class="stats-tab" data-type="구역모임">구역모임</button>
+        <div class="stats-main-tabs">
+            <button class="stats-main-tab active" data-main="monthly">📈 월별통계</button>
+            <button class="stats-main-tab" data-main="personal">👤 개인별현황</button>
         </div>
-        <div id="stats-container"></div>
+        <div id="stats-monthly-wrap">
+            <div class="stats-tabs" id="stats-tabs">
+                <button class="stats-tab active sunday" data-type="주일말씀">주일말씀</button>
+                <button class="stats-tab" data-type="수요말씀">수요말씀</button>
+                <button class="stats-tab" data-type="구역모임">구역모임</button>
+            </div>
+            <div id="stats-container"></div>
+        </div>
+        <div id="stats-personal-wrap" style="display:none;">
+            <div class="personal-cat-tabs">
+                <button class="personal-cat-tab active eun" data-cat="EUN">은장회</button>
+                <button class="personal-cat-tab bong" data-cat="BONG">봉사회</button>
+                <button class="personal-cat-tab mom" data-cat="MOM">어머니회</button>
+                <button class="personal-cat-tab youth" data-cat="YOUTH">청년회</button>
+            </div>
+            <div class="personal-type-tabs">
+                <button class="personal-type-tab active" data-mtype="주일말씀">주일말씀</button>
+                <button class="personal-type-tab" data-mtype="수요말씀">수요말씀</button>
+                <button class="personal-type-tab" data-mtype="구역모임">구역모임</button>
+            </div>
+            <select class="personal-month-select" id="personal-month-select">
+                <option value="all">📊 전체 기간</option>
+            </select>
+            <div id="personal-list"></div>
+            <div id="personal-detail" style="display:none;"></div>
+        </div>
     </div>
 </div>
 
@@ -267,6 +333,10 @@
     let lastGeneratedImageFilename = '';
     let currentStatsType = '주일말씀';
 
+    let currentPersonalCat = 'EUN';
+    let currentPersonalType = '주일말씀';
+    let currentPersonalMonth = 'all';
+
     const TYPE_CLASS = { '주일말씀': 'sunday', '수요말씀': 'wednesday', '구역모임': 'gathering' };
     const TYPE_BG    = { '주일말씀': '#fdedec', '수요말씀': '#f5eef8', '구역모임': '#eef5fc' };
     const TYPE_COLOR = { '주일말씀': '#c0392b', '수요말씀': '#8e44ad', '구역모임': '#4A90E2' };
@@ -280,7 +350,6 @@
     const elBtnSaveRecord = document.getElementById('btn-save-record');
     const elRecordStatusWrap = document.getElementById('record-status-wrap');
 
-    // ★ 수정1: hideSubmitBtn을 최상단에 선언 (initEventListeners에서 사용하기 때문)
     function hideSubmitBtn() {
         document.getElementById('submit-wrap').classList.remove('show');
     }
@@ -716,6 +785,91 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
+    function renderPersonalStats() {
+        const records = getRecords();
+        const members = getMembers();
+        const cat = CATEGORIES[currentPersonalCat];
+        const names = members[cat.key] || [];
+        const listEl = document.getElementById('personal-list');
+        const detailEl = document.getElementById('personal-detail');
+        detailEl.style.display = 'none';
+        listEl.innerHTML = '';
+
+        const allDates = Object.keys(records).sort().reverse();
+        const months = [...new Set(allDates.map(d => d.substring(0,7)))];
+        const sel = document.getElementById('personal-month-select');
+        const prev = sel.value;
+        sel.innerHTML = '<option value="all">📊 전체 기간</option>';
+        months.forEach(ym => {
+            const [y,m] = ym.split('-');
+            sel.innerHTML += `<option value="${ym}">${y}년 ${parseInt(m, 10)}월</option>`;
+        });
+        if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+        else sel.value = currentPersonalMonth;
+        currentPersonalMonth = sel.value;
+
+        if (names.length === 0) { listEl.innerHTML = `<div class="empty-msg">${cat.name} 명단이 없습니다.</div>`; return; }
+
+        const filteredDates = currentPersonalMonth === 'all' ? allDates : allDates.filter(d => d.startsWith(currentPersonalMonth));
+        const memberCounts = {}, memberDates = {};
+        names.forEach(name => {
+            memberCounts[name] = {'주일말씀':0,'수요말씀':0,'구역모임':0};
+            memberDates[name]  = {'주일말씀':[],'수요말씀':[],'구역모임':[]};
+        });
+        const totalSessions = {'주일말씀':0,'수요말씀':0,'구역모임':0};
+        filteredDates.forEach(date => {
+            const dayRec = records[date];
+            if (!dayRec) return;
+            ['주일말씀','수요말씀','구역모임'].forEach(t => {
+                if (!dayRec[t]) return;
+                totalSessions[t]++;
+                dayRec[t].forEach(n => { if (memberCounts[n] !== undefined) memberCounts[n][t]++; });
+                names.forEach(name => memberDates[name][t].push({ date, present: dayRec[t].includes(name) }));
+            });
+        });
+
+        const maxCount = totalSessions[currentPersonalType] || 1;
+        const barCls = (c,t) => !t ? 'bar-zero' : c/t >= 0.75 ? 'bar-high' : c/t >= 0.4 ? 'bar-mid' : 'bar-low';
+
+        const info = document.createElement('div');
+        info.style.cssText = 'text-align:center;font-size:0.82rem;color:#aaa;margin-bottom:10px;';
+        info.textContent = `${currentPersonalType} 총 ${totalSessions[currentPersonalType]}회 진행`;
+        listEl.appendChild(info);
+
+        names.forEach(name => {
+            const count = memberCounts[name][currentPersonalType];
+            const pct = maxCount > 0 ? (count/maxCount*100) : 0;
+            const row = document.createElement('div');
+            row.className = `member-stat-row ${cat.key}-row`;
+            row.innerHTML = `<span class="member-stat-name">${name}</span><div class="member-stat-bar-wrap"><div class="member-stat-bar ${barCls(count,totalSessions[currentPersonalType])}" style="width:${pct}%;"></div></div><span class="member-stat-count">${count}/${totalSessions[currentPersonalType]}</span>`;
+            row.addEventListener('click', () => showPersonalDetail(name, memberCounts[name], memberDates[name], totalSessions));
+            listEl.appendChild(row);
+        });
+    }
+
+    function showPersonalDetail(name, counts, dates, totalSessions) {
+        const detailEl = document.getElementById('personal-detail');
+        const typeColors = {'주일말씀':'#c0392b','수요말씀':'#8e44ad','구역모임':'#4a90e2'};
+        let dotsHTML = '';
+        ['주일말씀','수요말씀','구역모임'].forEach(t => {
+            const list = dates[t];
+            if (!list || list.length === 0) return;
+            dotsHTML += `<div class="dot-section"><div class="dot-section-label">${t}</div><div class="dot-section-inner">${list.map(({date,present}) => { const d=new Date(date); return `<div class="date-dot ${present?'present':'absent'}">${d.getMonth()+1}/${d.getDate()}</div>`; }).join('')}</div></div>`;
+        });
+        detailEl.innerHTML = `<div class="personal-detail-box">
+            <div class="personal-detail-title">${name}<button class="personal-detail-close" onclick="document.getElementById('personal-detail').style.display='none'">✕</button></div>
+            ${['주일말씀','수요말씀','구역모임'].map(t => { const cnt=counts[t],tot=totalSessions[t]||0,pct=tot>0?(cnt/tot*100):0; return `<div class="personal-detail-row"><span class="personal-detail-label">${t}</span><div class="personal-detail-bar-wrap"><div class="personal-detail-bar" style="width:${pct}%;background:${typeColors[t]};"></div></div><span class="personal-detail-val">${cnt}회</span></div>`; }).join('')}
+            ${dotsHTML}
+            <div class="personal-summary">
+                <div class="ps-item"><div class="ps-val">${counts['주일말씀']}</div><div class="ps-label">주일 총출석</div></div>
+                <div class="ps-item"><div class="ps-val">${counts['수요말씀']}</div><div class="ps-label">수요 총출석</div></div>
+                <div class="ps-item"><div class="ps-val">${counts['구역모임']}</div><div class="ps-label">구역 총출석</div></div>
+            </div>
+        </div>`;
+        detailEl.style.display = 'block';
+        detailEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+
     function renderStats() {
         const records = getRecords(); const members = getMembers();
         const container = document.getElementById('stats-container'); container.innerHTML = '';
@@ -780,6 +934,10 @@
             t.classList.remove('active', 'sunday', 'wednesday', 'gathering');
             if (t.dataset.type === currentStatsType) t.classList.add('active', TYPE_CLASS[currentStatsType]);
         });
+        document.querySelectorAll('.stats-main-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('.stats-main-tab[data-main="monthly"]').classList.add('active');
+        document.getElementById('stats-monthly-wrap').style.display = 'block';
+        document.getElementById('stats-personal-wrap').style.display = 'none';
         renderStats();
         document.getElementById('stats-modal').classList.add('show');
     }
@@ -812,6 +970,38 @@
                 renderStats();
             });
         });
+
+        document.querySelectorAll('.stats-main-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const main = tab.dataset.main;
+                document.querySelectorAll('.stats-main-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('stats-monthly-wrap').style.display = main === 'monthly' ? 'block' : 'none';
+                document.getElementById('stats-personal-wrap').style.display = main === 'personal' ? 'block' : 'none';
+                if (main === 'personal') renderPersonalStats();
+            });
+        });
+        document.querySelectorAll('.personal-cat-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                currentPersonalCat = tab.dataset.cat;
+                document.querySelectorAll('.personal-cat-tab').forEach(t => t.classList.remove('active','eun','bong','mom','youth'));
+                tab.classList.add('active', CATEGORIES[currentPersonalCat].key);
+                renderPersonalStats();
+            });
+        });
+        document.querySelectorAll('.personal-type-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                currentPersonalType = tab.dataset.mtype;
+                document.querySelectorAll('.personal-type-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderPersonalStats();
+            });
+        });
+        document.getElementById('personal-month-select').addEventListener('change', e => {
+            currentPersonalMonth = e.target.value;
+            renderPersonalStats();
+        });
+
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')));
         });
