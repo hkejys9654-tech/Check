@@ -1301,7 +1301,8 @@
         document.getElementById('save-setup').addEventListener('click', saveSetup);
 
         elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
-        document.getElementById('btn-submit').addEventListener('click', submitToAdmin);
+        document.getElementById('btn-bulk-submit').addEventListener('click', openBulkSubmit);
+        document.getElementById('btn-bulk-confirm').addEventListener('click', confirmBulkSubmit);
 
         // 날짜/구역/모임 바꾸면 제출 버튼 숨김
         const hideSubmitBtn = () => {
@@ -1351,8 +1352,80 @@
         renderAttendanceGrid();
         initEventListeners();
     }
+function openBulkSubmit() {
+    if (!window._firebaseReady) { alert('잠시 후 다시 시도해주세요.'); return; }
+    const records = getRecords();
+    const dates = Object.keys(records).sort().reverse();
+    const listEl = document.getElementById('bulk-list');
+    listEl.innerHTML = '';
+    if (dates.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">저장된 기록이 없습니다.</div>';
+        document.getElementById('bulk-modal').classList.add('show');
+        return;
+    }
+    const allCb = document.createElement('label');
+    allCb.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 4px;font-weight:700;color:#555;cursor:pointer;margin-bottom:8px;';
+    allCb.innerHTML = '<input type="checkbox" id="bulk-check-all" style="width:18px;height:18px;"> 전체 선택';
+    listEl.appendChild(allCb);
+    dates.forEach(date => {
+        const dayRec = records[date];
+        const d = new Date(date);
+        const dateStr = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+        ['주일말씀','수요말씀','구역모임'].forEach(type => {
+            if (!dayRec[type]) return;
+            const item = document.createElement('label');
+            item.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:8px;cursor:pointer;';
+            item.innerHTML = `<input type="checkbox" class="bulk-check" data-date="${date}" data-type="${type}" style="width:20px;height:20px;accent-color:#4a90e2;"><div><div style="font-weight:700;color:#1B3A6B;">${dateStr}</div><div style="font-size:0.82rem;color:#888;">${type}</div></div>`;
+            listEl.appendChild(item);
+        });
+    });
+    document.getElementById('bulk-check-all').addEventListener('change', e => {
+        document.querySelectorAll('.bulk-check').forEach(cb => cb.checked = e.target.checked);
+    });
+    document.getElementById('bulk-modal').classList.add('show');
+}
+
+async function confirmBulkSubmit() {
+    const selected = [...document.querySelectorAll('.bulk-check:checked')];
+    if (selected.length === 0) { alert('제출할 항목을 선택해주세요.'); return; }
+    if (!confirm(`선택한 ${selected.length}개 항목을 담당자에게 제출하시겠습니까?`)) return;
+    const district = elDistrict.value;
+    const records = getRecords();
+    const members = getMembers();
+    const btn = document.getElementById('btn-bulk-confirm');
+    btn.textContent = '제출 중...'; btn.disabled = true;
+    let ok = 0, fail = 0;
+    for (const cb of selected) {
+        const date = cb.dataset.date, type = cb.dataset.type;
+        const savedRecord = (records[date] && records[date][type]) || [];
+        const data = {};
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const names = members[cat.key] || [];
+            data[cat.name] = { 전체: names, 출석: names.filter(n => savedRecord.includes(n)), 인원: names.filter(n => savedRecord.includes(n)).length };
+        });
+        try {
+            await window._firestoreSetDoc(window._firestoreDoc(window._db,'submissions',district,'records',`${date}_${type}`), { 구역:district, 날짜:date, 모임:type, 출석데이터:data, 제출시간:window._firestoreServerTimestamp() });
+            ok++;
+        } catch(e) { fail++; }
+    }
+    btn.textContent = '선택 항목 제출하기'; btn.disabled = false;
+    document.getElementById('bulk-modal').classList.remove('show');
+    alert(fail === 0 ? `✅ ${ok}개 항목이 모두 제출되었습니다!` : `${ok}개 완료, ${fail}개 실패`);
+}
 
     init();
 </script>
+<div class="modal" id="bulk-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📦 일괄 제출</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="help-text">저장된 기록 중 제출할 항목을 선택하세요.</div>
+        <div id="bulk-list"></div>
+        <button class="btn-save" id="btn-bulk-confirm" style="margin-top:12px;background:#8e44ad;">선택 항목 제출하기</button>
+    </div>
+</div>
 </body>
 </html>
