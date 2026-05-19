@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>봉선 구역 출석체크 2안</title>
+    <title>구역 출석관리 시스템</title>
     <meta name="theme-color" content="#0b4fb3">
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon.png">
@@ -297,6 +297,15 @@
             margin-bottom: 14px;
         }
 
+        .save-bottom-actions {
+            margin-top: 4px;
+            margin-bottom: 18px;
+        }
+
+        .save-indicator-bottom {
+            margin-top: 8px;
+        }
+
         .big-action {
             min-height: 74px;
             border-radius: 16px;
@@ -461,6 +470,7 @@
             gap: 9px;
             margin-bottom: 12px;
             font-weight: 950;
+            cursor: pointer;
         }
 
         .member-section-header .mini-icon {
@@ -940,7 +950,7 @@
         <div class="brand-wrap">
             <div class="brand-icon"><i data-lucide="book-open-check"></i></div>
             <div>
-                <h1>봉선 구역 출석체크</h1>
+                <h1>구역 출석관리 시스템</h1>
             </div>
         </div>
     </div>
@@ -985,17 +995,6 @@
         </div>
     </div>
 
-    <div class="save-indicator" id="save-indicator">&nbsp;</div>
-
-    <div class="primary-actions">
-        <button class="big-action btn-save-main" id="btn-save-record" type="button">
-            <i data-lucide="save"></i>
-            <div>
-                <div class="big-text">저장하기</div>
-                <div class="small-text">내 기기에 기록 저장</div>
-            </div>
-        </button>
-    </div>
 <section class="card section-card">
         <div class="section-title">
             <i data-lucide="layout-dashboard"></i>
@@ -1006,6 +1005,18 @@
     </section>
 
     <section id="attendance-content"></section>
+
+    <div class="save-indicator save-indicator-bottom" id="save-indicator">&nbsp;</div>
+
+    <div class="primary-actions save-bottom-actions">
+        <button class="big-action btn-save-main" id="btn-save-record" type="button">
+            <i data-lucide="save"></i>
+            <div>
+                <div class="big-text">저장하기</div>
+                <div class="small-text">내 기기에 기록 저장</div>
+            </div>
+        </button>
+    </div>
 </main>
 
 <div class="bottom-tools">
@@ -1064,6 +1075,9 @@
                 <button class="stats-tab" data-type="수요말씀" type="button">수요말씀</button>
                 <button class="stats-tab" data-type="구역모임" type="button">구역모임</button>
             </div>
+            <select class="personal-month-select" id="stats-month-select">
+                <option value="all">전체 기간</option>
+            </select>
             <div id="stats-container"></div>
         </div>
         <div id="stats-personal-wrap" style="display:none;">
@@ -1118,6 +1132,7 @@
     let lastGeneratedImageBlob = null;
     let lastGeneratedImageFilename = '';
     let currentStatsType = '주일말씀';
+    let currentStatsMonth = 'all';
     let currentPersonalCat = 'EUN';
     let currentPersonalType = '주일말씀';
     let currentPersonalMonth = 'all';
@@ -1303,6 +1318,16 @@
 
             const grid = document.createElement('div');
             grid.className = 'member-grid';
+
+            header.addEventListener('click', () => {
+                const isHidden = grid.style.display === 'none';
+                grid.style.display = isHidden ? 'grid' : 'none';
+
+                const icon = header.querySelector('.fold-mark i');
+                if (icon) icon.setAttribute('data-lucide', isHidden ? 'chevron-up' : 'chevron-down');
+
+                refreshIcons();
+            });
 
             names.forEach(name => {
                 const btn = document.createElement('button');
@@ -1681,29 +1706,50 @@
             return;
         }
 
+        const monthSelect = document.getElementById('stats-month-select');
+        const months = [...new Set(dates.map(d => d.substring(0, 7)))].sort().reverse();
+
+        if (monthSelect) {
+            const prev = currentStatsMonth || monthSelect.value || 'all';
+            monthSelect.innerHTML = '<option value="all">전체 기간</option>';
+
+            months.forEach(ym => {
+                const [y, m] = ym.split('-');
+                monthSelect.innerHTML += `<option value="${ym}">${y}년 ${parseInt(m, 10)}월</option>`;
+            });
+
+            if ([...monthSelect.options].some(o => o.value === prev)) monthSelect.value = prev;
+            else monthSelect.value = 'all';
+
+            currentStatsMonth = monthSelect.value;
+        }
+
         const selectedType = currentStatsType;
+        const selectedMonth = currentStatsMonth || 'all';
 
         const headerInfo = document.createElement('div');
         headerInfo.style.cssText = `background:${TYPE_BG[selectedType]};padding:10px 12px;border-radius:8px;margin-bottom:15px;font-size:0.9rem;color:${TYPE_COLOR[selectedType]};`;
-        headerInfo.innerHTML = `<b>${elDistrict.value} · ${selectedType}</b> 월별 범주별 평균 출석`;
+        headerInfo.innerHTML = `<b>${elDistrict.value} · ${selectedType}</b> ${selectedMonth === 'all' ? '전체 기간' : '선택 월'} 범주별 평균 출석`;
         container.appendChild(headerInfo);
 
-        const monthMap = {};
+        const periodMap = {};
         let hasAnyData = false;
 
         dates.forEach(date => {
-            const dayRec = records[date];
-            if (!dayRec[selectedType]) return;
+            if (selectedMonth !== 'all' && !date.startsWith(selectedMonth)) return;
 
-            const ym = date.substring(0, 7);
-            if (!monthMap[ym]) monthMap[ym] = { eun: [], bong: [], mom: [], youth: [] };
+            const dayRec = records[date];
+            if (!dayRec || !dayRec[selectedType]) return;
+
+            const key = selectedMonth === 'all' ? 'all' : date.substring(0, 7);
+            if (!periodMap[key]) periodMap[key] = { eun: [], bong: [], mom: [], youth: [] };
 
             const attendees = dayRec[selectedType];
 
             CAT_ORDER.forEach(k => {
                 const cat = CATEGORIES[k];
                 const catNames = members[cat.key] || [];
-                monthMap[ym][cat.key].push(attendees.filter(n => catNames.includes(n)).length);
+                periodMap[key][cat.key].push(attendees.filter(n => catNames.includes(n)).length);
             });
 
             hasAnyData = true;
@@ -1714,12 +1760,23 @@
             return;
         }
 
-        Object.keys(monthMap).sort().reverse().forEach(ym => {
-            const [y, m] = ym.split('-');
+        const periodKeys = selectedMonth === 'all'
+            ? ['all']
+            : Object.keys(periodMap).sort().reverse();
+
+        periodKeys.forEach(key => {
+            const sessionCount = periodMap[key].eun.length;
 
             const monthTitle = document.createElement('div');
             monthTitle.className = 'stats-month-title';
-            monthTitle.textContent = `${y}년 ${parseInt(m, 10)}월 (${monthMap[ym].eun.length}회 진행)`;
+
+            if (key === 'all') {
+                monthTitle.textContent = `전체 기간 (${sessionCount}회 진행)`;
+            } else {
+                const [y, m] = key.split('-');
+                monthTitle.textContent = `${y}년 ${parseInt(m, 10)}월 (${sessionCount}회 진행)`;
+            }
+
             container.appendChild(monthTitle);
 
             const table = document.createElement('table');
@@ -1727,24 +1784,26 @@
             table.innerHTML = `<thead><tr><th>범주</th><th>전체</th><th>평균 출석</th><th>출석률</th></tr></thead>`;
 
             const tbody = document.createElement('tbody');
-            let monthTotalAvg = 0;
-            let monthTotalMembers = 0;
+            let periodTotalAvg = 0;
+            let periodTotalMembers = 0;
 
             CAT_ORDER.forEach(k => {
                 const cat = CATEGORIES[k];
                 const catNames = members[cat.key] || [];
-                const counts = monthMap[ym][cat.key];
+                const counts = periodMap[key][cat.key];
                 const tr = document.createElement('tr');
 
                 if (catNames.length === 0) {
                     tr.innerHTML = `<td style="color:#bbb;">${cat.name}</td><td colspan="3" style="color:#bbb;">명단없음</td>`;
+                } else if (!counts || counts.length === 0) {
+                    tr.innerHTML = `<td>${cat.name}</td><td>${catNames.length}명</td><td style="color:#bbb;">0.0명</td><td>0%</td>`;
                 } else {
                     const sum = counts.reduce((a, b) => a + b, 0);
                     const avg = sum / counts.length;
                     const rate = (avg / catNames.length * 100).toFixed(0);
 
-                    monthTotalAvg += avg;
-                    monthTotalMembers += catNames.length;
+                    periodTotalAvg += avg;
+                    periodTotalMembers += catNames.length;
 
                     tr.innerHTML = `<td>${cat.name}</td><td>${catNames.length}명</td><td><b>${avg.toFixed(1)}명</b></td><td>${rate}%</td>`;
                 }
@@ -1752,10 +1811,10 @@
                 tbody.appendChild(tr);
             });
 
-            if (monthTotalMembers > 0) {
+            if (periodTotalMembers > 0) {
                 const totalRow = document.createElement('tr');
                 totalRow.style.cssText = 'background:#f8f9fa;font-weight:950;';
-                totalRow.innerHTML = `<td>합계</td><td>${monthTotalMembers}명</td><td style="color:${TYPE_COLOR[selectedType]};">${monthTotalAvg.toFixed(1)}명</td><td>${(monthTotalAvg / monthTotalMembers * 100).toFixed(0)}%</td>`;
+                totalRow.innerHTML = `<td>합계</td><td>${periodTotalMembers}명</td><td style="color:${TYPE_COLOR[selectedType]};">${periodTotalAvg.toFixed(1)}명</td><td>${(periodTotalAvg / periodTotalMembers * 100).toFixed(0)}%</td>`;
                 tbody.appendChild(totalRow);
             }
 
@@ -1952,6 +2011,11 @@
                 tab.classList.add('active');
                 renderStats();
             });
+        });
+
+        document.getElementById('stats-month-select').addEventListener('change', e => {
+            currentStatsMonth = e.target.value;
+            renderStats();
         });
 
         document.querySelectorAll('.stats-main-tab').forEach(tab => {
