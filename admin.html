@@ -3,261 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>출석 취합 대시보드</title>
-    <meta name="theme-color" content="#1B3A6B">
+    <title>봉선 출석통계 시스템</title>
+    <meta name="theme-color" content="#0b4fb3">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #1B3A6B;
+            --primary: #0b4fb3;
+            --primary-dark: #063a91;
+            --primary-soft: #eaf3ff;
+            --navy: #1B3A6B;
             --accent: #4a90e2;
-            --silver: #9E9E9E;
-            --service: #4A90E2;
-            --mother: #2ECC71;
-            --youth: #E67E22;
-            --bg: #f0f4f8;
+            --green: #2ECC71;
+            --pink: #EC5F97;
+            --purple: #8E5BE8;
+            --orange: #E67E22;
+            --bg: #f3f6fb;
             --card: #ffffff;
+            --line: #e5edf7;
+            --text: #27364a;
+            --muted: #8b98aa;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ECC71;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
             background: var(--bg);
-            color: #333;
+            color: var(--text);
             min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button, select, input {
+            font-family: inherit;
         }
 
         header {
             position: sticky;
             top: 0;
-            background: var(--primary);
-            padding: 14px 16px 10px;
             z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            color: white;
+            background:
+                radial-gradient(circle at 88% 82%, rgba(255,255,255,0.13) 0 2px, transparent 3px),
+                radial-gradient(circle at 78% 72%, rgba(255,255,255,0.10) 0 3px, transparent 4px),
+                linear-gradient(145deg, var(--primary-dark), var(--primary));
+            padding: 18px 16px 0;
+            box-shadow: 0 5px 18px rgba(11,79,179,0.3);
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            right: 22px;
+            bottom: 34px;
+            width: 112px;
+            height: 92px;
+            opacity: 0.08;
+            background:
+                linear-gradient(to right, transparent 48%, white 49% 51%, transparent 52%) 50% 9px / 34px 50px no-repeat,
+                linear-gradient(135deg, transparent 43%, white 44% 48%, transparent 49%) 24px 30px / 42px 42px no-repeat,
+                linear-gradient(225deg, transparent 43%, white 44% 48%, transparent 49%) 47px 30px / 42px 42px no-repeat,
+                linear-gradient(white, white) 33px 66px / 46px 3px no-repeat;
+        }
+
+        .top-bar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .hamburger, .bell {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0.92;
+        }
+
+        .bell {
+            position: relative;
+        }
+
+        .bell::after {
+            content: "";
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff5d5d;
+        }
+
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.13);
+        }
+
+        .brand-icon i {
+            width: 29px;
+            height: 29px;
+            stroke-width: 2.2;
         }
 
         header h1 {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 10px;
+            font-size: 1.26rem;
+            font-weight: 950;
+            letter-spacing: -0.8px;
+            white-space: nowrap;
         }
 
-        .filter-row {
+        .month-context {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            font-size: 0.96rem;
+            font-weight: 750;
+            opacity: 0.96;
+            padding-bottom: 16px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
         }
 
-        .filter-row select,
-        .filter-row input {
-            flex: 1;
-            padding: 10px 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: rgba(255,255,255,0.15);
-            color: white;
-            appearance: none;
-            -webkit-appearance: none;
-            text-align: center;
+        .month-context i {
+            width: 18px;
+            height: 18px;
         }
 
-        .filter-row select option { color: #333; background: white; }
-
-        .filter-row input[type="date"] {
-            color: white;
-            color-scheme: dark;
+        .tab-shell {
+            position: relative;
+            z-index: 2;
+            margin: 0 -16px;
+            padding: 0 16px;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
         }
-
-        main { padding: 14px; padding-bottom: 60px; }
 
         .tabs {
             display: flex;
-            gap: 0;
-            margin-bottom: 14px;
-            background: white;
-            border-radius: 10px;
-            padding: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            height: 62px;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 10px 4px;
             border: none;
             background: none;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #999;
-            border-radius: 7px;
+            color: #444;
+            font-size: 0.83rem;
+            font-weight: 850;
             cursor: pointer;
-            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            padding-top: 7px;
+        }
+
+        .tab-btn i {
+            display: block;
+            margin: 0 auto 4px;
+            width: 22px;
+            height: 22px;
+            stroke-width: 2.2;
+            color: #666;
         }
 
         .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .card-title {
-            font-size: 0.95rem;
-            font-weight: 800;
             color: var(--primary);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #eef2f7;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            border-bottom-color: var(--primary);
         }
 
-        .district-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.82rem;
-        }
-
-        .district-table th {
-            background: #f8f9fa;
-            padding: 8px 4px;
-            text-align: center;
-            font-weight: 700;
-            color: #555;
-            border-bottom: 1px solid #eee;
-        }
-
-        .district-table td {
-            padding: 10px 4px;
-            text-align: center;
-            border-bottom: 1px solid #f5f5f5;
-            font-size: 0.85rem;
-        }
-
-        .district-table tr:last-child td { border-bottom: none; }
-
-        .district-table td:first-child {
-            font-weight: 700;
+        .tab-btn.active i {
             color: var(--primary);
-            text-align: left;
-            padding-left: 6px;
         }
 
-        .td-eun   { color: #666; }
-        .td-bong  { color: var(--service); font-weight: 600; }
-        .td-mom   { color: var(--mother); font-weight: 600; }
-        .td-youth { color: var(--youth); font-weight: 600; }
-        .td-total { font-weight: 800; color: var(--primary); }
-
-        .not-submitted { color: #ccc !important; font-size: 0.8rem; }
-
-        .submit-time {
-            font-size: 0.72rem;
-            color: #aaa;
-            display: block;
-            margin-top: 1px;
-        }
-
-        .total-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .total-item {
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .total-item .t-name {
-            font-size: 0.82rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .total-item .t-num {
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-
-        .total-item.eun   { background: #f5f5f5; color: #555; }
-        .total-item.bong  { background: #eef5fc; color: var(--service); }
-        .total-item.mom   { background: #edfcf3; color: var(--mother); }
-        .total-item.youth { background: #fef5ed; color: var(--youth); }
-
-        .grand-total {
-            background: var(--primary);
-            color: white;
-            border-radius: 10px;
+        main {
             padding: 14px;
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 800;
+            padding-bottom: 72px;
         }
 
-        .stats-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-
-        .stats-tab {
-            flex: 1;
-            padding: 9px 4px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+        .filter-card {
             background: white;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #888;
-            cursor: pointer;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(24,55,96,0.06);
         }
 
-        .stats-tab.active {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #eef2f7;
+        .filter-row, .personal-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
+        .filter-row.single {
+            grid-template-columns: 1fr;
         }
 
-        .stats-table th {
-            background: #f8f9fa;
-            padding: 9px 4px;
-            text-align: center;
-            font-weight: 700;
-            color: #555;
-            border-bottom: 1px solid #eee;
-        }
-
-        .stats-table td {
-            padding: 9px 4px;
-            text-align: center;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .stats-table tr:last-child td { border-bottom: none; }
-        .stats-table td:first-child { font-weight: 700; text-align: left; padding-left: 6px; color: var(--primary); }
-
-        .month-label {
+        select, input[type="date"] {
+            min-width: 0;
+            padding: 11px 9px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
             font-size: 0.9rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 14px 0 8px;
-            padding-left: 4px;
+            background: white;
+            color: var(--navy);
+            font-weight: 850;
+            appearance: none;
+            -webkit-appearance: none;
+            text-align: center;
         }
 
         .refresh-btn {
@@ -266,283 +241,376 @@
             background: var(--accent);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 700;
+            border-radius: 13px;
+            font-size: 0.98rem;
+            font-weight: 850;
             cursor: pointer;
+            margin-top: 9px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 16px rgba(24,55,96,0.07);
+            border: 1px solid rgba(232,237,245,0.8);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 950;
+            color: var(--navy);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            width: 23px;
+            height: 23px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
             margin-bottom: 14px;
         }
 
-        .empty-msg {
-            text-align: center;
-            color: #bbb;
-            padding: 30px 0;
-            font-size: 0.9rem;
+        .summary-card {
+            background: white;
+            border-radius: 16px;
+            padding: 13px 9px;
+            box-shadow: 0 3px 12px rgba(24,55,96,0.08);
+            border: 1px solid var(--line);
+            min-height: 96px;
         }
 
-        .loading {
+        .summary-card .icon-bubble {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 7px;
+        }
+
+        .summary-card .icon-bubble i {
+            width: 21px;
+            height: 21px;
+            stroke-width: 2.4;
+        }
+
+        .summary-card .s-label {
+            font-size: 0.74rem;
+            font-weight: 850;
+            color: #333;
+            margin-bottom: 3px;
+            letter-spacing: -0.2px;
+        }
+
+        .summary-card .s-num {
+            font-size: 1.48rem;
+            font-weight: 950;
+            color: var(--primary);
+            letter-spacing: -0.9px;
+            white-space: nowrap;
+        }
+
+        .summary-card .s-unit {
+            font-size: 0.78rem;
+            font-weight: 850;
+            margin-left: 1px;
+        }
+
+        .meeting-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            font-size: 0.86rem;
+        }
+
+        .meeting-table th {
+            background: #f4f8fd;
+            color: #52606f;
+            padding: 10px 5px;
+            font-size: 0.8rem;
             text-align: center;
-            color: #999;
-            padding: 20px 0;
-            font-size: 0.9rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .meeting-table td {
+            padding: 12px 5px;
+            text-align: center;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .meeting-table tr:last-child td { border-bottom: none; }
+
+        .meeting-table td:first-child {
+            text-align: left;
+            font-weight: 950;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .row-icon {
+            display: inline-flex;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .row-icon i {
+            width: 19px;
+            height: 19px;
+            stroke-width: 2.5;
+        }
+
+        .icon-sunday { background: #eaf3ff; color: var(--primary); }
+        .icon-wed { background: #eafaef; color: var(--green); }
+        .icon-group { background: #f3edff; color: var(--purple); }
+
+        .percent {
+            color: var(--primary);
+            font-weight: 950;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .cat-card {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 11px 7px;
+            background: white;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+
+        .cat-card:active {
+            transform: scale(0.98);
+        }
+
+        .cat-icon {
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 6px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cat-icon i {
+            width: 23px;
+            height: 23px;
+            stroke-width: 2.25;
+        }
+
+        .cat-card .cat-name {
+            font-size: 0.78rem;
+            font-weight: 950;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .cat-card .cat-num {
+            font-size: 1.32rem;
+            font-weight: 950;
+            color: #222;
+            letter-spacing: -0.6px;
+        }
+
+        .cat-card .cat-rate {
+            font-size: 0.86rem;
+            color: var(--primary);
+            font-weight: 950;
+            margin: 3px 0 8px;
+        }
+
+        .progress {
+            height: 8px;
+            background: #e8eef7;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .progress > div {
+            height: 100%;
+            border-radius: 9px;
+        }
+
+        .c-eun .cat-icon { background: #edf4ff; color: var(--primary); }
+        .c-bong .cat-icon { background: #eafaef; color: var(--green); }
+        .c-mom .cat-icon { background: #fff0f6; color: var(--pink); }
+        .c-youth .cat-icon { background: #f3edff; color: var(--purple); }
+        .c-eun .progress > div { background: var(--primary); }
+        .c-bong .progress > div { background: var(--green); }
+        .c-mom .progress > div { background: var(--pink); }
+        .c-youth .progress > div { background: var(--purple); }
+
+        .note {
+            background: #edf5ff;
+            color: #4a6078;
+            padding: 11px 12px;
+            border-radius: 13px;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            margin-top: 12px;
+        }
+
+        .district-table, .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
+        .district-table th,
+        .stats-table th {
+            background: #f8f9fa;
+            padding: 9px 4px;
+            text-align: center;
+            font-weight: 850;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+
+        .district-table td,
+        .stats-table td {
+            padding: 10px 4px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .district-table td:first-child,
+        .stats-table td:first-child {
+            font-weight: 950;
+            color: var(--navy);
+            text-align: left;
+            padding-left: 6px;
+        }
+
+        .td-eun { color: #666; }
+        .td-bong { color: var(--green); font-weight: 850; }
+        .td-mom { color: var(--pink); font-weight: 850; }
+        .td-youth { color: var(--purple); font-weight: 850; }
+        .td-total { font-weight: 950; color: var(--navy); }
+
+        .not-submitted { color: #bbb !important; font-size: 0.8rem; }
+
+        .submit-time {
+            font-size: 0.7rem;
+            color: #aaa;
+            display: block;
+            margin-top: 1px;
         }
 
         .badge {
             display: inline-block;
             font-size: 0.72rem;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 12px;
+            font-weight: 850;
             margin-left: 6px;
         }
-        .badge-ok  { background: #dcfce7; color: #166634; }
-        .badge-no  { background: #fee2e2; color: #991b1b; }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.55);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.show { display: flex; }
-        .modal-box {
-            background: white;
-            width: 88%;
-            max-width: 420px;
-            border-radius: 16px;
-            padding: 22px 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            max-height: 86vh;
-            overflow-y: auto;
-        }
-        .modal-box h3 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 16px;
-        }
+        .badge-ok { background: #dcfce7; color: #166634; }
+        .badge-no { background: #fee2e2; color: #991b1b; }
 
-        .pin-display {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .pin-dot {
-            width: 16px; height: 16px;
-            border-radius: 50%;
-            background: #e0e0e0;
-            transition: background 0.15s;
-        }
-        .pin-dot.filled { background: var(--primary); }
-
-        .pin-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        .pin-btn {
-            padding: 16px;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #333;
-            cursor: pointer;
-        }
-        .pin-btn:active { background: #f0f4f8; }
-        .pin-btn.del { color: #e53e3e; font-size: 1rem; }
-        .pin-error {
+        .empty-msg, .loading {
             text-align: center;
-            color: #e53e3e;
-            font-size: 0.85rem;
-            margin-top: 10px;
-            min-height: 18px;
-        }
-        .pin-cancel {
-            width: 100%;
-            margin-top: 12px;
-            padding: 12px;
-            background: #f0f0f0;
-            color: #555;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .edit-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 14px;
-            font-size: 0.88rem;
-            color: #555;
-            line-height: 1.7;
-        }
-        .edit-info b { color: var(--primary); }
-
-        .edit-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .edit-row label {
+            color: #aaa;
+            padding: 28px 0;
             font-size: 0.9rem;
-            font-weight: 700;
-            width: 70px;
-            flex-shrink: 0;
-        }
-        .edit-row label.eun-l   { color: #777; }
-        .edit-row label.bong-l  { color: var(--service); }
-        .edit-row label.mom-l   { color: var(--mother); }
-        .edit-row label.youth-l { color: var(--youth); }
-
-        .edit-row input[type="number"] {
-            width: 70px;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
-            text-align: center;
-        }
-        .edit-row input[type="number"]:focus { border-color: var(--accent); outline: none; }
-
-        .edit-total-preview {
-            text-align: center;
-            font-size: 0.9rem;
-            color: #888;
-            margin: 4px 0 14px;
-        }
-        .edit-total-preview b { color: var(--primary); font-size: 1rem; }
-
-        .modal-btn-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        .btn-edit-save {
-            flex: 2;
-            padding: 13px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-edit-delete {
-            flex: 1;
-            padding: 13px;
-            background: #fee2e2;
-            color: #c0392b;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-edit-cancel {
-            flex: 1;
-            padding: 13px;
-            background: #f0f0f0;
-            color: #555;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
         }
 
-        .district-table tbody tr.has-data {
-            cursor: pointer;
-        }
-        .district-table tbody tr.has-data:active {
-            background: #f0f6ff;
-        }
-
-        /* 개인별 현황 */
-        .personal-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .personal-controls select {
-            width: 100%;
-            padding: 10px 8px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            background: white;
-            color: var(--primary);
-            font-size: 0.88rem;
-            font-weight: 700;
-            appearance: none;
-            -webkit-appearance: none;
-            text-align: center;
-        }
         .personal-help {
             background: #f8fbff;
             border-left: 4px solid var(--accent);
-            border-radius: 8px;
-            padding: 9px 10px;
+            border-radius: 10px;
+            padding: 10px 11px;
             font-size: 0.78rem;
             color: #667;
             line-height: 1.45;
             margin-bottom: 12px;
         }
+
         .personal-summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             margin-bottom: 12px;
         }
+
         .personal-summary-box {
             background: #f8f9fa;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 10px 6px;
             text-align: center;
         }
+
         .personal-summary-box .num {
             font-size: 1.1rem;
-            font-weight: 900;
+            font-weight: 950;
             color: var(--primary);
         }
+
         .personal-summary-box .label {
             font-size: 0.7rem;
             color: #888;
             margin-top: 2px;
         }
+
         .personal-member-row {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             background: #f8fbff;
             margin-bottom: 7px;
             border-left: 4px solid #dbe4ee;
             cursor: pointer;
         }
-        .personal-member-row.eun-row { border-left-color: var(--silver); }
-        .personal-member-row.bong-row { border-left-color: var(--service); }
-        .personal-member-row.mom-row { border-left-color: var(--mother); }
-        .personal-member-row.youth-row { border-left-color: var(--youth); }
+
+        .personal-member-row.eun-row { border-left-color: var(--primary); }
+        .personal-member-row.bong-row { border-left-color: var(--green); }
+        .personal-member-row.mom-row { border-left-color: var(--pink); }
+        .personal-member-row.youth-row { border-left-color: var(--purple); }
+
         .personal-member-name {
             width: 58px;
             flex-shrink: 0;
             font-size: 0.9rem;
-            font-weight: 800;
-            color: var(--primary);
+            font-weight: 950;
+            color: var(--navy);
         }
+
+        .district-mini {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 2px;
+        }
+
         .personal-bar-wrap {
             flex: 1;
             height: 12px;
@@ -550,38 +618,44 @@
             border-radius: 7px;
             overflow: hidden;
         }
+
         .personal-bar {
             height: 100%;
             border-radius: 7px;
         }
-        .bar-high { background: #2ECC71; }
-        .bar-mid { background: #f39c12; }
-        .bar-low { background: #e74c3c; }
+
+        .bar-high { background: var(--success); }
+        .bar-mid { background: var(--warning); }
+        .bar-low { background: var(--danger); }
         .bar-zero { background: #d8dee8; }
+
         .personal-count {
             width: 46px;
             flex-shrink: 0;
             text-align: right;
             font-size: 0.82rem;
-            font-weight: 800;
+            font-weight: 950;
             color: #555;
         }
+
         .personal-detail {
             display: none;
             background: #f0f6ff;
             border: 1.5px solid #cdd9f0;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 13px;
             margin: 10px 0 12px;
         }
+
         .personal-detail-title {
             display: flex;
             align-items: center;
             font-size: 0.98rem;
-            font-weight: 900;
-            color: var(--primary);
+            font-weight: 950;
+            color: var(--navy);
             margin-bottom: 10px;
         }
+
         .personal-detail-close {
             margin-left: auto;
             background: none;
@@ -591,24 +665,23 @@
             cursor: pointer;
             padding: 0;
         }
+
         .date-dot-wrap {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
         }
+
         .date-dot {
             padding: 5px 7px;
-            border-radius: 7px;
+            border-radius: 8px;
             font-size: 0.72rem;
-            font-weight: 800;
+            font-weight: 900;
         }
+
         .date-dot.present { background: var(--accent); color: white; }
         .date-dot.absent { background: #fee2e2; color: #c0392b; }
-        .district-mini {
-            font-size: 0.72rem;
-            color: #999;
-            margin-top: 2px;
-        }
+
         .name-list-box {
             background:#fff;
             border:1px solid #e8edf5;
@@ -619,71 +692,202 @@
             line-height:1.6;
             color:#555;
         }
-        .name-list-title {
-            font-weight:800;
-            color:var(--primary);
-            margin-bottom:4px;
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-box {
+            background: white;
+            width: 88%;
+            max-width: 420px;
+            border-radius: 18px;
+            padding: 22px 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-height: 86vh;
+            overflow-y: auto;
+        }
+
+        .modal-box h3 {
+            font-size: 1.05rem;
+            font-weight: 950;
+            color: var(--navy);
+            margin-bottom: 16px;
+        }
+
+        .pin-display { display:flex; justify-content:center; gap:12px; margin-bottom:20px; }
+        .pin-dot { width:16px; height:16px; border-radius:50%; background:#e0e0e0; }
+        .pin-dot.filled { background:var(--primary); }
+
+        .pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        .pin-btn {
+            padding:16px;
+            border:1.5px solid #e0e0e0;
+            border-radius:12px;
+            background:white;
+            font-size:1.2rem;
+            font-weight:850;
+            cursor:pointer;
+        }
+
+        .pin-btn.del { color:#e53e3e; font-size:1rem; }
+        .pin-error { text-align:center; color:#e53e3e; font-size:0.85rem; margin-top:10px; min-height:18px; }
+
+        .pin-cancel {
+            width:100%;
+            margin-top:12px;
+            padding:12px;
+            background:#f0f0f0;
+            color:#555;
+            border:none;
+            border-radius:12px;
+            font-size:0.95rem;
+            font-weight:750;
+            cursor:pointer;
+        }
+
+        .edit-info {
+            background:#f8f9fa;
+            border-radius:10px;
+            padding:10px 12px;
+            margin-bottom:14px;
+            font-size:0.88rem;
+            color:#555;
+            line-height:1.7;
+        }
+
+        .edit-info b { color:var(--navy); }
+
+        .edit-row {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:10px;
+        }
+
+        .edit-row label {
+            font-size:0.9rem;
+            font-weight:950;
+            width:70px;
+            flex-shrink:0;
+        }
+
+        .edit-row input[type="number"] {
+            width:70px;
+            padding:10px;
+            border:2px solid #e0e0e0;
+            border-radius:10px;
+            font-size:1rem;
+            font-weight:850;
+            text-align:center;
+        }
+
+        .edit-total-preview {
+            text-align:center;
+            font-size:0.9rem;
+            color:#888;
+            margin:4px 0 14px;
+        }
+
+        .edit-total-preview b { color:var(--navy); font-size:1rem; }
+
+        .modal-btn-row { display:flex; gap:8px; margin-top:4px; }
+
+        .btn-edit-save, .btn-edit-delete, .btn-edit-cancel {
+            padding:13px;
+            border:none;
+            border-radius:12px;
+            font-size:0.95rem;
+            font-weight:850;
+            cursor:pointer;
+        }
+
+        .btn-edit-save { flex:2; background:var(--navy); color:white; }
+        .btn-edit-delete { flex:1; background:#fee2e2; color:#c0392b; }
+        .btn-edit-cancel { flex:1; background:#f0f0f0; color:#555; }
+
+        .district-table tbody tr.has-data { cursor: pointer; }
+        .district-table tbody tr.has-data:active { background: #f0f6ff; }
+
+        @media (max-width: 390px) {
+            header h1 { font-size: 1.08rem; }
+            .brand-icon { width: 42px; height: 42px; border-radius: 15px; }
+            .summary-grid { gap: 7px; }
+            .summary-card { padding: 11px 7px; min-height: 90px; }
+            .summary-card .s-num { font-size: 1.22rem; }
+            .category-grid { grid-template-columns: repeat(2, 1fr); }
+            .tab-btn { font-size: 0.75rem; }
+            .meeting-table { font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>📋 출석 취합 대시보드</h1>
-    <div class="filter-row">
-        <input type="date" id="date-select">
-        <select id="type-select">
-            <option value="주일말씀">주일말씀</option>
-            <option value="수요말씀">수요말씀</option>
-            <option value="구역모임">구역모임</option>
-        </select>
+    <div class="top-bar">
+        <div class="hamburger"><i data-lucide="menu"></i></div>
+        <div class="brand-wrap">
+            <div class="brand-icon"><i data-lucide="book-open-check"></i></div>
+            <h1>봉선 출석통계 시스템</h1>
+        </div>
+        <div class="bell"><i data-lucide="bell"></i></div>
+    </div>
+
+    <div class="month-context" id="month-context">
+        <i data-lucide="calendar-days"></i>
+        <span>월별 통계</span>
+    </div>
+
+    <div class="tab-shell">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="monthly"><i data-lucide="bar-chart-3"></i>월별 통계</button>
+            <button class="tab-btn" data-tab="personal"><i data-lucide="user-round"></i>개인별 현황</button>
+            <button class="tab-btn" data-tab="daily"><i data-lucide="clipboard-check"></i>일자별 제출현황</button>
+        </div>
     </div>
 </header>
 
 <main>
-    <button class="refresh-btn" id="refresh-btn">🔄 데이터 새로고침</button>
-
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="current">오늘 현황</button>
-        <button class="tab-btn" data-tab="stats">월별 통계</button>
-        <button class="tab-btn" data-tab="personal">개인별 현황</button>
-    </div>
-
-    <div id="tab-current">
-        <div class="card">
-            <div class="card-title">🗂️ 구역별 출석 현황
-                <span id="submit-badge" class="badge badge-no">0개 제출</span>
+    <div id="tab-monthly">
+        <div class="filter-card">
+            <div class="filter-row single">
+                <select id="month-select">
+                    <option value="all">전체 기간</option>
+                </select>
             </div>
-            <div id="district-table-wrap">
+            <button class="refresh-btn" id="refresh-btn-monthly">🔄 데이터 새로고침</button>
+        </div>
+
+        <div id="monthly-summary">
+            <div class="loading">데이터 불러오는 중...</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i data-lucide="users-round"></i>모임별 통계</div>
+            <div id="meeting-stats-wrap">
                 <div class="loading">데이터 불러오는 중...</div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-title">✅ 전체 합산</div>
-            <div id="total-wrap">
-                <div class="empty-msg">제출된 데이터가 없습니다</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-stats" style="display:none;">
-        <div class="card">
-            <div class="card-title">📊 월별 출석 통계</div>
-            <div class="stats-tabs">
-                <button class="stats-tab active" data-stats="all">전체 합산</button>
-                <button class="stats-tab" data-stats="district">구역별</button>
-            </div>
-            <div id="stats-wrap">
+            <div class="card-title"><i data-lucide="bar-chart-3"></i>범주별 평균 출석</div>
+            <div id="category-stats-wrap">
                 <div class="loading">데이터 불러오는 중...</div>
             </div>
+            <div class="note">ℹ️ 출석률 = 실제 출석 ÷ 전체 등록 인원 / 제출률 = 제출 구역 수 ÷ 전체 구역 수</div>
         </div>
     </div>
 
     <div id="tab-personal" style="display:none;">
-        <div class="card">
-            <div class="card-title">👤 개인별 출석 현황</div>
-
+        <div class="filter-card">
             <div class="personal-controls">
                 <select id="personal-district">
                     <option value="all">전체 구역</option>
@@ -703,15 +907,48 @@
                     <option value="all">전체 기간</option>
                 </select>
             </div>
+            <button class="refresh-btn" id="refresh-btn-personal">🔄 데이터 새로고침</button>
+        </div>
 
+        <div class="card">
+            <div class="card-title"><i data-lucide="user-round-check"></i>개인별 출석 현황</div>
             <div class="personal-help">
                 제출자가 보낸 <b>전체 명단</b>과 <b>출석 명단</b>을 기준으로 개인별 출석 횟수를 계산합니다.
             </div>
-
             <div id="personal-summary"></div>
             <div id="personal-detail" class="personal-detail"></div>
             <div id="personal-wrap">
                 <div class="loading">데이터 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-daily" style="display:none;">
+        <div class="filter-card">
+            <div class="filter-row">
+                <input type="date" id="date-select">
+                <select id="type-select">
+                    <option value="주일말씀">주일말씀</option>
+                    <option value="수요말씀">수요말씀</option>
+                    <option value="구역모임">구역모임</option>
+                </select>
+            </div>
+            <button class="refresh-btn" id="refresh-btn-daily">🔄 데이터 새로고침</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i data-lucide="folder-check"></i>일자별 제출현황
+                <span id="submit-badge" class="badge badge-no">0개 제출</span>
+            </div>
+            <div id="district-table-wrap">
+                <div class="loading">데이터 불러오는 중...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i data-lucide="calculator"></i>선택 일자 전체 합산</div>
+            <div id="total-wrap">
+                <div class="empty-msg">제출된 데이터가 없습니다</div>
             </div>
         </div>
     </div>
@@ -749,22 +986,22 @@
         <h3>✏️ 출석 수정 / 삭제</h3>
         <div class="edit-info" id="edit-info"></div>
         <div class="edit-row">
-            <label class="eun-l">은장회</label>
+            <label style="color:#666;">은장회</label>
             <input type="number" id="edit-eun" min="0" max="99">
             <span style="font-size:0.85rem;color:#999;">명</span>
         </div>
         <div class="edit-row">
-            <label class="bong-l">봉사회</label>
+            <label style="color:var(--green);">봉사회</label>
             <input type="number" id="edit-bong" min="0" max="99">
             <span style="font-size:0.85rem;color:#999;">명</span>
         </div>
         <div class="edit-row">
-            <label class="mom-l">어머니회</label>
+            <label style="color:var(--pink);">어머니회</label>
             <input type="number" id="edit-mom" min="0" max="99">
             <span style="font-size:0.85rem;color:#999;">명</span>
         </div>
         <div class="edit-row">
-            <label class="youth-l">청년회</label>
+            <label style="color:var(--purple);">청년회</label>
             <input type="number" id="edit-youth" min="0" max="99">
             <span style="font-size:0.85rem;color:#999;">명</span>
         </div>
@@ -794,34 +1031,50 @@
     const db = getFirestore(app);
 
     const ALL_DISTRICTS = [];
-    const groups = [10, 20, 30, 40];
-    groups.forEach(base => { for (let i = 1; i <= 5; i++) ALL_DISTRICTS.push(`${base + i}구역`); });
+    [10, 20, 30, 40].forEach(base => {
+        for (let i = 1; i <= 5; i++) ALL_DISTRICTS.push(`${base + i}구역`);
+    });
+
+    const MEETING_TYPES = ['주일말씀','수요말씀','구역모임'];
+    const CAT_NAMES = ['은장회','봉사회','어머니회','청년회'];
+    const CAT_CLASS = { '은장회':'c-eun', '봉사회':'c-bong', '어머니회':'c-mom', '청년회':'c-youth' };
+    const CAT_ROW_CLASS = { '은장회':'eun-row', '봉사회':'bong-row', '어머니회':'mom-row', '청년회':'youth-row' };
+    const CAT_ICON = {
+        '은장회': 'users-round',
+        '봉사회': 'hand-heart',
+        '어머니회': 'heart',
+        '청년회': 'sparkles'
+    };
+    const TYPE_ICON = {
+        '주일말씀': 'book-open-check',
+        '수요말씀': 'book-open',
+        '구역모임': 'users-round'
+    };
+    const TYPE_ICON_CLASS = { '주일말씀':'icon-sunday', '수요말씀':'icon-wed', '구역모임':'icon-group' };
 
     const ADMIN_PIN = '0000';
     let pinInput = '';
     let pinCallback = null;
     let editingSubmission = null;
-    let currentTab = 'current';
-    let currentStatsTab = 'all';
+    let currentTab = 'monthly';
     let allSubmissions = [];
 
-    const CAT_META = {
-        '은장회': { key: 'eun', rowClass: 'eun-row' },
-        '봉사회': { key: 'bong', rowClass: 'bong-row' },
-        '어머니회': { key: 'mom', rowClass: 'mom-row' },
-        '청년회': { key: 'youth', rowClass: 'youth-row' }
-    };
-
+    const elMonth = document.getElementById('month-select');
     const elDate = document.getElementById('date-select');
     const elType = document.getElementById('type-select');
     const elPersonalDistrict = document.getElementById('personal-district');
     const elPersonalCat = document.getElementById('personal-cat');
     const elPersonalType = document.getElementById('personal-type');
     const elPersonalMonth = document.getElementById('personal-month');
+    const elMonthContext = document.getElementById('month-context').querySelector('span');
 
     elDate.value = new Date().toISOString().split('T')[0];
 
-    function initPersonalDistrictOptions() {
+    function refreshIcons() {
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function initOptions() {
         ALL_DISTRICTS.forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
@@ -830,26 +1083,36 @@
         });
     }
 
-    function getCategoryCount(submission, catName) {
-        return submission.출석데이터?.[catName]?.인원 || 0;
+    function getCategoryCount(s, catName) {
+        return s.출석데이터?.[catName]?.인원 || 0;
     }
 
-    function getCategoryAllNames(submission, catName) {
-        const arr = submission.출석데이터?.[catName]?.전체;
+    function getCategoryAllNames(s, catName) {
+        const arr = s.출석데이터?.[catName]?.전체;
         return Array.isArray(arr) ? arr : [];
     }
 
-    function getCategoryPresentNames(submission, catName) {
-        const arr = submission.출석데이터?.[catName]?.출석;
+    function getCategoryPresentNames(s, catName) {
+        const arr = s.출석데이터?.[catName]?.출석;
         return Array.isArray(arr) ? arr : [];
+    }
+
+    function safeRate(num, den) {
+        if (!den) return 0;
+        return Math.round(num / den * 100);
+    }
+
+    function setLoading() {
+        document.getElementById('monthly-summary').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('meeting-stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('category-stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('district-table-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('total-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
+        document.getElementById('personal-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
     }
 
     async function loadAll() {
-        document.getElementById('district-table-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-        document.getElementById('total-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-        document.getElementById('stats-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-        document.getElementById('personal-wrap').innerHTML = '<div class="loading">데이터 불러오는 중...</div>';
-
+        setLoading();
         try {
             allSubmissions = [];
             for (const district of ALL_DISTRICTS) {
@@ -857,17 +1120,196 @@
                 const snap = await getDocs(ref);
                 snap.forEach(d => allSubmissions.push({ id: d.id, ...d.data() }));
             }
-            updatePersonalMonthOptions();
-            renderCurrent();
-            if (currentTab === 'stats') renderStats();
-            if (currentTab === 'personal') renderPersonal();
+            updateMonthOptions();
+            renderMonthly();
+            renderDaily();
+            renderPersonal();
+            refreshIcons();
         } catch (e) {
-            document.getElementById('district-table-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
-            document.getElementById('personal-wrap').innerHTML = `<div class="empty-msg">오류: ${e.message}</div>`;
+            const msg = `<div class="empty-msg">오류: ${e.message}</div>`;
+            document.getElementById('monthly-summary').innerHTML = msg;
+            document.getElementById('district-table-wrap').innerHTML = msg;
+            document.getElementById('personal-wrap').innerHTML = msg;
         }
     }
 
-    function renderCurrent() {
+    function getMonthLabel(value) {
+        if (!value || value === 'all') return '전체 기간 월별 통계';
+        const [y, m] = value.split('-');
+        return `${y}년 ${parseInt(m, 10)}월 월별 통계`;
+    }
+
+    function updateMonthOptions() {
+        const months = [...new Set(allSubmissions.filter(s => s.날짜).map(s => s.날짜.substring(0,7)))].sort().reverse();
+
+        const fill = (select, keepValue) => {
+            select.innerHTML = '<option value="all">전체 기간</option>';
+            months.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = `${y}년 ${parseInt(m, 10)}월`;
+                select.appendChild(opt);
+            });
+            if ([...select.options].some(o => o.value === keepValue)) select.value = keepValue;
+            else if (months.length) select.value = months[0];
+        };
+
+        fill(elMonth, elMonth.value);
+        fill(elPersonalMonth, elPersonalMonth.value);
+        elMonthContext.textContent = getMonthLabel(elMonth.value);
+    }
+
+    function getMonthFilteredRows() {
+        const selected = elMonth.value;
+        return allSubmissions.filter(s => {
+            if (!s.날짜) return false;
+            return selected === 'all' || s.날짜.startsWith(selected);
+        });
+    }
+
+    function summarizeRows(rows) {
+        const typeStats = {};
+        const catStats = {};
+        MEETING_TYPES.forEach(t => {
+            typeStats[t] = { present:0, registered:0, submissions:0, dates:new Set() };
+        });
+        CAT_NAMES.forEach(c => {
+            catStats[c] = { present:0, registered:0, submissions:0 };
+        });
+
+        rows.forEach(s => {
+            const type = s.모임;
+            if (!typeStats[type]) return;
+            typeStats[type].submissions++;
+            typeStats[type].dates.add(s.날짜);
+
+            CAT_NAMES.forEach(cat => {
+                const present = getCategoryCount(s, cat);
+                const registered = getCategoryAllNames(s, cat).length;
+                typeStats[type].present += present;
+                typeStats[type].registered += registered;
+                catStats[cat].present += present;
+                catStats[cat].registered += registered;
+                catStats[cat].submissions++;
+            });
+        });
+
+        return { typeStats, catStats };
+    }
+
+    function expectedSubmissionCount(rows, type) {
+        const dates = new Set(rows.filter(s => s.모임 === type).map(s => s.날짜));
+        return dates.size * ALL_DISTRICTS.length;
+    }
+
+    function renderMonthly() {
+        elMonthContext.textContent = getMonthLabel(elMonth.value);
+        const rows = getMonthFilteredRows();
+
+        if (rows.length === 0) {
+            document.getElementById('monthly-summary').innerHTML = '<div class="empty-msg">해당 기간 제출 데이터가 없습니다</div>';
+            document.getElementById('meeting-stats-wrap').innerHTML = '<div class="empty-msg">기록 없음</div>';
+            document.getElementById('category-stats-wrap').innerHTML = '<div class="empty-msg">기록 없음</div>';
+            refreshIcons();
+            return;
+        }
+
+        const { typeStats, catStats } = summarizeRows(rows);
+        const totalPresent = rows.reduce((a, s) => a + CAT_NAMES.reduce((sum, c) => sum + getCategoryCount(s, c), 0), 0);
+        const totalRegistered = rows.reduce((a, s) => a + CAT_NAMES.reduce((sum, c) => sum + getCategoryAllNames(s, c).length, 0), 0);
+        const sessionDates = new Set(rows.map(s => `${s.날짜}_${s.모임}`));
+        const avgAttendance = sessionDates.size ? totalPresent / sessionDates.size : 0;
+        const attendanceRate = safeRate(totalPresent, totalRegistered);
+        const submittedDistricts = new Set(rows.map(s => s.구역)).size;
+
+        document.getElementById('monthly-summary').innerHTML = `
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="icon-bubble"><i data-lucide="users-round"></i></div>
+                    <div class="s-label">전체 평균 출석</div>
+                    <div class="s-num">${avgAttendance.toFixed(1)}<span class="s-unit">명</span></div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-bubble"><i data-lucide="pie-chart"></i></div>
+                    <div class="s-label">전체 출석률</div>
+                    <div class="s-num">${attendanceRate}<span class="s-unit">%</span></div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-bubble"><i data-lucide="clipboard-check"></i></div>
+                    <div class="s-label">제출 구역</div>
+                    <div class="s-num">${submittedDistricts}<span class="s-unit">/20구역</span></div>
+                </div>
+            </div>
+        `;
+
+        renderMeetingStats(rows, typeStats);
+        renderCategoryStats(catStats);
+        refreshIcons();
+    }
+
+    function renderMeetingStats(rows, typeStats) {
+        const wrap = document.getElementById('meeting-stats-wrap');
+        const table = document.createElement('table');
+        table.className = 'meeting-table';
+        table.innerHTML = `<thead><tr><th>모임</th><th>평균출석</th><th>출석률</th><th>제출률</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+
+        MEETING_TYPES.forEach(type => {
+            const st = typeStats[type];
+            const sessionDates = new Set(rows.filter(s => s.모임 === type).map(s => s.날짜));
+            const avg = sessionDates.size ? st.present / sessionDates.size : 0;
+            const attendanceRate = safeRate(st.present, st.registered);
+            const expected = expectedSubmissionCount(rows, type);
+            const submissionRate = safeRate(st.submissions, expected);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="row-icon ${TYPE_ICON_CLASS[type]}"><i data-lucide="${TYPE_ICON[type]}"></i></span>${type}</td>
+                <td>${avg.toFixed(1)}명</td>
+                <td class="percent">${attendanceRate}%</td>
+                <td class="percent">${submissionRate}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        wrap.innerHTML = '';
+        wrap.appendChild(table);
+    }
+
+    function renderCategoryStats(catStats) {
+        const wrap = document.getElementById('category-stats-wrap');
+        const grid = document.createElement('div');
+        grid.className = 'category-grid';
+
+        CAT_NAMES.forEach(cat => {
+            const st = catStats[cat];
+            const avg = st.submissions ? st.present / st.submissions : 0;
+            const rate = safeRate(st.present, st.registered);
+            const card = document.createElement('div');
+            card.className = `cat-card ${CAT_CLASS[cat]}`;
+            card.innerHTML = `
+                <div class="cat-icon"><i data-lucide="${CAT_ICON[cat]}"></i></div>
+                <div class="cat-name">${cat}</div>
+                <div class="cat-num">${avg.toFixed(1)}명</div>
+                <div class="cat-rate">${rate}%</div>
+                <div class="progress"><div style="width:${Math.min(rate,100)}%;"></div></div>
+            `;
+            card.title = `${cat} 개인별 현황 보기`;
+            card.addEventListener('click', () => {
+                elPersonalCat.value = cat;
+                elPersonalType.value = '주일말씀';
+                elPersonalMonth.value = elMonth.value;
+                switchTab('personal');
+            });
+            grid.appendChild(card);
+        });
+
+        wrap.innerHTML = '';
+        wrap.appendChild(grid);
+    }
+
+    function renderDaily() {
         const date = elDate.value;
         const type = elType.value;
         const todayData = {};
@@ -879,6 +1321,7 @@
         document.getElementById('submit-badge').className = `badge ${count > 0 ? 'badge-ok' : 'badge-no'}`;
         renderDistrictTable(todayData);
         renderTotal(todayData);
+        refreshIcons();
     }
 
     function renderDistrictTable(todayData) {
@@ -887,11 +1330,11 @@
         table.className = 'district-table';
         table.innerHTML = `<thead><tr>
             <th>구역</th>
-            <th style="color:#777;">은장</th>
-            <th style="color:var(--service);">봉사</th>
-            <th style="color:var(--mother);">어머니</th>
-            <th style="color:var(--youth);">청년</th>
-            <th style="color:var(--primary);">합계</th>
+            <th style="color:#666;">은장</th>
+            <th style="color:var(--green);">봉사</th>
+            <th style="color:var(--pink);">어머니</th>
+            <th style="color:var(--purple);">청년</th>
+            <th style="color:var(--navy);">합계</th>
         </tr></thead>`;
         const tbody = document.createElement('tbody');
 
@@ -901,9 +1344,9 @@
             if (!s) {
                 tr.innerHTML = `<td>${district}</td><td colspan="5" class="not-submitted">미제출</td>`;
             } else {
-                const eun   = getCategoryCount(s, '은장회');
-                const bong  = getCategoryCount(s, '봉사회');
-                const mom   = getCategoryCount(s, '어머니회');
+                const eun = getCategoryCount(s, '은장회');
+                const bong = getCategoryCount(s, '봉사회');
+                const mom = getCategoryCount(s, '어머니회');
                 const youth = getCategoryCount(s, '청년회');
                 const total = eun + bong + mom + youth;
                 let timeStr = '';
@@ -923,6 +1366,7 @@
             }
             tbody.appendChild(tr);
         });
+
         table.appendChild(tbody);
         wrap.innerHTML = '';
         wrap.appendChild(table);
@@ -931,128 +1375,35 @@
     function renderTotal(todayData) {
         const wrap = document.getElementById('total-wrap');
         const submitted = Object.values(todayData);
-        if (submitted.length === 0) { wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>'; return; }
-        let t = { eun: 0, bong: 0, mom: 0, youth: 0 };
+        if (submitted.length === 0) {
+            wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>';
+            return;
+        }
+
+        let t = { eun:0, bong:0, mom:0, youth:0 };
         submitted.forEach(s => {
-            t.eun   += getCategoryCount(s, '은장회');
-            t.bong  += getCategoryCount(s, '봉사회');
-            t.mom   += getCategoryCount(s, '어머니회');
+            t.eun += getCategoryCount(s, '은장회');
+            t.bong += getCategoryCount(s, '봉사회');
+            t.mom += getCategoryCount(s, '어머니회');
             t.youth += getCategoryCount(s, '청년회');
         });
         const grand = t.eun + t.bong + t.mom + t.youth;
+
         wrap.innerHTML = `
-            <div class="total-grid">
-                <div class="total-item eun"><div class="t-name">은장회</div><div class="t-num">${t.eun}명</div></div>
-                <div class="total-item bong"><div class="t-name">봉사회</div><div class="t-num">${t.bong}명</div></div>
-                <div class="total-item mom"><div class="t-name">어머니회</div><div class="t-num">${t.mom}명</div></div>
-                <div class="total-item youth"><div class="t-name">청년회</div><div class="t-num">${t.youth}명</div></div>
+            <div class="category-grid" style="grid-template-columns:repeat(2,1fr);">
+                <div class="cat-card c-eun"><div class="cat-icon"><i data-lucide="users-round"></i></div><div class="cat-name">은장회</div><div class="cat-num">${t.eun}명</div></div>
+                <div class="cat-card c-bong"><div class="cat-icon"><i data-lucide="hand-heart"></i></div><div class="cat-name">봉사회</div><div class="cat-num">${t.bong}명</div></div>
+                <div class="cat-card c-mom"><div class="cat-icon"><i data-lucide="heart"></i></div><div class="cat-name">어머니회</div><div class="cat-num">${t.mom}명</div></div>
+                <div class="cat-card c-youth"><div class="cat-icon"><i data-lucide="sparkles"></i></div><div class="cat-name">청년회</div><div class="cat-num">${t.youth}명</div></div>
             </div>
-            <div class="grand-total">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>`;
-    }
-
-    function renderStats() {
-        const wrap = document.getElementById('stats-wrap');
-        if (allSubmissions.length === 0) { wrap.innerHTML = '<div class="empty-msg">제출된 데이터가 없습니다</div>'; return; }
-        const monthMap = {};
-        allSubmissions.forEach(s => {
-            if (!s.날짜) return;
-            const ym = s.날짜.substring(0, 7);
-            if (!monthMap[ym]) monthMap[ym] = {};
-            const key = `${s.구역}_${s.모임}`;
-            if (!monthMap[ym][key]) monthMap[ym][key] = [];
-            monthMap[ym][key].push(s);
-        });
-        const sortedMonths = Object.keys(monthMap).sort().reverse();
-        wrap.innerHTML = '';
-
-        if (currentStatsTab === 'all') {
-            sortedMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
-                const label = document.createElement('div');
-                label.className = 'month-label';
-                label.textContent = `${y}년 ${parseInt(m, 10)}월`;
-                wrap.appendChild(label);
-                const table = document.createElement('table');
-                table.className = 'stats-table';
-                table.innerHTML = `<thead><tr><th>모임</th><th>회수</th><th>은장</th><th>봉사</th><th>어머니</th><th>청년</th><th>합계평균</th></tr></thead>`;
-                const tbody = document.createElement('tbody');
-                ['주일말씀','수요말씀','구역모임'].forEach(type => {
-                    const dateMap = {};
-                    Object.entries(monthMap[ym]).forEach(([key, records]) => {
-                        if (!key.endsWith(`_${type}`)) return;
-                        records.forEach(s => {
-                            if (!dateMap[s.날짜]) dateMap[s.날짜] = { eun:0, bong:0, mom:0, youth:0 };
-                            dateMap[s.날짜].eun   += getCategoryCount(s, '은장회');
-                            dateMap[s.날짜].bong  += getCategoryCount(s, '봉사회');
-                            dateMap[s.날짜].mom   += getCategoryCount(s, '어머니회');
-                            dateMap[s.날짜].youth += getCategoryCount(s, '청년회');
-                        });
-                    });
-                    const dates = Object.values(dateMap);
-                    const tr = document.createElement('tr');
-                    if (dates.length === 0) {
-                        tr.innerHTML = `<td>${type}</td><td>-</td><td colspan="5" style="color:#bbb;">기록없음</td>`;
-                    } else {
-                        const avg = k => (dates.reduce((a,b) => a+b[k], 0) / dates.length).toFixed(1);
-                        const avgTotal = (parseFloat(avg('eun'))+parseFloat(avg('bong'))+parseFloat(avg('mom'))+parseFloat(avg('youth'))).toFixed(1);
-                        tr.innerHTML = `<td>${type}</td><td>${dates.length}회</td><td>${avg('eun')}</td><td>${avg('bong')}</td><td>${avg('mom')}</td><td>${avg('youth')}</td><td><b>${avgTotal}</b></td>`;
-                    }
-                    tbody.appendChild(tr);
-                });
-                table.appendChild(tbody);
-                wrap.appendChild(table);
-            });
-        } else {
-            sortedMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
-                const label = document.createElement('div');
-                label.className = 'month-label';
-                label.textContent = `${y}년 ${parseInt(m, 10)}월`;
-                wrap.appendChild(label);
-                const table = document.createElement('table');
-                table.className = 'stats-table';
-                table.innerHTML = `<thead><tr><th>구역</th><th>주일</th><th>수요</th><th>구역모임</th></tr></thead>`;
-                const tbody = document.createElement('tbody');
-                ALL_DISTRICTS.forEach(district => {
-                    const getAvg = type => {
-                        const records = monthMap[ym][`${district}_${type}`] || [];
-                        if (!records.length) return '-';
-                        const sum = records.reduce((a,s) => {
-                            return a + getCategoryCount(s, '은장회') + getCategoryCount(s, '봉사회') + getCategoryCount(s, '어머니회') + getCategoryCount(s, '청년회');
-                        }, 0);
-                        return (sum/records.length).toFixed(1);
-                    };
-                    const s=getAvg('주일말씀'), w=getAvg('수요말씀'), g=getAvg('구역모임');
-                    if (s==='-' && w==='-' && g==='-') return;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${district}</td><td>${s}</td><td>${w}</td><td>${g}</td>`;
-                    tbody.appendChild(tr);
-                });
-                table.appendChild(tbody);
-                wrap.appendChild(table);
-            });
-        }
-    }
-
-    function updatePersonalMonthOptions() {
-        const prev = elPersonalMonth.value || 'all';
-        const months = [...new Set(allSubmissions.filter(s => s.날짜).map(s => s.날짜.substring(0,7)))].sort().reverse();
-        elPersonalMonth.innerHTML = '<option value="all">전체 기간</option>';
-        months.forEach(ym => {
-            const [y, m] = ym.split('-');
-            const opt = document.createElement('option');
-            opt.value = ym;
-            opt.textContent = `${y}년 ${parseInt(m, 10)}월`;
-            elPersonalMonth.appendChild(opt);
-        });
-        if ([...elPersonalMonth.options].some(o => o.value === prev)) elPersonalMonth.value = prev;
+            <div class="note" style="background:var(--navy);color:white;text-align:center;font-weight:950;font-size:1rem;">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>
+        `;
     }
 
     function getFilteredPersonalSubmissions() {
         const district = elPersonalDistrict.value;
         const type = elPersonalType.value;
         const month = elPersonalMonth.value;
-
         return allSubmissions
             .filter(s => district === 'all' || s.구역 === district)
             .filter(s => s.모임 === type)
@@ -1061,8 +1412,6 @@
     }
 
     function renderPersonal() {
-        updatePersonalMonthOptions();
-
         const wrap = document.getElementById('personal-wrap');
         const summary = document.getElementById('personal-summary');
         const detail = document.getElementById('personal-detail');
@@ -1070,7 +1419,6 @@
         detail.innerHTML = '';
 
         const catName = elPersonalCat.value;
-        const catMeta = CAT_META[catName];
         const rows = getFilteredPersonalSubmissions();
 
         if (rows.length === 0) {
@@ -1090,22 +1438,12 @@
 
             allNames.forEach(name => {
                 if (!memberMap[name]) {
-                    memberMap[name] = {
-                        name,
-                        total: 0,
-                        present: 0,
-                        dates: [],
-                        districts: new Set()
-                    };
+                    memberMap[name] = { name, total:0, present:0, dates:[], districts:new Set() };
                 }
                 const isPresent = presentNames.includes(name);
                 memberMap[name].total++;
                 if (isPresent) memberMap[name].present++;
-                memberMap[name].dates.push({
-                    district: s.구역,
-                    date: s.날짜,
-                    present: isPresent
-                });
+                memberMap[name].dates.push({ district:s.구역, date:s.날짜, present:isPresent });
                 memberMap[name].districts.add(s.구역);
             });
         });
@@ -1141,14 +1479,14 @@
             const districtText = [...m.districts].join(', ');
 
             const row = document.createElement('div');
-            row.className = `personal-member-row ${catMeta.rowClass}`;
+            row.className = `personal-member-row ${CAT_ROW_CLASS[catName]}`;
             row.innerHTML = `
                 <div>
                     <div class="personal-member-name">${m.name}</div>
                     <div class="district-mini">${districtText}</div>
                 </div>
                 <div class="personal-bar-wrap">
-                    <div class="personal-bar ${barClass}" style="width:${pct}%;"></div>
+                    <div class="personal-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div>
                 </div>
                 <div class="personal-count">${m.present}/${m.total}</div>
             `;
@@ -1178,58 +1516,66 @@
                 }).join('')}
             </div>
             <div class="name-list-box">
-                <div class="name-list-title">요약</div>
+                <b style="color:var(--navy);">요약</b><br>
                 출석 ${member.present}회 / 대상 ${member.total}회 · 출석률 ${member.total ? (member.present/member.total*100).toFixed(0) : 0}%
             </div>
         `;
         detail.style.display = 'block';
-        document.getElementById('personal-detail-close').addEventListener('click', () => {
-            detail.style.display = 'none';
-        });
+        document.getElementById('personal-detail-close').addEventListener('click', () => detail.style.display = 'none');
         detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.getElementById('tab-monthly').style.display = tab === 'monthly' ? 'block' : 'none';
+        document.getElementById('tab-personal').style.display = tab === 'personal' ? 'block' : 'none';
+        document.getElementById('tab-daily').style.display = tab === 'daily' ? 'block' : 'none';
+
+        if (tab === 'monthly') {
+            elMonthContext.textContent = getMonthLabel(elMonth.value);
+            renderMonthly();
+        }
+        if (tab === 'personal') {
+            elMonthContext.textContent = '개인별 출석 현황';
+            renderPersonal();
+        }
+        if (tab === 'daily') {
+            elMonthContext.textContent = '일자별 제출현황';
+            renderDaily();
+        }
+        refreshIcons();
+    }
+
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentTab = btn.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('tab-current').style.display = currentTab === 'current' ? 'block' : 'none';
-            document.getElementById('tab-stats').style.display = currentTab === 'stats' ? 'block' : 'none';
-            document.getElementById('tab-personal').style.display = currentTab === 'personal' ? 'block' : 'none';
-            if (currentTab === 'stats') renderStats();
-            if (currentTab === 'personal') renderPersonal();
-        });
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    document.querySelectorAll('.stats-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentStatsTab = btn.dataset.stats;
-            document.querySelectorAll('.stats-tab').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderStats();
-        });
-    });
+    document.getElementById('refresh-btn-monthly').addEventListener('click', loadAll);
+    document.getElementById('refresh-btn-personal').addEventListener('click', loadAll);
+    document.getElementById('refresh-btn-daily').addEventListener('click', loadAll);
 
-    document.getElementById('refresh-btn').addEventListener('click', loadAll);
-    elDate.addEventListener('change', renderCurrent);
-    elType.addEventListener('change', renderCurrent);
-
+    elMonth.addEventListener('change', renderMonthly);
+    elDate.addEventListener('change', renderDaily);
+    elType.addEventListener('change', renderDaily);
     [elPersonalDistrict, elPersonalCat, elPersonalType, elPersonalMonth].forEach(el => {
         el.addEventListener('change', renderPersonal);
     });
 
     function openPinModal(callback) {
-        pinInput = ''; pinCallback = callback;
+        pinInput = '';
+        pinCallback = callback;
         updatePinDots();
         document.getElementById('pin-error').textContent = '';
         document.getElementById('pin-modal').classList.add('show');
     }
+
     function updatePinDots() {
         for (let i = 0; i < 4; i++) {
             document.getElementById(`pd${i}`).classList.toggle('filled', i < pinInput.length);
         }
     }
+
     document.querySelectorAll('.pin-btn[data-n]').forEach(btn => {
         btn.addEventListener('click', () => {
             if (pinInput.length >= 4) return;
@@ -1242,16 +1588,20 @@
                         pinCallback && pinCallback();
                     } else {
                         document.getElementById('pin-error').textContent = '비밀번호가 틀렸습니다.';
-                        pinInput = ''; updatePinDots();
+                        pinInput = '';
+                        updatePinDots();
                     }
                 }, 200);
             }
         });
     });
+
     document.getElementById('pin-del').addEventListener('click', () => {
-        pinInput = pinInput.slice(0,-1); updatePinDots();
+        pinInput = pinInput.slice(0,-1);
+        updatePinDots();
         document.getElementById('pin-error').textContent = '';
     });
+
     document.getElementById('pin-cancel').addEventListener('click', () => {
         document.getElementById('pin-modal').classList.remove('show');
     });
@@ -1259,46 +1609,51 @@
     function openEditModal(submission) {
         editingSubmission = submission;
         document.getElementById('edit-info').innerHTML = `<b>${submission.구역}</b> · ${submission.날짜} · ${submission.모임}`;
-        document.getElementById('edit-eun').value   = getCategoryCount(submission, '은장회');
-        document.getElementById('edit-bong').value  = getCategoryCount(submission, '봉사회');
-        document.getElementById('edit-mom').value   = getCategoryCount(submission, '어머니회');
+        document.getElementById('edit-eun').value = getCategoryCount(submission, '은장회');
+        document.getElementById('edit-bong').value = getCategoryCount(submission, '봉사회');
+        document.getElementById('edit-mom').value = getCategoryCount(submission, '어머니회');
         document.getElementById('edit-youth').value = getCategoryCount(submission, '청년회');
         updateEditTotal();
         document.getElementById('edit-modal').classList.add('show');
     }
 
     function updateEditTotal() {
-        const total = ['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id) => a+(parseInt(document.getElementById(id).value)||0), 0);
+        const total = ['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id) => a + (parseInt(document.getElementById(id).value) || 0), 0);
         document.getElementById('edit-total-preview').innerHTML = `합계: <b>${total}명</b>`;
     }
+
     ['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateEditTotal);
     });
+
     document.getElementById('edit-cancel').addEventListener('click', () => {
         document.getElementById('edit-modal').classList.remove('show');
     });
+
     document.getElementById('edit-save').addEventListener('click', async () => {
         if (!editingSubmission) return;
         const s = editingSubmission;
         const newData = { ...(s.출석데이터 || {}) };
 
-        if (!newData['은장회']) newData['은장회'] = { 전체: [], 출석: [], 인원: 0 };
-        if (!newData['봉사회']) newData['봉사회'] = { 전체: [], 출석: [], 인원: 0 };
-        if (!newData['어머니회']) newData['어머니회'] = { 전체: [], 출석: [], 인원: 0 };
-        if (!newData['청년회']) newData['청년회'] = { 전체: [], 출석: [], 인원: 0 };
+        CAT_NAMES.forEach(cat => {
+            if (!newData[cat]) newData[cat] = { 전체: [], 출석: [], 인원: 0 };
+        });
 
-        newData['은장회'].인원   = parseInt(document.getElementById('edit-eun').value)   || 0;
-        newData['봉사회'].인원   = parseInt(document.getElementById('edit-bong').value)  || 0;
-        newData['어머니회'].인원 = parseInt(document.getElementById('edit-mom').value)   || 0;
-        newData['청년회'].인원   = parseInt(document.getElementById('edit-youth').value) || 0;
+        newData['은장회'].인원 = parseInt(document.getElementById('edit-eun').value) || 0;
+        newData['봉사회'].인원 = parseInt(document.getElementById('edit-bong').value) || 0;
+        newData['어머니회'].인원 = parseInt(document.getElementById('edit-mom').value) || 0;
+        newData['청년회'].인원 = parseInt(document.getElementById('edit-youth').value) || 0;
 
         try {
             await updateDoc(doc(db, 'submissions', s.구역, 'records', `${s.날짜}_${s.모임}`), { 출석데이터: newData });
             document.getElementById('edit-modal').classList.remove('show');
             alert('수정되었습니다.');
             await loadAll();
-        } catch (e) { alert('수정 실패: ' + e.message); }
+        } catch (e) {
+            alert('수정 실패: ' + e.message);
+        }
     });
+
     document.getElementById('edit-delete').addEventListener('click', async () => {
         if (!editingSubmission) return;
         const s = editingSubmission;
@@ -1308,14 +1663,19 @@
             document.getElementById('edit-modal').classList.remove('show');
             alert('삭제되었습니다.');
             await loadAll();
-        } catch (e) { alert('삭제 실패: ' + e.message); }
+        } catch (e) {
+            alert('삭제 실패: ' + e.message);
+        }
     });
 
     document.querySelectorAll('.modal').forEach(m => {
-        m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+        m.addEventListener('click', e => {
+            if (e.target === m) m.classList.remove('show');
+        });
     });
 
-    initPersonalDistrictOptions();
+    initOptions();
+    refreshIcons();
     loadAll();
 </script>
 </body>
