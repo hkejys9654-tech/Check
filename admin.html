@@ -6,6 +6,7 @@
     <title>봉선 출석통계 시스템</title>
     <meta name="theme-color" content="#0b4fb3">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <style>
         :root {
             --primary: #0b4fb3;
@@ -79,29 +80,60 @@
             margin-bottom: 12px;
         }
 
-        .hamburger, .bell {
-            width: 42px;
+        .home-btn, .excel-btn {
             height: 42px;
+            flex-shrink: 0;
+        }
+
+        .home-btn {
+            width: 42px;
+        }
+
+        .excel-btn {
+            min-width: 58px;
+            padding: 0 10px;
+            gap: 4px;
+        }
+
+        .home-btn {
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            opacity: 0.92;
+            background: rgba(255,255,255,0.13);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 14px;
+            cursor: pointer;
         }
 
-        .bell {
-            position: relative;
+        .home-btn i {
+            width: 26px;
+            height: 26px;
+            stroke-width: 2.6;
         }
 
-        .bell::after {
-            content: "";
-            position: absolute;
-            right: 8px;
-            top: 8px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ff5d5d;
+        .excel-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: rgba(46,204,113,0.24);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 850;
+        }
+
+        .excel-btn i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.5;
+        }
+
+        .excel-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
         }
 
         .brand-wrap {
@@ -833,12 +865,17 @@
 
 <header>
     <div class="top-bar">
-        <div class="hamburger"><i data-lucide="menu"></i></div>
+        <button class="home-btn" type="button" id="admin-home-btn" aria-label="월별 통계 홈으로 이동">
+            <i data-lucide="home"></i>
+        </button>
         <div class="brand-wrap">
             <div class="brand-icon"><i data-lucide="book-open-check"></i></div>
             <h1>봉선 출석통계 시스템</h1>
         </div>
-        <div class="bell"><i data-lucide="bell"></i></div>
+        <button class="excel-btn" type="button" id="export-excel-btn" aria-label="엑셀 추출">
+            <i data-lucide="file-spreadsheet"></i>
+            <span>엑셀</span>
+        </button>
     </div>
 
     <div class="month-context" id="month-context">
@@ -1067,6 +1104,13 @@
     const elPersonalType = document.getElementById('personal-type');
     const elPersonalMonth = document.getElementById('personal-month');
     const elMonthContext = document.getElementById('month-context').querySelector('span');
+
+    document.getElementById('admin-home-btn').addEventListener('click', () => {
+        switchTab('monthly');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.getElementById('export-excel-btn').addEventListener('click', exportExcelReport);
 
     elDate.value = new Date().toISOString().split('T')[0];
 
@@ -1523,6 +1567,380 @@
         detail.style.display = 'block';
         document.getElementById('personal-detail-close').addEventListener('click', () => detail.style.display = 'none');
         detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+
+    function getExportPeriodLabel() {
+        const selected = elMonth.value;
+        if (!selected || selected === 'all') return '전체기간';
+        const [y, m] = selected.split('-');
+        return `${y}년 ${parseInt(m, 10)}월`;
+    }
+
+    function getExportRows() {
+        const selected = elMonth.value;
+        return allSubmissions
+            .filter(s => s.날짜)
+            .filter(s => selected === 'all' || s.날짜.startsWith(selected))
+            .sort((a, b) => {
+                const dc = (a.날짜 || '').localeCompare(b.날짜 || '');
+                if (dc !== 0) return dc;
+                const tc = MEETING_TYPES.indexOf(a.모임) - MEETING_TYPES.indexOf(b.모임);
+                if (tc !== 0) return tc;
+                return (a.구역 || '').localeCompare(b.구역 || '', 'ko');
+            });
+    }
+
+    function getSubmissionTotal(s) {
+        return CAT_NAMES.reduce((sum, cat) => sum + getCategoryCount(s, cat), 0);
+    }
+
+    function shortMeetingName(type) {
+        return type === '주일말씀' ? '주일' : type === '수요말씀' ? '수요' : '구역';
+    }
+
+    function formatExportDate() {
+        const d = new Date();
+        return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function makeSafeSheetName(name) {
+        return name.replace(/[\\/*?:\[\]]/g, '').slice(0, 31);
+    }
+
+    function totalRegisteredInSubmission(s) {
+        return CAT_NAMES.reduce((sum, cat) => sum + getCategoryAllNames(s, cat).length, 0);
+    }
+
+    function styleWorkbookSheet(ws, title, subtitle, columnCount) {
+        const lastCol = Math.max(1, columnCount);
+        ws.mergeCells(1, 1, 1, lastCol);
+        ws.mergeCells(2, 1, 2, lastCol);
+
+        const titleCell = ws.getCell(1, 1);
+        titleCell.value = title;
+        titleCell.font = { name: '맑은 고딕', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B3A6B' } };
+
+        const subtitleCell = ws.getCell(2, 1);
+        subtitleCell.value = subtitle;
+        subtitleCell.font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FF4A6078' } };
+        subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        subtitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAF3FF' } };
+
+        ws.getRow(1).height = 28;
+        ws.getRow(2).height = 22;
+    }
+
+    function styleHeaderRow(row) {
+        row.eachCell(cell => {
+            cell.font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B4FB3' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFD9E2EF' } },
+                left: { style: 'thin', color: { argb: 'FFD9E2EF' } },
+                bottom: { style: 'thin', color: { argb: 'FFD9E2EF' } },
+                right: { style: 'thin', color: { argb: 'FFD9E2EF' } }
+            };
+        });
+        row.height = 26;
+    }
+
+    function styleDataRange(ws, startRow = 4) {
+        for (let r = startRow; r <= ws.rowCount; r++) {
+            const row = ws.getRow(r);
+            row.eachCell({ includeEmpty: true }, cell => {
+                cell.font = { name: '맑은 고딕', size: 10, color: { argb: 'FF27364A' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FFE5EDF7' } },
+                    left: { style: 'thin', color: { argb: 'FFE5EDF7' } },
+                    bottom: { style: 'thin', color: { argb: 'FFE5EDF7' } },
+                    right: { style: 'thin', color: { argb: 'FFE5EDF7' } }
+                };
+                if (r % 2 === 0) {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FBFF' } };
+                }
+            });
+        }
+    }
+
+    function autoWidth(ws, min = 10, max = 28) {
+        ws.columns.forEach(col => {
+            let width = min;
+            col.eachCell({ includeEmpty: true }, cell => {
+                const v = cell.value;
+                let text = '';
+                if (v === null || v === undefined) text = '';
+                else if (typeof v === 'object' && v.richText) text = v.richText.map(x => x.text).join('');
+                else text = String(v);
+                width = Math.max(width, ...text.split('\n').map(x => x.length + 2));
+            });
+            col.width = Math.min(width, max);
+        });
+    }
+
+    function setPercentCell(cell, value) {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            cell.value = '-';
+            cell.numFmt = undefined;
+            cell.font = { name: '맑은 고딕', size: 10, color: { argb: 'FF9AA6B6' } };
+        } else {
+            cell.value = value;
+            cell.numFmt = '0.0%';
+        }
+    }
+
+    function addMonthlyDistrictSheet(workbook, rows, periodLabel) {
+        const sessionKeys = [...new Set(rows.map(s => `${s.날짜}_${s.모임}`))].sort((a, b) => {
+            const [ad, at] = a.split('_');
+            const [bd, bt] = b.split('_');
+            const dc = ad.localeCompare(bd);
+            if (dc !== 0) return dc;
+            return MEETING_TYPES.indexOf(at) - MEETING_TYPES.indexOf(bt);
+        });
+
+        const headers = ['구역', ...sessionKeys.map(k => {
+            const [date, type] = k.split('_');
+            return `${date}\n${shortMeetingName(type)}`;
+        }), '합계', '평균'];
+
+        const ws = workbook.addWorksheet(makeSafeSheetName('월별 구역별 현황'), {
+            views: [{ state: 'frozen', xSplit: 1, ySplit: 3 }]
+        });
+        styleWorkbookSheet(ws, '월별 구역별 출석 현황', `${periodLabel} · 구역 × 날짜별 출석 인원표`, headers.length);
+        ws.addRow(headers);
+        styleHeaderRow(ws.getRow(3));
+
+        const map = new Map(rows.map(s => [`${s.구역}_${s.날짜}_${s.모임}`, s]));
+        ALL_DISTRICTS.forEach(district => {
+            let sum = 0;
+            let count = 0;
+            const values = sessionKeys.map(key => {
+                const s = map.get(`${district}_${key}`);
+                if (!s) return '미제출';
+                const total = getSubmissionTotal(s);
+                sum += total;
+                count++;
+                return total;
+            });
+            const avg = count ? Number((sum / count).toFixed(1)) : '-';
+            ws.addRow([district, ...values, sum, avg]);
+        });
+
+        const totalRow = ws.addRow(['합계', ...sessionKeys.map(key => {
+            return rows.filter(s => `${s.날짜}_${s.모임}` === key).reduce((a, s) => a + getSubmissionTotal(s), 0);
+        }), rows.reduce((a, s) => a + getSubmissionTotal(s), 0), '']);
+        totalRow.font = { name: '맑은 고딕', bold: true, color: { argb: 'FF1B3A6B' } };
+
+        styleDataRange(ws, 4);
+        ws.eachRow((row, rowNumber) => {
+            if (rowNumber >= 4) {
+                row.eachCell(cell => {
+                    if (cell.value === '미제출') {
+                        cell.font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FFE74C3C' } };
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF0F0' } };
+                    }
+                });
+            }
+        });
+        autoWidth(ws, 9, 18);
+        ws.getColumn(1).width = 12;
+    }
+
+    function addPersonalStatsSheet(workbook, rows, periodLabel) {
+        const ws = workbook.addWorksheet(makeSafeSheetName('개인별 출석 통계'), {
+            views: [{ state: 'frozen', xSplit: 3, ySplit: 3 }]
+        });
+        const headers = ['구역','범주','이름','주일 출석','주일 전체','주일 출석률','수요 출석','수요 전체','수요 출석률','구역모임 출석','구역모임 전체','구역모임 출석률','총출석','총전체','총출석률'];
+        styleWorkbookSheet(ws, '개인별 출석 통계', `${periodLabel} · 이름 데이터가 있는 기록만 반영`, headers.length);
+        ws.addRow(headers);
+        styleHeaderRow(ws.getRow(3));
+
+        const memberMap = new Map();
+        rows.forEach(s => {
+            CAT_NAMES.forEach(cat => {
+                const allNames = getCategoryAllNames(s, cat);
+                const presentNames = getCategoryPresentNames(s, cat);
+                if (!allNames.length) return;
+                allNames.forEach(name => {
+                    const key = `${s.구역}|${cat}|${name}`;
+                    if (!memberMap.has(key)) {
+                        memberMap.set(key, {
+                            district: s.구역,
+                            cat,
+                            name,
+                            counts: {
+                                '주일말씀': { present: 0, total: 0 },
+                                '수요말씀': { present: 0, total: 0 },
+                                '구역모임': { present: 0, total: 0 }
+                            }
+                        });
+                    }
+                    const item = memberMap.get(key);
+                    if (!item.counts[s.모임]) return;
+                    item.counts[s.모임].total++;
+                    if (presentNames.includes(name)) item.counts[s.모임].present++;
+                });
+            });
+        });
+
+        [...memberMap.values()]
+            .sort((a, b) => a.district.localeCompare(b.district, 'ko') || CAT_NAMES.indexOf(a.cat) - CAT_NAMES.indexOf(b.cat) || a.name.localeCompare(b.name, 'ko'))
+            .forEach(item => {
+                const s = item.counts['주일말씀'];
+                const w = item.counts['수요말씀'];
+                const g = item.counts['구역모임'];
+                const totalPresent = s.present + w.present + g.present;
+                const totalTotal = s.total + w.total + g.total;
+                const row = ws.addRow([
+                    item.district, item.cat, item.name,
+                    s.present, s.total, null,
+                    w.present, w.total, null,
+                    g.present, g.total, null,
+                    totalPresent, totalTotal, null
+                ]);
+                setPercentCell(row.getCell(6), s.total ? s.present / s.total : null);
+                setPercentCell(row.getCell(9), w.total ? w.present / w.total : null);
+                setPercentCell(row.getCell(12), g.total ? g.present / g.total : null);
+                setPercentCell(row.getCell(15), totalTotal ? totalPresent / totalTotal : null);
+            });
+
+        if (memberMap.size === 0) {
+            ws.addRow(['이름 데이터가 있는 제출 기록이 없습니다.']);
+            ws.mergeCells(4, 1, 4, headers.length);
+        }
+
+        styleDataRange(ws, 4);
+        autoWidth(ws, 10, 20);
+    }
+
+    function addMeetingSummarySheet(workbook, rows, periodLabel) {
+        const ws = workbook.addWorksheet(makeSafeSheetName('모임별 통계 요약'));
+        const headers = ['모임','진행일수','제출건수','예상제출건수','평균출석','출석률','제출률','은장회 평균','봉사회 평균','어머니회 평균','청년회 평균'];
+        styleWorkbookSheet(ws, '모임별 통계 요약', `${periodLabel} · 주일/수요/구역모임별 평균, 출석률, 제출률`, headers.length);
+        ws.addRow(headers);
+        styleHeaderRow(ws.getRow(3));
+
+        MEETING_TYPES.forEach(type => {
+            const typeRows = rows.filter(s => s.모임 === type);
+            const dates = new Set(typeRows.map(s => s.날짜));
+            const dateCount = dates.size;
+            const expected = dateCount * ALL_DISTRICTS.length;
+            const present = typeRows.reduce((a, s) => a + getSubmissionTotal(s), 0);
+            const registered = typeRows.reduce((a, s) => a + totalRegisteredInSubmission(s), 0);
+            const catAvg = CAT_NAMES.map(cat => dateCount ? typeRows.reduce((a, s) => a + getCategoryCount(s, cat), 0) / dateCount : 0);
+            const row = ws.addRow([
+                type,
+                dateCount,
+                typeRows.length,
+                expected,
+                dateCount ? Number((present / dateCount).toFixed(1)) : 0,
+                null,
+                null,
+                ...catAvg.map(v => Number(v.toFixed(1)))
+            ]);
+            setPercentCell(row.getCell(6), registered ? present / registered : null);
+            setPercentCell(row.getCell(7), expected ? typeRows.length / expected : null);
+        });
+
+        styleDataRange(ws, 4);
+        autoWidth(ws, 11, 20);
+    }
+
+    function addMissingSheet(workbook, rows, periodLabel) {
+        const ws = workbook.addWorksheet(makeSafeSheetName('미제출 현황'));
+        const headers = ['날짜','모임','제출구역수','미제출구역수','제출률','미제출 구역'];
+        styleWorkbookSheet(ws, '미제출 현황', `${periodLabel} · 제출 기록이 존재하는 날짜/모임 기준`, headers.length);
+        ws.addRow(headers);
+        styleHeaderRow(ws.getRow(3));
+
+        const sessionKeys = [...new Set(rows.map(s => `${s.날짜}_${s.모임}`))].sort((a, b) => {
+            const [ad, at] = a.split('_');
+            const [bd, bt] = b.split('_');
+            const dc = ad.localeCompare(bd);
+            if (dc !== 0) return dc;
+            return MEETING_TYPES.indexOf(at) - MEETING_TYPES.indexOf(bt);
+        });
+
+        sessionKeys.forEach(key => {
+            const [date, type] = key.split('_');
+            const submitted = new Set(rows.filter(s => s.날짜 === date && s.모임 === type).map(s => s.구역));
+            const missing = ALL_DISTRICTS.filter(d => !submitted.has(d));
+            const row = ws.addRow([date, type, submitted.size, missing.length, null, missing.join(', ')]);
+            setPercentCell(row.getCell(5), submitted.size / ALL_DISTRICTS.length);
+            if (missing.length > 0) {
+                row.getCell(4).font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FFE74C3C' } };
+                row.getCell(6).font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FFE74C3C' } };
+            }
+        });
+
+        if (sessionKeys.length === 0) {
+            ws.addRow(['제출 기록이 없습니다.']);
+            ws.mergeCells(4, 1, 4, headers.length);
+        }
+
+        styleDataRange(ws, 4);
+        autoWidth(ws, 10, 48);
+        ws.getColumn(6).width = 45;
+    }
+
+    async function exportExcelReport() {
+        if (!window.ExcelJS) {
+            alert('엑셀 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+            return;
+        }
+
+        const rows = getExportRows();
+        if (!rows.length) {
+            alert('추출할 제출 데이터가 없습니다.');
+            return;
+        }
+
+        const btn = document.getElementById('export-excel-btn');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-circle"></i><span>생성</span>';
+        refreshIcons();
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = '봉선 출석통계 시스템';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+            workbook.properties.date1904 = false;
+
+            const periodLabel = getExportPeriodLabel();
+            addMonthlyDistrictSheet(workbook, rows, periodLabel);
+            addPersonalStatsSheet(workbook, rows, periodLabel);
+            addMeetingSummarySheet(workbook, rows, periodLabel);
+            addMissingSheet(workbook, rows, periodLabel);
+
+            workbook.eachSheet(ws => {
+                ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+                ws.properties.defaultRowHeight = 20;
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const periodForFile = periodLabel.replace(/\s+/g, '').replace(/[년월]/g, '');
+            a.href = url;
+            a.download = `봉선출석통계_${periodForFile}_${formatExportDate()}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1200);
+        } catch (e) {
+            alert('엑셀 생성 실패: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+            refreshIcons();
+        }
     }
 
     function switchTab(tab) {
