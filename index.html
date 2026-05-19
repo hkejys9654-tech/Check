@@ -978,32 +978,6 @@
 <main>
     <div id="record-status-wrap"></div>
 
-    <div class="card summary-card">
-        <div class="summary-left">
-            <div class="circle-icon"><i data-lucide="users-round"></i></div>
-            <div>
-                <div class="summary-title">오늘 출석 요약</div>
-                <div>
-                    <span class="summary-num" id="summary-attended">0<span class="unit">명</span></span>
-                    <span class="summary-sub" id="summary-total">/ 전체 0명</span>
-                </div>
-            </div>
-        </div>
-        <div class="summary-right">
-            <div class="rate-label">출석률</div>
-            <div class="rate-num" id="summary-rate">0<span>%</span></div>
-        </div>
-    </div>
-
-<section class="card section-card">
-        <div class="section-title">
-            <i data-lucide="layout-dashboard"></i>
-            범주별 현황
-            <span class="section-hint">카드를 누르면 이동</span>
-        </div>
-        <div class="category-grid" id="category-summary-grid"></div>
-    </section>
-
     <section id="attendance-content"></section>
 
     <div class="save-indicator save-indicator-bottom" id="save-indicator">&nbsp;</div>
@@ -1076,7 +1050,7 @@
                 <button class="stats-tab" data-type="구역모임" type="button">구역모임</button>
             </div>
             <select class="personal-month-select" id="stats-month-select">
-                <option value="all">전체 기간</option>
+                <option value="all">전체통계</option>
             </select>
             <div id="stats-container"></div>
         </div>
@@ -1133,6 +1107,7 @@
     let lastGeneratedImageFilename = '';
     let currentStatsType = '주일말씀';
     let currentStatsMonth = 'all';
+    let previousMeetingType = '주일말씀';
     let currentPersonalCat = 'EUN';
     let currentPersonalType = '주일말씀';
     let currentPersonalMonth = 'all';
@@ -1191,6 +1166,22 @@
         return allAttendanceRecords[d];
     }
 
+    function isValidRecordDateKey(dateKey) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return false;
+
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const parsed = new Date(`${dateKey}T00:00:00`);
+
+        return parsed.getFullYear() === y &&
+               parsed.getMonth() + 1 === m &&
+               parsed.getDate() === d;
+    }
+
+    function getValidRecordDates(records, reverse = false) {
+        const dates = Object.keys(records || {}).filter(isValidRecordDateKey).sort();
+        return reverse ? dates.reverse() : dates;
+    }
+
     function hideSubmitBtn() {
         /* 새 디자인에서는 제출 버튼이 상시 노출됩니다. */
     }
@@ -1222,10 +1213,16 @@
     }
 
     function updateSummary() {
+        const attendedEl = document.getElementById('summary-attended');
+        const totalEl = document.getElementById('summary-total');
+        const rateEl = document.getElementById('summary-rate');
+
+        if (!attendedEl || !totalEl || !rateEl) return;
+
         const { total, attended, rate } = getTotals();
-        document.getElementById('summary-attended').innerHTML = `${attended}<span class="unit">명</span>`;
-        document.getElementById('summary-total').textContent = `/ 전체 ${total}명`;
-        document.getElementById('summary-rate').innerHTML = `${rate}<span>%</span>`;
+        attendedEl.innerHTML = `${attended}<span class="unit">명</span>`;
+        totalEl.textContent = `/ 전체 ${total}명`;
+        rateEl.innerHTML = `${rate}<span>%</span>`;
     }
 
     function updateSaveIndicator(isSaved) {
@@ -1255,6 +1252,7 @@
     function renderCategorySummary() {
         const members = getMembers();
         const grid = document.getElementById('category-summary-grid');
+        if (!grid) return;
         grid.innerHTML = '';
 
         CAT_ORDER.forEach(k => {
@@ -1371,8 +1369,7 @@
     }
 
     function updateAllVisuals() {
-        updateSummary();
-        renderCategorySummary();
+        updateCategoryTitles();
     }
 
     function updateCategoryTitles() {
@@ -1414,6 +1411,73 @@
 
         alert('저장되었습니다.');
     }
+    function moveCurrentRecordToMeeting(oldType, newType) {
+        const date = elDate.value;
+        const records = getRecords();
+        const namesToMove = [...workingRecord];
+
+        if (!records[date]) records[date] = {};
+
+        if (records[date][newType] && records[date][newType].length > 0) {
+            const overwrite = confirm(`${newType}에 이미 저장된 기록이 있습니다.\n현재 체크 명단으로 덮어쓸까요?`);
+            if (!overwrite) {
+                elType.value = oldType;
+                previousMeetingType = oldType;
+                return false;
+            }
+        }
+
+        records[date][newType] = namesToMove;
+
+        if (records[date][oldType]) {
+            delete records[date][oldType];
+        }
+
+        if (Object.keys(records[date]).length === 0) {
+            delete records[date];
+        }
+
+        saveRecords();
+        isDirty = false;
+        previousMeetingType = newType;
+        elType.value = newType;
+
+        loadWorkingRecord();
+        renderAttendanceGrid();
+
+        alert(`${oldType} 기록을 ${newType}(으)로 옮겼습니다.`);
+        return true;
+    }
+
+    function handleMeetingTypeChange() {
+        const newType = elType.value;
+        const oldType = previousMeetingType || newType;
+
+        if (newType === oldType) return;
+
+        if (workingRecord.length > 0) {
+            const shouldMove = confirm(
+                `현재 체크한 명단을 ${newType}(으)로 옮길까요?\n\n` +
+                `확인: ${oldType} 기록을 ${newType}(으)로 이동합니다.\n` +
+                `취소: 이동하지 않고 ${newType} 화면만 엽니다.`
+            );
+
+            if (shouldMove) {
+                moveCurrentRecordToMeeting(oldType, newType);
+                return;
+            }
+        }
+
+        if (isDirty && !confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동하시겠습니까?')) {
+            elType.value = oldType;
+            return;
+        }
+
+        previousMeetingType = newType;
+        loadWorkingRecord();
+        renderAttendanceGrid();
+    }
+
     function confirmIfDirty() {
         if (isDirty) return confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동하시겠습니까?');
         return true;
@@ -1699,7 +1763,7 @@
         const container = document.getElementById('stats-container');
         container.innerHTML = '';
 
-        const dates = Object.keys(records).sort();
+        const dates = getValidRecordDates(records);
 
         if (dates.length === 0) {
             container.innerHTML = '<div class="empty-msg">아직 저장된 출석 기록이 없습니다.<br>출석체크 후 저장하기를 눌러주세요.</div>';
@@ -1711,7 +1775,7 @@
 
         if (monthSelect) {
             const prev = currentStatsMonth || monthSelect.value || 'all';
-            monthSelect.innerHTML = '<option value="all">전체 기간</option>';
+            monthSelect.innerHTML = '<option value="all">전체통계</option>';
 
             months.forEach(ym => {
                 const [y, m] = ym.split('-');
@@ -1729,7 +1793,7 @@
 
         const headerInfo = document.createElement('div');
         headerInfo.style.cssText = `background:${TYPE_BG[selectedType]};padding:10px 12px;border-radius:8px;margin-bottom:15px;font-size:0.9rem;color:${TYPE_COLOR[selectedType]};`;
-        headerInfo.innerHTML = `<b>${elDistrict.value} · ${selectedType}</b> ${selectedMonth === 'all' ? '전체 기간' : '선택 월'} 범주별 평균 출석`;
+        headerInfo.innerHTML = `<b>${elDistrict.value} · ${selectedType}</b> ${selectedMonth === 'all' ? '전체통계' : '선택 월'} 범주별 평균 출석`;
         container.appendChild(headerInfo);
 
         const periodMap = {};
@@ -1834,7 +1898,7 @@
         detailEl.style.display = 'none';
         listEl.innerHTML = '';
 
-        const allDates = Object.keys(records).sort().reverse();
+        const allDates = getValidRecordDates(records, true);
         const months = [...new Set(allDates.map(d => d.substring(0,7)))];
         const sel = document.getElementById('personal-month-select');
         const prev = sel.value;
@@ -1987,11 +2051,7 @@
             renderAttendanceGrid();
         });
 
-        elType.addEventListener('change', () => {
-            if (!confirmIfDirty()) return;
-            loadWorkingRecord();
-            renderAttendanceGrid();
-        });
+        elType.addEventListener('change', handleMeetingTypeChange);
 
         document.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));
         document.getElementById('save-setup').addEventListener('click', saveSetup);
@@ -2071,6 +2131,7 @@
     function init() {
         buildDistrictDropdown();
         elDate.value = new Date().toISOString().split('T')[0];
+        previousMeetingType = elType.value;
         loadData();
         loadWorkingRecord();
         renderAttendanceGrid();
