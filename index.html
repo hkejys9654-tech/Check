@@ -130,21 +130,6 @@
             font-weight: 700;
         }
 
-        .header-icon {
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            opacity: 0.92;
-        }
-
-        .header-icon i {
-            width: 26px;
-            height: 26px;
-            stroke-width: 2.4;
-        }
 
         .selector-card {
             position: relative;
@@ -958,7 +943,6 @@
                 <h1>봉선 구역 출석체크</h1>
             </div>
         </div>
-        <button class="header-icon btn-setup" type="button" title="명단설정"><i data-lucide="settings"></i></button>
     </div>
 
     <div class="selector-card">
@@ -1289,7 +1273,7 @@
         const hasAny = CAT_ORDER.some(k => (members[CATEGORIES[k].key] || []).length > 0);
 
         if (!hasAny) {
-            elAttendance.innerHTML = `<div class="card"><div class="empty-msg">${elDistrict.value} 명단이 비어있습니다.<br>상단 설정 버튼을 눌러 입력해주세요.</div></div>`;
+            elAttendance.innerHTML = `<div class="card"><div class="empty-msg">${elDistrict.value} 명단이 비어있습니다.<br>하단 명단설정을 눌러 입력해주세요.</div></div>`;
             updateAllVisuals();
             return;
         }
