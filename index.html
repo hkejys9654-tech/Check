@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
@@ -820,6 +821,72 @@
 
         .setup-cat-divider { height: 1px; background: #f0f0f0; margin: 4px 0 18px; }
 
+        .setup-import-panel {
+            background: #f3f8ff;
+            border: 1.5px solid #d7e8ff;
+            border-radius: 14px;
+            padding: 13px;
+            margin-bottom: 16px;
+        }
+
+        .setup-import-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.9rem;
+            font-weight: 950;
+            color: var(--navy);
+            margin-bottom: 5px;
+        }
+
+        .setup-import-title i {
+            width: 19px;
+            height: 19px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .setup-import-note {
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: #617089;
+            font-weight: 750;
+            margin-bottom: 10px;
+        }
+
+        .setup-import-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-template-download,
+        .btn-member-upload {
+            border-radius: 11px;
+            padding: 11px 7px;
+            font-size: 0.82rem;
+            font-weight: 900;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            cursor: pointer;
+            line-height: 1.2;
+        }
+
+        .btn-template-download {
+            background: white;
+            color: var(--primary);
+            border: 1.5px solid #cfe2ff;
+        }
+
+        .btn-member-upload {
+            background: var(--primary);
+            color: white;
+        }
+
         .stats-tabs, .stats-main-tabs, .personal-cat-tabs, .personal-type-tabs {
             display: flex;
             gap: 6px;
@@ -1006,6 +1073,23 @@
             <h2>명단 설정 <span id="setup-district-label" style="color:#888;font-size:0.85rem;font-weight:normal;"></span></h2>
             <button class="close-modal" type="button">&times;</button>
         </div>
+
+        <div class="setup-import-panel">
+            <div class="setup-import-title"><i data-lucide="file-spreadsheet"></i> 엑셀/CSV로 명단 한 번에 넣기</div>
+            <div class="setup-import-note">
+                먼저 엑셀 서식을 내려받아 은장회, 봉사회, 어머니회, 청년회 칸에 이름을 입력한 뒤 업로드하세요.<br>
+                업로드하면 현재 선택한 구역 명단이 업로드한 명단으로 교체됩니다.
+            </div>
+            <div class="setup-import-actions">
+                <a class="btn-template-download"
+                   id="btn-template-download"
+                   href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,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"
+                   download="구역원명단_업로드서식.xlsx">서식 내려받기</a>
+                <label class="btn-member-upload" for="member-upload-input">명단 업로드</label>
+            </div>
+            <input type="file" id="member-upload-input" accept=".xlsx,.xls,.csv,.txt" style="display:none;">
+        </div>
+
         <div id="setup-cat-list"></div>
         <button class="btn-save" id="save-setup" style="margin-top:4px;">저장하기</button>
     </div>
@@ -1576,6 +1660,276 @@
         document.getElementById('setup-modal').classList.add('show');
     }
 
+    function normalizeNameValue(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function uniqueNames(names) {
+        const seen = new Set();
+        const result = [];
+
+        names.forEach(name => {
+            const clean = normalizeNameValue(name);
+            if (!clean || seen.has(clean)) return;
+            seen.add(clean);
+            result.push(clean);
+        });
+
+        return result;
+    }
+
+    function makeEmptyMemberData() {
+        return { eun: [], bong: [], mom: [], youth: [] };
+    }
+
+    function downloadBlobFile(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        a.href = url;
+        a.download = fileName;
+        a.style.display = 'none';
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadMemberTemplate() {
+        const rows = [
+            ['은장회', '봉사회', '어머니회', '청년회'],
+            ['홍길동', '김봉사', '이어머니', '박청년'],
+            ['', '', '', ''],
+            ['', '', '', '']
+        ];
+
+        const csv = '\ufeff' + rows
+            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        downloadBlobFile(blob, `${elDistrict.value}_구역원명단_업로드서식.csv`);
+    }
+
+    function parseCSVText(text) {
+        const rows = [];
+        let row = [];
+        let cell = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            const next = text[i + 1];
+
+            if (ch === '"' && inQuotes && next === '"') {
+                cell += '"';
+                i++;
+            } else if (ch === '"') {
+                inQuotes = !inQuotes;
+            } else if ((ch === ',' || ch === '\t') && !inQuotes) {
+                row.push(cell);
+                cell = '';
+            } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+                if (ch === '\r' && next === '\n') i++;
+                row.push(cell);
+                rows.push(row);
+                row = [];
+                cell = '';
+            } else {
+                cell += ch;
+            }
+        }
+
+        if (cell.length || row.length) {
+            row.push(cell);
+            rows.push(row);
+        }
+
+        return rows;
+    }
+
+    function findHeaderIndex(headers, patterns) {
+        return headers.findIndex(h => patterns.some(p => h.includes(p)));
+    }
+
+    function parseMemberRows(rows) {
+        const cleanedRows = rows
+            .map(row => row.map(cell => normalizeNameValue(cell)))
+            .filter(row => row.some(cell => cell.length > 0));
+
+        if (cleanedRows.length === 0) return makeEmptyMemberData();
+
+        const headers = cleanedRows[0].map(h => h.replace(/\s/g, ''));
+        const dataRows = cleanedRows.slice(1);
+
+        const colMap = {
+            eun: findHeaderIndex(headers, ['은장회', '은장']),
+            bong: findHeaderIndex(headers, ['봉사회', '봉사']),
+            mom: findHeaderIndex(headers, ['어머니회', '어머니', '모친']),
+            youth: findHeaderIndex(headers, ['청년회', '청년'])
+        };
+
+        const hasWideFormat = Object.values(colMap).some(idx => idx >= 0);
+
+        const result = makeEmptyMemberData();
+
+        if (hasWideFormat) {
+            dataRows.forEach(row => {
+                Object.entries(colMap).forEach(([key, idx]) => {
+                    if (idx < 0) return;
+                    const name = normalizeNameValue(row[idx]);
+                    if (name) result[key].push(name);
+                });
+            });
+
+            result.eun = uniqueNames(result.eun);
+            result.bong = uniqueNames(result.bong);
+            result.mom = uniqueNames(result.mom);
+            result.youth = uniqueNames(result.youth);
+
+            return result;
+        }
+
+        const categoryIdx = findHeaderIndex(headers, ['구분', '범주', '분류', '회']);
+        const nameIdx = findHeaderIndex(headers, ['이름', '성명', '구역원']);
+
+        if (categoryIdx >= 0 && nameIdx >= 0) {
+            dataRows.forEach(row => {
+                const category = normalizeNameValue(row[categoryIdx]);
+                const name = normalizeNameValue(row[nameIdx]);
+                if (!name) return;
+
+                if (category.includes('은장')) result.eun.push(name);
+                else if (category.includes('봉사')) result.bong.push(name);
+                else if (category.includes('어머니')) result.mom.push(name);
+                else if (category.includes('청년')) result.youth.push(name);
+            });
+
+            result.eun = uniqueNames(result.eun);
+            result.bong = uniqueNames(result.bong);
+            result.mom = uniqueNames(result.mom);
+            result.youth = uniqueNames(result.youth);
+
+            return result;
+        }
+
+        return makeEmptyMemberData();
+    }
+
+    function countUploadedMembers(data) {
+        return CAT_ORDER.reduce((sum, k) => sum + (data[CATEGORIES[k].key] || []).length, 0);
+    }
+
+    function applyUploadedMembers(newData) {
+        const total = countUploadedMembers(newData);
+
+        if (total === 0) {
+            alert('업로드할 이름을 찾지 못했습니다.\n엑셀 서식의 첫 줄 제목이 은장회, 봉사회, 어머니회, 청년회인지 확인해주세요.\n이름은 제목 아래 칸에 입력해야 합니다.');
+            return;
+        }
+
+        const current = getMembers();
+        const currentTotal = CAT_ORDER.reduce((sum, k) => sum + (current[CATEGORIES[k].key] || []).length, 0);
+
+        if (currentTotal > 0) {
+            const ok = confirm(`${elDistrict.value} 기존 명단 ${currentTotal}명을\n업로드 명단 ${total}명으로 교체할까요?`);
+            if (!ok) return;
+        }
+
+        allMembersData[elDistrict.value] = {
+            eun: newData.eun || [],
+            bong: newData.bong || [],
+            mom: newData.mom || [],
+            youth: newData.youth || []
+        };
+
+        saveMembers();
+        loadWorkingRecord();
+        renderAttendanceGrid();
+
+        if (document.getElementById('setup-modal').classList.contains('show')) {
+            openSetup();
+        }
+
+        alert(
+            `명단 업로드 완료!\n\n` +
+            `은장회 ${newData.eun.length}명\n` +
+            `봉사회 ${newData.bong.length}명\n` +
+            `어머니회 ${newData.mom.length}명\n` +
+            `청년회 ${newData.youth.length}명`
+        );
+    }
+
+    function readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    function decodeTextWithFallback(buffer) {
+        const bytes = new Uint8Array(buffer);
+        const hasUtf8Bom = bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+
+        if (hasUtf8Bom) {
+            return new TextDecoder('utf-8').decode(buffer);
+        }
+
+        const utf8Text = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+
+        if (!utf8Text.includes(' ')) {
+            return utf8Text;
+        }
+
+        try {
+            return new TextDecoder('euc-kr').decode(buffer);
+        } catch (e) {
+            return utf8Text;
+        }
+    }
+
+    function readFileAsText(file) {
+        return readFileAsArrayBuffer(file).then(buffer => decodeTextWithFallback(buffer));
+    }
+
+    async function handleMemberFileUpload(e) {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+
+        if (!file) return;
+
+        const name = file.name.toLowerCase();
+
+        try {
+            let rows = [];
+
+            if (name.endsWith('.csv') || name.endsWith('.txt')) {
+                const text = await readFileAsText(file);
+                rows = parseCSVText(text.replace(/^\ufeff/, ''));
+            } else {
+                if (!window.XLSX) {
+                    alert('엑셀 읽기 기능을 불러오지 못했습니다.\nCSV 파일로 다시 시도해주세요.');
+                    return;
+                }
+
+                const buffer = await readFileAsArrayBuffer(file);
+                const workbook = XLSX.read(buffer, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[firstSheetName];
+                rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            }
+
+            const newData = parseMemberRows(rows);
+            applyUploadedMembers(newData);
+        } catch (err) {
+            alert('명단 업로드에 실패했습니다: ' + err.message);
+        }
+    }
+
     function saveSetup() {
         const newData = { eun: [], bong: [], mom: [], youth: [] };
 
@@ -2054,6 +2408,7 @@
         elType.addEventListener('change', handleMeetingTypeChange);
 
         document.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));
+        document.getElementById('member-upload-input').addEventListener('change', handleMemberFileUpload);
         document.getElementById('save-setup').addEventListener('click', saveSetup);
         elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
 
