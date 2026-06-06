@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <style>
         :root {
@@ -51,6 +51,16 @@
         button {
             border: none;
             cursor: pointer;
+        }
+
+        .mobile-file-input {
+            position: fixed;
+            left: -10000px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            opacity: 0.01;
+            overflow: hidden;
         }
 
         button:active { transform: scale(0.985); }
@@ -611,7 +621,7 @@
             box-shadow: 0 8px 24px rgba(24,55,96,0.18);
             border: 1px solid var(--line);
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             overflow: hidden;
         }
 
@@ -620,7 +630,7 @@
             padding: 10px 4px;
             color: #536174;
             font-weight: 850;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             border-right: 1px solid var(--line);
         }
 
@@ -656,6 +666,87 @@
             padding: 20px;
             overflow-y: auto;
             box-shadow: 0 8px 30px rgba(0,0,0,0.22);
+        }
+
+        .update-modal-content {
+            max-width: 440px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .update-hero {
+            padding: 28px 22px 24px;
+            color: white;
+            text-align: center;
+            background:
+                radial-gradient(circle at 85% 15%, rgba(255,255,255,0.22), transparent 28%),
+                linear-gradient(145deg, #063a91, #0b4fb3);
+        }
+
+        .update-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.17);
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .update-hero h2 {
+            margin-top: 12px;
+            font-size: 1.38rem;
+            font-weight: 950;
+            letter-spacing: -0.7px;
+        }
+
+        .update-hero p {
+            margin-top: 7px;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            opacity: 0.92;
+            font-weight: 750;
+        }
+
+        .update-body {
+            padding: 20px;
+        }
+
+        .update-item {
+            display: flex;
+            gap: 11px;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .update-item:last-of-type { border-bottom: none; }
+
+        .update-item-mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 950;
+        }
+
+        .update-item-title {
+            color: var(--navy);
+            font-size: 0.92rem;
+            font-weight: 950;
+        }
+
+        .update-item-text {
+            margin-top: 3px;
+            color: #667789;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            font-weight: 750;
         }
 
         .modal-header {
@@ -998,6 +1089,438 @@
         .ps-val { font-size:1.15rem; font-weight:950; color:var(--navy); }
         .ps-label { font-size:0.72rem; color:#888; margin-top:2px; }
 
+
+        .prayer-section-card {
+            display: none;
+            padding: 14px;
+            scroll-margin-top: 150px;
+        }
+
+        .prayer-section-card.show {
+            display: block;
+        }
+
+        .prayer-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--navy);
+            font-weight: 950;
+            font-size: 1rem;
+        }
+
+        .prayer-head i {
+            width: 22px;
+            height: 22px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .prayer-head .prayer-count {
+            margin-left: auto;
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 850;
+        }
+
+        .prayer-help {
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #667789;
+            margin-bottom: 11px;
+            font-weight: 750;
+        }
+
+        .prayer-district-panel {
+            display: grid;
+            grid-template-columns: 1fr minmax(130px, 0.8fr);
+            gap: 12px;
+            align-items: center;
+            padding: 13px;
+            margin-bottom: 12px;
+            border: 1.5px solid #cfe2ff;
+            border-radius: 13px;
+            background: linear-gradient(145deg, #f5f9ff, #edf5ff);
+        }
+
+        .prayer-district-label {
+            color: var(--navy);
+            font-size: 0.9rem;
+            font-weight: 950;
+        }
+
+        .prayer-district-note {
+            margin-top: 3px;
+            color: #6c7d91;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            font-weight: 750;
+        }
+
+        .prayer-district-panel select,
+        .prayer-image-confirm-select {
+            width: 100%;
+            min-height: 44px;
+            padding: 8px 12px;
+            border: 1.5px solid #a9c9f3;
+            border-radius: 11px;
+            outline: none;
+            color: var(--primary);
+            background: white;
+            font-size: 0.95rem;
+            font-weight: 950;
+            text-align: center;
+        }
+
+        .prayer-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .prayer-action-btn,
+        .prayer-action-link {
+            min-height: 40px;
+            border-radius: 11px;
+            padding: 10px 7px;
+            font-size: 0.8rem;
+            font-weight: 900;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            line-height: 1.2;
+        }
+
+        .prayer-action-primary { background: var(--primary); color: white; }
+        .prayer-action-green { background: var(--save); color: white; }
+        .prayer-action-image {
+            grid-column: span 2;
+            background: linear-gradient(145deg, #7048c8, #4b2d9c);
+            color: white;
+        }
+        .prayer-action-light { background: white; color: var(--primary); border: 1.5px solid #cfe2ff; }
+        .prayer-action-gray { background: #f3f6fb; color: #475569; border: 1.5px solid var(--line); }
+
+        .prayer-image-confirm-content {
+            max-width: 410px;
+        }
+
+        .prayer-image-confirm-box {
+            padding: 16px;
+            margin: 8px 0 14px;
+            border: 1.5px solid #d8e5f7;
+            border-radius: 14px;
+            background: #f7faff;
+        }
+
+        .prayer-image-confirm-box label {
+            display: block;
+            margin-bottom: 8px;
+            color: #53677f;
+            font-size: 0.76rem;
+            font-weight: 900;
+        }
+
+        .prayer-image-confirm-summary {
+            margin-top: 12px;
+            color: var(--navy);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .prayer-image-confirm-actions {
+            display: grid;
+            grid-template-columns: 0.8fr 1.4fr;
+            gap: 8px;
+        }
+
+        .prayer-image-cancel {
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            color: #637184;
+            background: #f5f7fa;
+            font-size: 0.9rem;
+            font-weight: 900;
+        }
+
+        .prayer-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: white;
+        }
+
+        .prayer-table {
+            min-width: 860px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .prayer-table th {
+            background: var(--navy);
+            color: white;
+            padding: 9px 6px;
+            border: 1px solid rgba(255,255,255,0.18);
+            font-weight: 900;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .prayer-table td {
+            border: 1px solid #edf2f7;
+            padding: 5px;
+            text-align: center;
+            background: #fbfdff;
+        }
+
+        .prayer-table td.no-cell,
+        .prayer-table td.district-cell {
+            font-weight: 900;
+            color: var(--navy);
+            background: #f3f8ff;
+            width: 42px;
+        }
+
+        .prayer-input {
+            width: 100%;
+            min-width: 82px;
+            border: none;
+            background: transparent;
+            padding: 7px 4px;
+            font-size: 0.78rem;
+            color: var(--text);
+            text-align: center;
+            outline: none;
+        }
+
+        .prayer-input.method { min-width: 220px; }
+        .prayer-input.note { min-width: 130px; }
+        .prayer-input:focus { background: #eef6ff; border-radius: 6px; }
+
+        .prayer-delete-btn {
+            background: #fee2e2;
+            color: #c0392b;
+            border-radius: 8px;
+            padding: 7px 8px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .prayer-empty {
+            text-align: center;
+            color: #99a3b3;
+            padding: 20px 0;
+            font-size: 0.86rem;
+            font-weight: 750;
+        }
+
+        .prayer-image-gallery {
+            display: grid;
+            gap: 14px;
+            margin: 12px 0;
+        }
+
+        .prayer-image-preview-card {
+            background: #f5f7fb;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px;
+        }
+
+        .prayer-image-preview-card img {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 3px 12px rgba(24,55,96,0.1);
+        }
+
+        .prayer-image-preview-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 9px;
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 850;
+        }
+
+        .prayer-image-preview-actions button {
+            background: white;
+            color: var(--primary);
+            border: 1px solid #cfe2ff;
+            border-radius: 9px;
+            padding: 8px 11px;
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        .prayer-capture-root {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            z-index: -1;
+            width: 540px;
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        }
+
+        .prayer-capture-page {
+            width: 540px;
+            min-height: 1080px;
+            padding: 32px 26px 28px;
+            color: #26364d;
+            background:
+                radial-gradient(circle at 92% 4%, rgba(74,144,226,0.22), transparent 30%),
+                linear-gradient(160deg, #ffffff 0%, #f2f7ff 100%);
+        }
+
+        .pci-kicker {
+            color: #4a78b7;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 850;
+            letter-spacing: 2px;
+        }
+
+        .pci-title {
+            color: var(--navy);
+            text-align: center;
+            font-size: 36px;
+            font-weight: 950;
+            letter-spacing: -1px;
+            margin-top: 8px;
+        }
+
+        .pci-meta {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 17px 0 22px;
+        }
+
+        .pci-meta span {
+            background: white;
+            color: #46617f;
+            border: 1px solid #d9e6f6;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 17px;
+            font-weight: 850;
+            box-shadow: 0 2px 7px rgba(35,73,122,0.07);
+        }
+
+        .pci-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .pci-card {
+            background: rgba(255,255,255,0.96);
+            border: 1px solid #dbe6f3;
+            border-left: 8px solid var(--primary);
+            border-radius: 18px;
+            padding: 18px 18px 17px;
+            box-shadow: 0 5px 14px rgba(27,58,107,0.09);
+        }
+
+        .pci-card-top {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding-bottom: 13px;
+            border-bottom: 1px solid #edf2f7;
+            flex-wrap: wrap;
+        }
+
+        .pci-number {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 19px;
+            font-weight: 950;
+        }
+
+        .pci-name {
+            color: var(--navy);
+            font-size: 34px;
+            font-weight: 950;
+            letter-spacing: -0.4px;
+        }
+
+        .pci-relation {
+            color: #7b8ba0;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .pci-status {
+            margin-left: auto;
+            border-radius: 999px;
+            padding: 7px 13px;
+            font-size: 20px;
+            font-weight: 950;
+            background: #eef2f7;
+            color: #64748b;
+        }
+
+        .pci-status.is-start { background: #eaf3ff; color: #0b4fb3; }
+        .pci-status.is-progress { background: #fff4db; color: #a45d00; }
+        .pci-status.is-confirmed { background: #eafaf1; color: #168448; }
+        .pci-status.is-saved { background: #f3edff; color: #7048c8; }
+
+        .pci-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 9px;
+            margin-top: 14px;
+        }
+
+        .pci-detail {
+            min-width: 0;
+            font-size: 22px;
+            line-height: 1.5;
+            color: #40536d;
+            overflow-wrap: anywhere;
+        }
+
+        .pci-detail.wide { grid-column: span 1; }
+        .pci-detail b {
+            display: inline-block;
+            min-width: 86px;
+            color: #7188a5;
+            margin-right: 7px;
+            font-size: 18px;
+        }
+
+        .pci-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 15px;
+            border-top: 1px solid #dce7f3;
+            color: #7a8ca3;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
         @media (max-width: 390px) {
             header h1 { font-size: 1.08rem; }
             .brand-icon { width: 42px; height: 42px; border-radius: 15px; }
@@ -1058,12 +1581,90 @@
             </div>
         </button>
     </div>
+
+    <section class="card prayer-section-card" id="prayer-section">
+        <div class="prayer-head">
+            <i data-lucide="clipboard-list"></i>
+            기도부탁 명단 관리
+            <span class="prayer-count" id="prayer-count">0명</span>
+        </div>
+        <div class="prayer-help">
+            집회 때 반복해서 사용하는 기도명단입니다. 아래 기도명단 구역은 화면 위 출석 구역과 별도로 유지됩니다.
+        </div>
+        <div class="prayer-district-panel">
+            <div>
+                <div class="prayer-district-label">기도명단 구역</div>
+                <div class="prayer-district-note">업로드·엑셀·이미지에 적용되는 전용 설정입니다.</div>
+            </div>
+            <select id="prayer-district-select" aria-label="기도명단 구역 선택"></select>
+        </div>
+        <div class="prayer-actions">
+            <button class="prayer-action-btn prayer-action-primary" id="btn-add-prayer" type="button">명단 추가</button>
+            <button class="prayer-action-btn prayer-action-light" id="btn-prayer-template" type="button">엑셀 서식</button>
+            <button class="prayer-action-btn prayer-action-green" id="btn-export-prayer" type="button">엑셀 추출</button>
+            <button class="prayer-action-btn prayer-action-gray" id="btn-prayer-upload" type="button">엑셀 업로드</button>
+            <button class="prayer-action-btn prayer-action-image" id="btn-export-prayer-image" type="button">모바일 이미지 만들기</button>
+        </div>
+        <input type="file" id="prayer-upload-input" class="mobile-file-input" accept=".xlsx,.xls,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain">
+        <div class="prayer-table-wrap">
+            <table class="prayer-table">
+                <thead>
+                    <tr>
+                        <th>번호</th><th>구역</th><th>인도자</th><th>성명</th><th>관계</th><th>방법</th><th>지역</th><th>상황</th><th>비고</th><th>삭제</th>
+                    </tr>
+                </thead>
+                <tbody id="prayer-tbody"></tbody>
+            </table>
+        </div>
+    </section>
 </main>
 
 <div class="bottom-tools">
     <button class="tool-btn btn-setup" type="button"><i data-lucide="users-round"></i>명단설정</button>
+    <button class="tool-btn btn-prayer" type="button"><i data-lucide="clipboard-list"></i>기도명단</button>
     <button class="tool-btn btn-share" type="button"><i data-lucide="share-2"></i>공유하기</button>
-    <button class="tool-btn btn-stats" type="button"><i data-lucide="bar-chart-3"></i>통계 보기</button>
+    <button class="tool-btn btn-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
+</div>
+
+<div class="modal" id="update-modal">
+    <div class="modal-content update-modal-content">
+        <div class="update-hero">
+            <div class="update-badge">새로운 업데이트</div>
+            <h2>더 편하고 크게 개선됐어요</h2>
+            <p>기존 명단과 출석 기록은 그대로 유지됩니다.</p>
+        </div>
+        <div class="update-body">
+            <div class="update-item">
+                <div class="update-item-mark">1</div>
+                <div>
+                    <div class="update-item-title">모바일 엑셀 기능 개선</div>
+                    <div class="update-item-text">구역원·기도명단 업로드와 엑셀 서식·추출이 모바일에서도 동작합니다.</div>
+                </div>
+            </div>
+            <div class="update-item">
+                <div class="update-item-mark">2</div>
+                <div>
+                    <div class="update-item-title">기도명단 이미지 큰 글씨 적용</div>
+                    <div class="update-item-text">한 페이지에 3명씩 보기 좋게 나누고 이름과 상세 글자를 크게 키웠습니다.</div>
+                </div>
+            </div>
+            <div class="update-item">
+                <div class="update-item-mark">3</div>
+                <div>
+                    <div class="update-item-title">기도명단 구역 실수 방지</div>
+                    <div class="update-item-text">출석 구역과 기도명단 구역을 분리하고 이미지 생성 전에 구역을 다시 확인합니다.</div>
+                </div>
+            </div>
+            <div class="update-item">
+                <div class="update-item-mark">4</div>
+                <div>
+                    <div class="update-item-title">파일 저장·공유 안정화</div>
+                    <div class="update-item-text">휴대폰의 공유 및 파일 저장 화면을 활용하도록 개선했습니다.</div>
+                </div>
+            </div>
+            <button class="btn-save" id="btn-update-confirm" type="button" style="margin-top:14px;">업데이트 확인</button>
+        </div>
+    </div>
 </div>
 
 
@@ -1081,13 +1682,10 @@
                 업로드하면 현재 선택한 구역 명단이 업로드한 명단으로 교체됩니다.
             </div>
             <div class="setup-import-actions">
-                <a class="btn-template-download"
-                   id="btn-template-download"
-                   href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,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"
-                   download="구역원명단_업로드서식.xlsx">서식 내려받기</a>
-                <label class="btn-member-upload" for="member-upload-input">명단 업로드</label>
+                <button class="btn-template-download" id="btn-template-download" type="button">서식 내려받기</button>
+                <button class="btn-member-upload" id="btn-member-upload" type="button">명단 업로드</button>
             </div>
-            <input type="file" id="member-upload-input" accept=".xlsx,.xls,.csv,.txt" style="display:none;">
+            <input type="file" id="member-upload-input" class="mobile-file-input" accept=".xlsx,.xls,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain">
         </div>
 
         <div id="setup-cat-list"></div>
@@ -1159,6 +1757,37 @@
     </div>
 </div>
 
+<div class="modal" id="prayer-image-confirm-modal">
+    <div class="modal-content prayer-image-confirm-content">
+        <div class="modal-header">
+            <h2>기도명단 이미지 만들기</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="help-text">이미지에 표시할 구역을 마지막으로 확인해주세요.</div>
+        <div class="prayer-image-confirm-box">
+            <label for="prayer-image-district-select">표시할 기도명단 구역</label>
+            <select class="prayer-image-confirm-select" id="prayer-image-district-select"></select>
+            <div class="prayer-image-confirm-summary" id="prayer-image-confirm-summary"></div>
+        </div>
+        <div class="prayer-image-confirm-actions">
+            <button class="prayer-image-cancel close-modal" type="button">취소</button>
+            <button class="btn-save" id="btn-confirm-prayer-image" type="button">이미지 만들기</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="prayer-image-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>기도명단 모바일 이미지</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="help-text">어르신도 읽기 쉽도록 큰 글씨로 한 페이지에 3명씩 자동 분할했습니다.</div>
+        <button class="btn-save" id="btn-download-prayer-images" type="button">전체 이미지 저장 / 공유</button>
+        <div class="prayer-image-gallery" id="prayer-image-gallery"></div>
+    </div>
+</div>
+
 <div class="capture-card" id="capture-card">
     <div class="cap-title" id="cap-title"></div>
     <div class="cap-sub" id="cap-sub"></div>
@@ -1166,10 +1795,16 @@
     <div class="cap-total" id="cap-total"></div>
 </div>
 
+<div class="prayer-capture-root" id="prayer-capture-root"></div>
+
 <script>
     const STORAGE_KEY_MEMBERS = 'guAttendance_members_v2';
     const STORAGE_KEY_RECORDS = 'guAttendance_records_v2';
     const STORAGE_KEY_LASTDISTRICT = 'guAttendance_lastDistrict';
+    const STORAGE_KEY_PRAYERS = 'guPrayerList_v1';
+    const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
+    const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
+    const APP_VERSION = '2026.06.06-prayer-district-lock';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -1185,10 +1820,13 @@
 
     let allMembersData = {};
     let allAttendanceRecords = {};
+    let allPrayerData = {};
     let workingRecord = [];
     let isDirty = false;
     let lastGeneratedImageBlob = null;
     let lastGeneratedImageFilename = '';
+    let prayerImageFiles = [];
+    let lastPrayerImageDistrict = '';
     let currentStatsType = '주일말씀';
     let currentStatsMonth = 'all';
     let previousMeetingType = '주일말씀';
@@ -1200,6 +1838,8 @@
     const elDate = document.getElementById('date-select');
     const elType = document.getElementById('meeting-type');
     const elAttendance = document.getElementById('attendance-content');
+    const elPrayerDistrict = document.getElementById('prayer-district-select');
+    const elPrayerImageDistrict = document.getElementById('prayer-image-district-select');
     const elSetupDistrictLabel = document.getElementById('setup-district-label');
     const elSaveIndicator = document.getElementById('save-indicator');
     const elBtnSaveRecord = document.getElementById('btn-save-record');
@@ -1209,7 +1849,7 @@
         if (window.lucide) window.lucide.createIcons();
     }
 
-    function buildDistrictDropdown() {
+    function getDistrictOptionsHtml() {
         const groups = [10, 20, 30, 40];
         let html = '';
         groups.forEach(base => {
@@ -1218,9 +1858,20 @@
                 html += `<option value="${name}">${name}</option>`;
             }
         });
+        return html;
+    }
+
+    function buildDistrictDropdown() {
+        const html = getDistrictOptionsHtml();
         elDistrict.innerHTML = html;
         const last = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
         elDistrict.value = last;
+
+        elPrayerDistrict.innerHTML = html;
+        elPrayerImageDistrict.innerHTML = html;
+        const prayerLast = localStorage.getItem(STORAGE_KEY_PRAYER_DISTRICT) || last;
+        elPrayerDistrict.value = prayerLast;
+        elPrayerImageDistrict.value = prayerLast;
     }
 
     function loadData() {
@@ -1228,6 +1879,8 @@
         allMembersData = m ? JSON.parse(m) : {};
         const r = localStorage.getItem(STORAGE_KEY_RECORDS);
         allAttendanceRecords = r ? JSON.parse(r) : {};
+        const p = localStorage.getItem(STORAGE_KEY_PRAYERS);
+        allPrayerData = p ? JSON.parse(p) : {};
     }
 
     function saveMembers() {
@@ -1682,7 +2335,20 @@
         return { eun: [], bong: [], mom: [], youth: [] };
     }
 
-    function downloadBlobFile(blob, fileName) {
+    function downloadBlobFile(blob, fileName, title = '파일 저장') {
+        const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title }).catch(err => {
+                if (err.name !== 'AbortError') fallbackBlobDownload(blob, fileName);
+            });
+            return;
+        }
+
+        fallbackBlobDownload(blob, fileName);
+    }
+
+    function fallbackBlobDownload(blob, fileName) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
 
@@ -1705,12 +2371,27 @@
             ['', '', '', '']
         ];
 
-        const csv = '\ufeff' + rows
-            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-            .join('\n');
+        if (window.XLSX) {
+            const workbook = XLSX.utils.book_new();
+            const sheet = XLSX.utils.aoa_to_sheet(rows);
+            sheet['!cols'] = [{ wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
+            XLSX.utils.book_append_sheet(workbook, sheet, '구역원명단');
+            const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array', compression: true });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            downloadBlobFile(blob, `${elDistrict.value}_구역원명단_업로드서식.xlsx`, '구역원명단 엑셀 서식');
+            return;
+        }
 
+        const csv = '\ufeff' + rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        downloadBlobFile(blob, `${elDistrict.value}_구역원명단_업로드서식.csv`);
+        downloadBlobFile(blob, `${elDistrict.value}_구역원명단_업로드서식.csv`, '구역원명단 CSV 서식');
+    }
+
+    function triggerFilePicker(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.value = '';
+        input.click();
     }
 
     function parseCSVText(text) {
@@ -1863,6 +2544,10 @@
     }
 
     function readFileAsArrayBuffer(file) {
+        if (file && typeof file.arrayBuffer === 'function') {
+            return file.arrayBuffer();
+        }
+
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = e => resolve(e.target.result);
@@ -1879,16 +2564,14 @@
             return new TextDecoder('utf-8').decode(buffer);
         }
 
-        const utf8Text = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
-
-        if (!utf8Text.includes(' ')) {
-            return utf8Text;
-        }
-
         try {
-            return new TextDecoder('euc-kr').decode(buffer);
+            return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
         } catch (e) {
-            return utf8Text;
+            try {
+                return new TextDecoder('euc-kr').decode(buffer);
+            } catch (fallbackError) {
+                return new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+            }
         }
     }
 
@@ -2109,6 +2792,619 @@
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+
+    function getPrayerDistrict() {
+        return elPrayerDistrict.value || elDistrict.value || '11구역';
+    }
+
+    function getPrayerDistrictNumberText(district = getPrayerDistrict()) {
+        return String(district || '').replace(/[^0-9]/g, '') || district || '';
+    }
+
+    function getPrayerList(district = getPrayerDistrict()) {
+        const d = district;
+        if (!allPrayerData[d]) allPrayerData[d] = [];
+        return allPrayerData[d];
+    }
+
+    function selectPrayerDistrict(district) {
+        if (!district) return;
+        elPrayerDistrict.value = district;
+        elPrayerImageDistrict.value = district;
+        localStorage.setItem(STORAGE_KEY_PRAYER_DISTRICT, district);
+        renderPrayerList();
+    }
+
+    function savePrayerData() {
+        localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(allPrayerData));
+    }
+
+    function normalizePrayerItem(item = {}) {
+        return {
+            district: normalizeNameValue(item.district || getPrayerDistrictNumberText()),
+            leader: normalizeNameValue(item.leader),
+            name: normalizeNameValue(item.name),
+            relation: normalizeNameValue(item.relation),
+            method: normalizeNameValue(item.method || '온라인/교회/대전도집회/DVD집회'),
+            region: normalizeNameValue(item.region || '광주'),
+            status: normalizeNameValue(item.status || '시작'),
+            note: normalizeNameValue(item.note)
+        };
+    }
+
+    function openPrayerSection() {
+        const section = document.getElementById('prayer-section');
+        section.classList.add('show');
+        renderPrayerList();
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }
+
+    function addPrayerMember() {
+        const list = getPrayerList();
+        list.push(normalizePrayerItem({}));
+        savePrayerData();
+        renderPrayerList();
+    }
+
+    function updatePrayerField(index, field, value) {
+        const list = getPrayerList();
+        if (!list[index]) return;
+        list[index][field] = normalizeNameValue(value);
+        if (field !== 'district' && !list[index].district) list[index].district = getPrayerDistrictNumberText();
+        savePrayerData();
+        updatePrayerCount();
+    }
+
+    function deletePrayerMember(index) {
+        const list = getPrayerList();
+        const item = list[index];
+        if (!item) return;
+        const nameText = item.name ? `「${item.name}」` : '이 항목';
+        if (!confirm(`${nameText}을 삭제할까요?`)) return;
+        list.splice(index, 1);
+        savePrayerData();
+        renderPrayerList();
+    }
+
+    function updatePrayerCount() {
+        const list = getPrayerList();
+        const el = document.getElementById('prayer-count');
+        if (el) el.textContent = `${list.length}명`;
+    }
+
+    function renderPrayerList() {
+        const tbody = document.getElementById('prayer-tbody');
+        if (!tbody) return;
+
+        const list = getPrayerList();
+        updatePrayerCount();
+        tbody.innerHTML = '';
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10"><div class="prayer-empty">아직 등록된 기도명단이 없습니다. [명단 추가] 또는 [엑셀 업로드]를 이용해주세요.</div></td></tr>`;
+            return;
+        }
+
+        list.forEach((raw, idx) => {
+            const item = normalizePrayerItem(raw);
+            list[idx] = item;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="no-cell">${idx + 1}</td>
+                <td class="district-cell"><input class="prayer-input" value="${escapeAttr(item.district)}" data-field="district"></td>
+                <td><input class="prayer-input" value="${escapeAttr(item.leader)}" data-field="leader" placeholder="인도자"></td>
+                <td><input class="prayer-input" value="${escapeAttr(item.name)}" data-field="name" placeholder="성명"></td>
+                <td><input class="prayer-input" value="${escapeAttr(item.relation)}" data-field="relation" placeholder="관계"></td>
+                <td><input class="prayer-input method" value="${escapeAttr(item.method)}" data-field="method" placeholder="방법"></td>
+                <td><input class="prayer-input" value="${escapeAttr(item.region)}" data-field="region" placeholder="지역"></td>
+                <td><input class="prayer-input" value="${escapeAttr(item.status)}" data-field="status" placeholder="상황"></td>
+                <td><input class="prayer-input note" value="${escapeAttr(item.note)}" data-field="note" placeholder="비고"></td>
+                <td><button class="prayer-delete-btn" type="button">삭제</button></td>`;
+
+            tr.querySelectorAll('.prayer-input').forEach(input => {
+                input.addEventListener('change', () => updatePrayerField(idx, input.dataset.field, input.value));
+                input.addEventListener('blur', () => updatePrayerField(idx, input.dataset.field, input.value));
+            });
+            tr.querySelector('.prayer-delete-btn').addEventListener('click', () => deletePrayerMember(idx));
+            tbody.appendChild(tr);
+        });
+
+        savePrayerData();
+    }
+
+    function escapeAttr(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function getPrayerHeaderRowIndex(rows) {
+        return rows.findIndex(row => {
+            const cols = row.map(c => normalizeNameValue(c).replace(/\s/g, ''));
+            return cols.includes('성명') && (cols.includes('인도자') || cols.includes('방법'));
+        });
+    }
+
+    function parsePrayerRows(rows) {
+        const cleanedRows = rows
+            .map(row => row.map(cell => normalizeNameValue(cell)))
+            .filter(row => row.some(cell => cell.length > 0));
+
+        if (cleanedRows.length === 0) return [];
+
+        const headerRowIndex = getPrayerHeaderRowIndex(cleanedRows);
+        if (headerRowIndex < 0) return [];
+
+        const headers = cleanedRows[headerRowIndex].map(h => h.replace(/\s/g, ''));
+        const dataRows = cleanedRows.slice(headerRowIndex + 1);
+
+        const idx = {
+            district: findHeaderIndex(headers, ['구역']),
+            leader: findHeaderIndex(headers, ['인도자']),
+            name: findHeaderIndex(headers, ['성명', '이름']),
+            relation: findHeaderIndex(headers, ['관계']),
+            method: findHeaderIndex(headers, ['방법']),
+            region: findHeaderIndex(headers, ['지역']),
+            status: findHeaderIndex(headers, ['상황', '상태']),
+            note: findHeaderIndex(headers, ['비고', '메모'])
+        };
+
+        if (idx.name < 0) return [];
+
+        const result = [];
+        dataRows.forEach(row => {
+            const name = normalizeNameValue(row[idx.name]);
+            const leader = idx.leader >= 0 ? normalizeNameValue(row[idx.leader]) : '';
+            if (!name && !leader) return;
+
+            result.push(normalizePrayerItem({
+                district: idx.district >= 0 ? row[idx.district] : getPrayerDistrictNumberText(),
+                leader,
+                name,
+                relation: idx.relation >= 0 ? row[idx.relation] : '',
+                method: idx.method >= 0 ? row[idx.method] : '',
+                region: idx.region >= 0 ? row[idx.region] : '',
+                status: idx.status >= 0 ? row[idx.status] : '',
+                note: idx.note >= 0 ? row[idx.note] : ''
+            }));
+        });
+
+        return result;
+    }
+
+    async function handlePrayerFileUpload(e) {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+
+        const name = file.name.toLowerCase();
+
+        try {
+            let rows = [];
+            if (name.endsWith('.csv') || name.endsWith('.txt')) {
+                const text = await readFileAsText(file);
+                rows = parseCSVText(text.replace(/^\ufeff/, ''));
+            } else {
+                if (!window.XLSX) {
+                    alert('엑셀 읽기 기능을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                    return;
+                }
+                const buffer = await readFileAsArrayBuffer(file);
+                const workbook = XLSX.read(buffer, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[firstSheetName];
+                rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            }
+
+            const imported = parsePrayerRows(rows);
+            if (imported.length === 0) {
+                alert('업로드할 기도명단을 찾지 못했습니다.\n엑셀의 제목 행에 번호, 구역, 인도자, 성명, 관계, 방법, 지역, 상황, 비고가 있는지 확인해주세요.');
+                return;
+            }
+
+            const current = getPrayerList();
+            if (current.length > 0) {
+                const ok = confirm(`${getPrayerDistrict()} 기존 기도명단 ${current.length}명을\n업로드 명단 ${imported.length}명으로 교체할까요?`);
+                if (!ok) return;
+            }
+
+            allPrayerData[getPrayerDistrict()] = imported;
+            savePrayerData();
+            openPrayerSection();
+            alert(`기도명단 업로드 완료!\n총 ${imported.length}명이 등록되었습니다.`);
+        } catch (err) {
+            alert('기도명단 업로드에 실패했습니다: ' + err.message);
+        }
+    }
+
+    function buildPrayerExportRows() {
+        const list = getPrayerList();
+        const now = new Date();
+        const titleYear = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const dateText = `${titleYear}.${mm}.${dd}.`;
+        const districtNum = getPrayerDistrictNumberText();
+
+        const statusCount = getPrayerStatusCounts(list);
+
+        const rows = [
+            [`${titleYear}년 ${districtNum}구역 기도명단`, '', '', '', '', '', '', '', ''],
+            [`기도명단 총인원 : ${list.length}명  (시작 : ${statusCount['시작']}명, 진행 : ${statusCount['진행']}명, 확정 : ${statusCount['확정']}명, 구원 : ${statusCount['구원']}명)`, '', '', '', '', '', '', '', dateText],
+            ['번호','구역','인도자','성명','관계','방법','지역','상황','비고']
+        ];
+
+        list.forEach((item, idx) => {
+            rows.push([
+                idx + 1,
+                item.district || districtNum,
+                item.leader || '',
+                item.name || '',
+                item.relation || '',
+                item.method || '',
+                item.region || '',
+                item.status || '',
+                item.note || ''
+            ]);
+        });
+
+        return rows;
+    }
+
+    function getPrayerStatusCounts(list = getPrayerList()) {
+        const counts = { 시작: 0, 진행: 0, 확정: 0, 구원: 0 };
+        list.forEach(item => {
+            const status = normalizeNameValue(item.status);
+            if (counts[status] !== undefined) counts[status]++;
+        });
+        return counts;
+    }
+
+    function getExcelCellStyle({ fill, color = '26364D', bold = false, size = 10, horizontal = 'center', wrapText = true, border = true }) {
+        const style = {
+            font: { name: '맑은 고딕', sz: size, bold, color: { rgb: color } },
+            fill: { patternType: 'solid', fgColor: { rgb: fill } },
+            alignment: { horizontal, vertical: 'center', wrapText }
+        };
+
+        if (border) {
+            style.border = {
+                top: { style: 'thin', color: { rgb: 'D9E3F0' } },
+                bottom: { style: 'thin', color: { rgb: 'D9E3F0' } },
+                left: { style: 'thin', color: { rgb: 'D9E3F0' } },
+                right: { style: 'thin', color: { rgb: 'D9E3F0' } }
+            };
+        }
+
+        return style;
+    }
+
+    function ensureWorksheetCell(ws, row, col) {
+        const address = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!ws[address]) ws[address] = { t: 's', v: '' };
+        return ws[address];
+    }
+
+    function stylePrayerWorksheet(ws, rows) {
+        const lastRow = rows.length - 1;
+        const titleStyle = getExcelCellStyle({ fill: '1B3A6B', color: 'FFFFFF', bold: true, size: 19, border: false });
+        const summaryStyle = getExcelCellStyle({ fill: 'EAF3FF', color: '31557E', bold: true, size: 10, horizontal: 'left' });
+        const dateStyle = getExcelCellStyle({ fill: 'EAF3FF', color: '31557E', bold: true, size: 10, horizontal: 'right' });
+        const headerStyle = getExcelCellStyle({ fill: '0B4FB3', color: 'FFFFFF', bold: true, size: 10 });
+        const statusStyles = {
+            시작: getExcelCellStyle({ fill: 'EAF3FF', color: '0B4FB3', bold: true }),
+            진행: getExcelCellStyle({ fill: 'FFF4DB', color: 'A45D00', bold: true }),
+            확정: getExcelCellStyle({ fill: 'EAFAF1', color: '168448', bold: true }),
+            구원: getExcelCellStyle({ fill: 'F3EDFF', color: '7048C8', bold: true })
+        };
+
+        for (let col = 0; col < 9; col++) {
+            ensureWorksheetCell(ws, 0, col).s = titleStyle;
+            ensureWorksheetCell(ws, 1, col).s = col === 8 ? dateStyle : summaryStyle;
+            ensureWorksheetCell(ws, 2, col).s = headerStyle;
+        }
+
+        for (let row = 3; row <= lastRow; row++) {
+            const fill = row % 2 === 1 ? 'FFFFFF' : 'F7FAFE';
+            for (let col = 0; col < 9; col++) {
+                const horizontal = col === 5 || col === 8 ? 'left' : 'center';
+                const cell = ensureWorksheetCell(ws, row, col);
+                cell.s = getExcelCellStyle({
+                    fill,
+                    color: col === 3 ? '1B3A6B' : '35465C',
+                    bold: col === 3,
+                    size: 10,
+                    horizontal
+                });
+            }
+
+            const statusCell = ensureWorksheetCell(ws, row, 7);
+            const status = normalizeNameValue(statusCell.v);
+            if (statusStyles[status]) statusCell.s = statusStyles[status];
+        }
+
+        ws['!rows'] = rows.map((_, idx) => ({ hpt: idx === 0 ? 34 : idx === 1 ? 25 : idx === 2 ? 27 : 42 }));
+        ws['!autofilter'] = { ref: `A3:I${rows.length}` };
+        ws['!freeze'] = { xSplit: 0, ySplit: 3, topLeftCell: 'A4', activePane: 'bottomLeft', state: 'frozen' };
+        ws['!margins'] = { left: 0.25, right: 0.25, top: 0.45, bottom: 0.45, header: 0.2, footer: 0.2 };
+        ws['!pageSetup'] = { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0, paperSize: 9 };
+        ws['!printOptions'] = { horizontalCentered: true, gridLines: false };
+    }
+
+    function downloadPrayerTemplate() {
+        const districtNum = getPrayerDistrictNumberText();
+        const rows = [
+            [`${new Date().getFullYear()}년 ${districtNum}구역 기도명단`, '', '', '', '', '', '', '', ''],
+            ['아래 제목 행은 변경하지 말고 명단을 입력한 뒤 업로드하세요.', '', '', '', '', '', '', '', ''],
+            ['번호','구역','인도자','성명','관계','방법','지역','상황','비고'],
+            [1, districtNum, '김인도', '홍길동', '가족', '온라인/교회/대전도집회/DVD집회', '광주', '시작', '']
+        ];
+
+        if (!window.XLSX) {
+            const csv = '\ufeff' + rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            downloadBlobFile(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `${getPrayerDistrict()}_기도명단_업로드서식.csv`, '기도명단 CSV 서식');
+            return;
+        }
+
+        const workbook = XLSX.utils.book_new();
+        const sheet = XLSX.utils.aoa_to_sheet(rows);
+        sheet['!cols'] = [
+            { wch: 6 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+            { wch: 34 }, { wch: 10 }, { wch: 10 }, { wch: 22 }
+        ];
+        sheet['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }
+        ];
+        stylePrayerWorksheet(sheet, rows);
+        XLSX.utils.book_append_sheet(workbook, sheet, '기도명단');
+
+        const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array', cellStyles: true, compression: true });
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        downloadBlobFile(blob, `${getPrayerDistrict()}_기도명단_업로드서식.xlsx`, '기도명단 엑셀 서식');
+    }
+
+    function exportPrayerList() {
+        const list = getPrayerList();
+        if (list.length === 0) {
+            alert('추출할 기도명단이 없습니다.');
+            return;
+        }
+
+        const rows = buildPrayerExportRows();
+        const fileName = `${getPrayerDistrict()}_기도명단.xlsx`;
+
+        if (!window.XLSX) {
+            const csv = '\ufeff' + rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            downloadBlobFile(blob, `${getPrayerDistrict()}_기도명단.csv`);
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [
+            { wch: 6 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+            { wch: 34 }, { wch: 10 }, { wch: 10 }, { wch: 22 }
+        ];
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
+        ];
+        stylePrayerWorksheet(ws, rows);
+
+        XLSX.utils.book_append_sheet(wb, ws, '기도명단');
+        const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true, compression: true });
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        downloadBlobFile(blob, fileName, `${getPrayerDistrict()} 기도명단`);
+    }
+
+    function getPrayerStatusClass(status) {
+        return {
+            시작: 'is-start',
+            진행: 'is-progress',
+            확정: 'is-confirmed',
+            구원: 'is-saved'
+        }[normalizeNameValue(status)] || '';
+    }
+
+    function buildPrayerImagePage(items, startIndex, pageIndex, totalPages, district, fullList) {
+        const page = document.createElement('div');
+        page.className = 'prayer-capture-page';
+
+        const now = new Date();
+        const dateText = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.`;
+        const counts = getPrayerStatusCounts(fullList);
+
+        const cards = items.map((raw, localIndex) => {
+            const item = normalizePrayerItem(raw);
+            const details = [
+                ['인도자', item.leader, false],
+                ['구역 / 지역', [item.district, item.region].filter(Boolean).join(' / '), false],
+                ['방법', item.method, true],
+                ['비고', item.note, true]
+            ].filter(([, value]) => value);
+
+            return `
+                <div class="pci-card">
+                    <div class="pci-card-top">
+                        <div class="pci-number">${startIndex + localIndex + 1}</div>
+                        <div class="pci-name">${escapeAttr(item.name || '이름 미입력')}</div>
+                        ${item.relation ? `<div class="pci-relation">${escapeAttr(item.relation)}</div>` : ''}
+                        <div class="pci-status ${getPrayerStatusClass(item.status)}">${escapeAttr(item.status || '상태 미입력')}</div>
+                    </div>
+                    <div class="pci-details">
+                        ${details.map(([label, value, wide]) => `<div class="pci-detail${wide ? ' wide' : ''}"><b>${label}</b>${escapeAttr(value)}</div>`).join('')}
+                    </div>
+                </div>`;
+        }).join('');
+
+        page.innerHTML = `
+            <div class="pci-kicker">PRAYER LIST</div>
+            <div class="pci-title">${escapeAttr(district)} 기도명단</div>
+            <div class="pci-meta">
+                <span>${dateText}</span>
+                <span>총 ${fullList.length}명</span>
+                <span>시작 ${counts['시작']} · 진행 ${counts['진행']} · 확정 ${counts['확정']} · 구원 ${counts['구원']}</span>
+            </div>
+            <div class="pci-list">${cards}</div>
+            <div class="pci-footer">
+                <span>기도부탁 명단</span>
+                <span>${pageIndex + 1} / ${totalPages}</span>
+            </div>`;
+
+        return page;
+    }
+
+    function canvasToPngBlob(canvas) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('이미지 변환에 실패했습니다.')), 'image/png');
+        });
+    }
+
+    function clearPrayerImageFiles() {
+        prayerImageFiles.forEach(item => {
+            if (item.url) URL.revokeObjectURL(item.url);
+        });
+        prayerImageFiles = [];
+    }
+
+    function renderPrayerImageGallery() {
+        const gallery = document.getElementById('prayer-image-gallery');
+        gallery.innerHTML = '';
+
+        prayerImageFiles.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'prayer-image-preview-card';
+            card.innerHTML = `
+                <img src="${item.url}" alt="기도명단 이미지 ${index + 1}">
+                <div class="prayer-image-preview-actions">
+                    <span>${index + 1} / ${prayerImageFiles.length} 페이지</span>
+                    <button type="button">이 페이지만 저장</button>
+                </div>`;
+            card.querySelector('button').addEventListener('click', () => downloadPrayerImage(index));
+            gallery.appendChild(card);
+        });
+    }
+
+    function updatePrayerImageConfirmSummary() {
+        const district = elPrayerImageDistrict.value || getPrayerDistrict();
+        const count = getPrayerList(district).length;
+        const pages = Math.ceil(count / 3);
+        const summary = document.getElementById('prayer-image-confirm-summary');
+        const confirmButton = document.getElementById('btn-confirm-prayer-image');
+        summary.innerHTML = `<strong>${escapeAttr(district)}</strong> · 총 ${count}명<br>${pages || 0}장의 이미지가 만들어집니다.`;
+        confirmButton.textContent = `${district} 이미지 만들기`;
+        confirmButton.disabled = count === 0;
+    }
+
+    function openPrayerImageConfirm() {
+        elPrayerImageDistrict.value = getPrayerDistrict();
+        updatePrayerImageConfirmSummary();
+        document.getElementById('prayer-image-confirm-modal').classList.add('show');
+    }
+
+    function confirmPrayerImageExport() {
+        const district = elPrayerImageDistrict.value;
+        selectPrayerDistrict(district);
+        document.getElementById('prayer-image-confirm-modal').classList.remove('show');
+        exportPrayerImages(district);
+    }
+
+    async function exportPrayerImages(district = getPrayerDistrict()) {
+        const list = getPrayerList(district);
+        if (list.length === 0) {
+            alert('추출할 기도명단이 없습니다.');
+            return;
+        }
+
+        if (!window.html2canvas) {
+            alert('이미지 생성 기능을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
+
+        const button = document.getElementById('btn-export-prayer-image');
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = '이미지 만드는 중...';
+        clearPrayerImageFiles();
+
+        const root = document.getElementById('prayer-capture-root');
+        root.innerHTML = '';
+        root.style.top = '0';
+        root.style.left = '0';
+        lastPrayerImageDistrict = district;
+        const pageSize = 3;
+        const totalPages = Math.ceil(list.length / pageSize);
+
+        try {
+            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                const startIndex = pageIndex * pageSize;
+                const pageItems = list.slice(startIndex, startIndex + pageSize);
+                const page = buildPrayerImagePage(pageItems, startIndex, pageIndex, totalPages, district, list);
+                root.appendChild(page);
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+                const canvas = await html2canvas(page, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    logging: false
+                });
+                const blob = await canvasToPngBlob(canvas);
+                const fileNumber = String(pageIndex + 1).padStart(2, '0');
+                prayerImageFiles.push({
+                    blob,
+                    url: URL.createObjectURL(blob),
+                    filename: `${district}_기도명단_${fileNumber}.png`
+                });
+                page.remove();
+            }
+
+            renderPrayerImageGallery();
+            document.getElementById('prayer-image-modal').classList.add('show');
+        } catch (err) {
+            clearPrayerImageFiles();
+            alert('기도명단 이미지 생성에 실패했습니다: ' + err.message);
+        } finally {
+            root.innerHTML = '';
+            root.style.top = '-9999px';
+            root.style.left = '-9999px';
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+    function downloadPrayerImage(index) {
+        const item = prayerImageFiles[index];
+        if (!item) return;
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.download = item.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function downloadAllPrayerImages() {
+        if (prayerImageFiles.length === 0) {
+            alert('먼저 모바일 이미지를 만들어주세요.');
+            return;
+        }
+
+        const files = prayerImageFiles.map(item => new File([item.blob], item.filename, { type: 'image/png' }));
+        if (navigator.canShare && navigator.canShare({ files })) {
+            navigator.share({ files, title: `${lastPrayerImageDistrict || getPrayerDistrict()} 기도명단` }).catch(err => {
+                if (err.name !== 'AbortError') prayerImageFiles.forEach((_, idx) => setTimeout(() => downloadPrayerImage(idx), idx * 350));
+            });
+            return;
+        }
+
+        prayerImageFiles.forEach((_, idx) => setTimeout(() => downloadPrayerImage(idx), idx * 350));
     }
 
     function renderStats() {
@@ -2387,6 +3683,16 @@
         document.getElementById('stats-modal').classList.add('show');
     }
 
+    function showUpdateNotice() {
+        if (localStorage.getItem(STORAGE_KEY_UPDATE_NOTICE) === APP_VERSION) return;
+        setTimeout(() => document.getElementById('update-modal').classList.add('show'), 350);
+    }
+
+    function confirmUpdateNotice() {
+        localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
+        document.getElementById('update-modal').classList.remove('show');
+    }
+
     function initEventListeners() {
         elDistrict.addEventListener('change', e => {
             if (!confirmIfDirty()) {
@@ -2397,6 +3703,7 @@
             localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
             loadWorkingRecord();
             renderAttendanceGrid();
+            if (document.getElementById('prayer-section').classList.contains('show')) renderPrayerList();
         });
 
         elDate.addEventListener('change', () => {
@@ -2408,9 +3715,23 @@
         elType.addEventListener('change', handleMeetingTypeChange);
 
         document.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));
+        document.getElementById('btn-template-download').addEventListener('click', downloadMemberTemplate);
+        document.getElementById('btn-member-upload').addEventListener('click', () => triggerFilePicker('member-upload-input'));
         document.getElementById('member-upload-input').addEventListener('change', handleMemberFileUpload);
         document.getElementById('save-setup').addEventListener('click', saveSetup);
         elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
+
+        document.querySelector('.btn-prayer').addEventListener('click', openPrayerSection);
+        elPrayerDistrict.addEventListener('change', e => selectPrayerDistrict(e.target.value));
+        elPrayerImageDistrict.addEventListener('change', updatePrayerImageConfirmSummary);
+        document.getElementById('btn-add-prayer').addEventListener('click', addPrayerMember);
+        document.getElementById('btn-prayer-template').addEventListener('click', downloadPrayerTemplate);
+        document.getElementById('btn-prayer-upload').addEventListener('click', () => triggerFilePicker('prayer-upload-input'));
+        document.getElementById('btn-export-prayer').addEventListener('click', exportPrayerList);
+        document.getElementById('btn-export-prayer-image').addEventListener('click', openPrayerImageConfirm);
+        document.getElementById('btn-confirm-prayer-image').addEventListener('click', confirmPrayerImageExport);
+        document.getElementById('btn-download-prayer-images').addEventListener('click', downloadAllPrayerImages);
+        document.getElementById('prayer-upload-input').addEventListener('change', handlePrayerFileUpload);
 
         document.querySelector('.btn-share').addEventListener('click', openShare);
         document.getElementById('btn-share-text').addEventListener('click', shareAsText);
@@ -2418,6 +3739,7 @@
         document.getElementById('btn-download-image').addEventListener('click', downloadImage);
 
         document.querySelector('.btn-stats').addEventListener('click', openStats);
+        document.getElementById('btn-update-confirm').addEventListener('click', confirmUpdateNotice);
 
         document.querySelectorAll('.stats-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -2492,6 +3814,7 @@
         renderAttendanceGrid();
         initEventListeners();
         refreshIcons();
+        showUpdateNotice();
     }
 
     init();
