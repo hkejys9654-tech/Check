@@ -119,6 +119,9 @@
             align-items: center;
             justify-content: center;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.13);
+            color: white;
+            padding: 0;
+            cursor: pointer;
         }
 
         .brand-icon i {
@@ -1538,7 +1541,7 @@
 <header>
     <div class="top-bar">
         <div class="brand-wrap">
-            <div class="brand-icon"><i data-lucide="book-open-check"></i></div>
+            <button class="brand-icon" id="btn-home" type="button" aria-label="홈으로 가기"><i data-lucide="book-open-check"></i></button>
             <div>
                 <h1>구역 출석관리 시스템</h1>
             </div>
@@ -2834,11 +2837,36 @@
         };
     }
 
+    function showHomePage() {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+
+        const prayerSection = document.getElementById('prayer-section');
+        if (prayerSection) prayerSection.classList.remove('show');
+
+        elAttendance.style.display = '';
+        elRecordStatusWrap.style.display = '';
+        elSaveIndicator.style.display = '';
+
+        const saveActions = document.querySelector('.save-bottom-actions');
+        if (saveActions) saveActions.style.display = '';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function openPrayerSection() {
         const section = document.getElementById('prayer-section');
+
+        elAttendance.style.display = 'none';
+        elRecordStatusWrap.style.display = 'none';
+        elSaveIndicator.style.display = 'none';
+
+        const saveActions = document.querySelector('.save-bottom-actions');
+        if (saveActions) saveActions.style.display = 'none';
+
         section.classList.add('show');
         renderPrayerList();
-        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
     }
 
     function addPrayerMember() {
@@ -3713,6 +3741,8 @@
         });
 
         elType.addEventListener('change', handleMeetingTypeChange);
+
+        document.getElementById('btn-home').addEventListener('click', showHomePage);
 
         document.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));
         document.getElementById('btn-template-download').addEventListener('click', downloadMemberTemplate);
