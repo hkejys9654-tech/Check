@@ -8,12 +8,640 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
-:root{--primary:#0b4fb3;--primary-dark:#063a91;--primary-soft:#eaf3ff;--navy:#1B3A6B;--accent:#4a90e2;--green:#2ECC71;--pink:#EC5F97;--purple:#8E5BE8;--bg:#f3f6fb;--card:#fff;--line:#e5edf7;--text:#27364a;--muted:#8b98aa;--danger:#e74c3c;--warning:#f39c12;--success:#2ECC71}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}button,select,input,textarea{font-family:inherit}button{cursor:pointer;border:none}
-header{position:sticky;top:0;z-index:100;color:white;background:linear-gradient(145deg,var(--primary-dark),var(--primary));padding:18px 16px 0;box-shadow:0 5px 18px rgba(11,79,179,.3)}.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}.brand-wrap{display:flex;align-items:center;gap:10px}.brand-icon,.home-btn,.excel-btn,.notice-btn{height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16)}.brand-icon{width:48px;height:48px;border-radius:18px}.home-btn{width:42px}.excel-btn,.notice-btn{min-width:58px;padding:0 10px;gap:4px;font-size:.78rem;font-weight:900}.notice-btn{background:rgba(255,255,255,.2)}.excel-btn{background:rgba(46,204,113,.24)}header h1{font-size:1.18rem;font-weight:950;letter-spacing:-.8px;white-space:nowrap}.month-context{text-align:center;font-size:.95rem;font-weight:800;padding-bottom:16px;display:flex;align-items:center;justify-content:center;gap:7px}.tab-shell{margin:0 -16px;padding:0 16px;background:white;border-radius:18px 18px 0 0}.tabs{display:flex;height:62px}.tab-btn{flex:1;background:none;color:#444;font-size:.8rem;font-weight:900;border-bottom:3px solid transparent;padding-top:7px}.tab-btn i{display:block;margin:0 auto 4px;width:22px;height:22px;color:#666}.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}.tab-btn.active i{color:var(--primary)}
-main{padding:14px;padding-bottom:72px}.filter-card,.card{background:white;border-radius:16px;padding:12px;margin-bottom:14px;box-shadow:0 2px 10px rgba(24,55,96,.06)}.card{border-radius:18px;padding:16px;border:1px solid rgba(232,237,245,.8)}.filter-row,.personal-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}.filter-row.single{grid-template-columns:1fr}select,input[type="date"],input[type="number"],input[type="text"],textarea{min-width:0;padding:11px 9px;border:2px solid var(--line);border-radius:12px;font-size:.9rem;background:white;color:var(--navy);font-weight:850;appearance:none;-webkit-appearance:none;text-align:center}textarea{text-align:left;min-height:150px;resize:vertical;line-height:1.55}.refresh-btn,.btn-save{width:100%;padding:13px;background:var(--accent);color:white;border-radius:13px;font-size:.98rem;font-weight:900;margin-top:9px}.btn-save{background:var(--navy)}.btn-danger{background:#fee2e2;color:#c0392b}.card-title{font-size:1rem;font-weight:950;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}.summary-grid,.category-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.category-grid{grid-template-columns:repeat(4,1fr);margin-bottom:0}.summary-card,.cat-card{background:white;border-radius:16px;padding:13px 9px;box-shadow:0 3px 12px rgba(24,55,96,.08);border:1px solid var(--line);text-align:center}.s-label,.cat-name{font-size:.74rem;font-weight:850;color:#333;margin-bottom:4px}.s-num,.cat-num{font-size:1.38rem;font-weight:950;color:var(--primary);letter-spacing:-.8px}.cat-rate{font-size:.84rem;color:var(--primary);font-weight:950;margin-top:4px}.meeting-table,.district-table,.stats-table{width:100%;border-collapse:collapse;font-size:.84rem;background:white;border:1px solid var(--line);border-radius:12px;overflow:hidden}.meeting-table th,.district-table th,.stats-table th{background:#f4f8fd;color:#52606f;padding:10px 5px;text-align:center;border-bottom:1px solid var(--line)}.meeting-table td,.district-table td,.stats-table td{padding:10px 5px;text-align:center;border-bottom:1px solid #f2f5fa}.district-table td:first-child,.stats-table td:first-child{font-weight:950;color:var(--navy);text-align:left;padding-left:7px}.percent{color:var(--primary);font-weight:950}.td-eun{color:#666}.td-bong{color:var(--green);font-weight:850}.td-mom{color:var(--pink);font-weight:850}.td-youth{color:var(--purple);font-weight:850}.td-total{font-weight:950;color:var(--navy)}.not-submitted{color:#bbb!important;font-size:.8rem}.submit-time{font-size:.7rem;color:#aaa;display:block;margin-top:1px}.badge{display:inline-block;font-size:.72rem;padding:3px 7px;border-radius:12px;font-weight:850;margin-left:6px}.badge-ok{background:#dcfce7;color:#166634}.badge-no{background:#fee2e2;color:#991b1b}.empty-msg,.loading{text-align:center;color:#aaa;padding:28px 0;font-size:.9rem;line-height:1.55}.note{background:#edf5ff;color:#4a6078;padding:11px 12px;border-radius:13px;font-size:.78rem;line-height:1.45;margin-top:12px}.has-data{cursor:pointer}.has-data:active{background:#eef6ff}.personal-member-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#f8fbff;margin-bottom:7px;border-left:4px solid #dbe4ee;cursor:pointer}.personal-member-name{width:58px;flex-shrink:0;font-size:.9rem;font-weight:950;color:var(--navy)}.district-mini{font-size:.7rem;color:#999;margin-top:2px}.personal-bar-wrap{flex:1;height:12px;background:#e7edf5;border-radius:7px;overflow:hidden}.personal-bar{height:100%;border-radius:7px}.bar-high{background:var(--success)}.bar-mid{background:var(--warning)}.bar-low{background:var(--danger)}.bar-zero{background:#d8dee8}.personal-count{width:46px;text-align:right;font-size:.82rem;font-weight:950;color:#555}.personal-detail{display:none;background:#f0f6ff;border:1.5px solid #cdd9f0;border-radius:14px;padding:13px;margin:10px 0 12px}.date-dot-wrap{display:flex;flex-wrap:wrap;gap:5px}.date-dot{padding:5px 7px;border-radius:8px;font-size:.72rem;font-weight:900}.date-dot.present{background:var(--accent);color:white}.date-dot.absent{background:#fee2e2;color:#c0392b}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;justify-content:center;align-items:center}.modal.show{display:flex}.modal-box{background:white;width:88%;max-width:430px;border-radius:18px;padding:22px 20px;box-shadow:0 8px 30px rgba(0,0,0,.2);max-height:86vh;overflow-y:auto}.modal-box h3{font-size:1.05rem;font-weight:950;color:var(--navy);margin-bottom:16px}.edit-info{background:#f8f9fa;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:.88rem;color:#555;line-height:1.7}.edit-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}.edit-row label{font-size:.9rem;font-weight:950;width:70px;flex-shrink:0}.edit-row input,.edit-row select{flex:1}.edit-total-preview{text-align:center;font-size:.9rem;color:#888;margin:4px 0 14px}.modal-btn-row{display:flex;gap:8px;margin-top:4px}.btn-edit-save,.btn-edit-delete,.btn-edit-cancel{padding:13px;border-radius:12px;font-size:.95rem;font-weight:900}.btn-edit-save{flex:2;background:var(--navy);color:white}.btn-edit-delete{flex:1;background:#fee2e2;color:#c0392b}.btn-edit-cancel{flex:1;background:#f0f0f0;color:#555}.pin-display{display:flex;justify-content:center;gap:12px;margin-bottom:20px}.pin-dot{width:16px;height:16px;border-radius:50%;background:#e0e0e0}.pin-dot.filled{background:var(--primary)}.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pin-btn{padding:16px;border:1.5px solid #e0e0e0;border-radius:12px;background:white;font-size:1.2rem;font-weight:850}.pin-btn.del{color:#e53e3e;font-size:1rem}.pin-error{text-align:center;color:#e53e3e;font-size:.85rem;margin-top:10px;min-height:18px}.pin-cancel{width:100%;margin-top:12px;padding:12px;background:#f0f0f0;color:#555;border-radius:12px;font-size:.95rem;font-weight:850}.notice-preview{background:#f8fbff;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.84rem;color:#52606f;line-height:1.55;margin-top:10px;white-space:pre-line}.notice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media(max-width:390px){header h1{font-size:1.02rem}.brand-icon{width:42px;height:42px}.summary-grid{gap:7px}.summary-card{padding:11px 7px}.s-num{font-size:1.18rem}.category-grid{grid-template-columns:repeat(2,1fr)}.tab-btn{font-size:.72rem}.meeting-table,.district-table{font-size:.78rem}.notice-btn span,.excel-btn span{display:none}.notice-btn,.excel-btn{min-width:42px}}
+:root{
+  --primary:#0b4fb3;
+  --primary-dark:#073b91;
+  --primary-deep:#062c73;
+  --primary-soft:#eaf3ff;
+  --navy:#183a6b;
+  --accent:#4a90e2;
+  --green:#2ECC71;
+  --pink:#EC5F97;
+  --purple:#8E5BE8;
+  --orange:#f39c12;
+  --red:#e74c3c;
+  --bg:#f2f6fc;
+  --card:#fff;
+  --line:#e5edf7;
+  --text:#27364a;
+  --muted:#8b98aa;
+  --shadow:0 12px 30px rgba(25,62,110,.10);
+  --soft-shadow:0 6px 18px rgba(24,55,96,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(74,144,226,.16),transparent 30%),
+    linear-gradient(180deg,#f4f8ff 0%,#eef4fb 42%,#f7f9fd 100%);
+  color:var(--text);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+button,select,input,textarea{font-family:inherit}
+button{cursor:pointer;border:none}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  color:white;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(255,255,255,.16),transparent 28%),
+    linear-gradient(145deg,var(--primary-deep),var(--primary));
+  padding:18px 16px 0;
+  box-shadow:0 10px 26px rgba(11,79,179,.28);
+}
+.top-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+  gap:8px;
+}
+.brand-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-icon,.home-btn,.excel-btn,.notice-btn{
+  height:44px;
+  border-radius:15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(8px);
+}
+.brand-icon{
+  width:50px;
+  height:50px;
+  border-radius:20px;
+  background:rgba(255,255,255,.18);
+}
+.home-btn{width:44px;flex-shrink:0}
+.excel-btn,.notice-btn{
+  min-width:58px;
+  padding:0 10px;
+  gap:4px;
+  font-size:.78rem;
+  font-weight:950;
+  flex-shrink:0;
+}
+.notice-btn{background:rgba(255,255,255,.22)}
+.excel-btn{background:rgba(46,204,113,.25)}
+header h1{
+  font-size:1.18rem;
+  font-weight:950;
+  letter-spacing:-.8px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.month-context{
+  text-align:center;
+  font-size:1rem;
+  font-weight:950;
+  padding-bottom:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  letter-spacing:-.4px;
+}
+.month-context i{width:22px;height:22px}
+
+.tab-shell{
+  margin:0 -16px;
+  padding:0 16px;
+  background:white;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -6px 18px rgba(0,0,0,.06);
+}
+.tabs{display:flex;height:64px}
+.tab-btn{
+  flex:1;
+  background:none;
+  color:#4b5563;
+  font-size:.82rem;
+  font-weight:950;
+  border-bottom:4px solid transparent;
+  padding-top:7px;
+  letter-spacing:-.4px;
+}
+.tab-btn i{
+  display:block;
+  margin:0 auto 4px;
+  width:23px;
+  height:23px;
+  color:#555;
+}
+.tab-btn.active{
+  color:var(--primary);
+  border-bottom-color:var(--primary);
+}
+.tab-btn.active i{color:var(--primary)}
+
+main{padding:14px 14px 76px}
+.filter-card,.card{
+  background:rgba(255,255,255,.96);
+  border-radius:22px;
+  padding:14px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(225,235,248,.9);
+}
+.filter-card{
+  padding:16px;
+  border-radius:0 0 24px 24px;
+  margin-top:-14px;
+}
+.card{padding:18px}
+.filter-row,.personal-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+.filter-row.single{grid-template-columns:1fr}
+select,input[type="date"],input[type="number"],input[type="text"],textarea{
+  min-width:0;
+  padding:12px 10px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  font-size:.9rem;
+  background:white;
+  color:var(--navy);
+  font-weight:900;
+  appearance:none;
+  -webkit-appearance:none;
+  text-align:center;
+  box-shadow:0 3px 10px rgba(24,55,96,.04);
+}
+textarea{
+  text-align:left;
+  min-height:150px;
+  resize:vertical;
+  line-height:1.55;
+}
+.refresh-btn,.btn-save{
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg,#5aa3f0,#327edb);
+  color:white;
+  border-radius:15px;
+  font-size:.98rem;
+  font-weight:950;
+  margin-top:10px;
+  box-shadow:0 8px 18px rgba(74,144,226,.28);
+}
+.btn-save{background:linear-gradient(135deg,var(--navy),#0b4fb3)}
+.btn-danger{background:#fee2e2;color:#c0392b;box-shadow:none}
+
+.card-title{
+  font-size:1.04rem;
+  font-weight:950;
+  color:var(--navy);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  letter-spacing:-.5px;
+}
+.card-title i{
+  width:23px;
+  height:23px;
+  color:var(--primary);
+}
+
+/* 상단 요약 인포그래픽 */
+.summary-grid,.category-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+.category-grid{
+  grid-template-columns:repeat(4,1fr);
+  margin-bottom:0;
+}
+.summary-card,.cat-card{
+  position:relative;
+  overflow:hidden;
+  background:white;
+  border-radius:20px;
+  padding:14px 9px;
+  box-shadow:var(--soft-shadow);
+  border:1px solid var(--line);
+  text-align:center;
+}
+.summary-card{
+  min-height:112px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.summary-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(145deg,rgba(11,79,179,.10),rgba(255,255,255,0) 55%);
+  pointer-events:none;
+}
+.summary-card:after{
+  content:"";
+  position:absolute;
+  width:68px;
+  height:68px;
+  border-radius:50%;
+  right:-24px;
+  bottom:-28px;
+  background:rgba(11,79,179,.12);
+}
+.summary-icon{
+  width:32px;
+  height:32px;
+  margin:0 auto 7px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  background:linear-gradient(145deg,var(--primary),#5aa3f0);
+  box-shadow:0 6px 14px rgba(11,79,179,.22);
+}
+.summary-icon i{width:19px;height:19px}
+.s-label,.cat-name{
+  position:relative;
+  z-index:1;
+  font-size:.75rem;
+  font-weight:950;
+  color:#374151;
+  margin-bottom:4px;
+  letter-spacing:-.4px;
+}
+.s-num,.cat-num{
+  position:relative;
+  z-index:1;
+  font-size:1.45rem;
+  font-weight:1000;
+  color:var(--primary);
+  letter-spacing:-1px;
+  line-height:1.1;
+}
+
+/* 범주 카드 */
+.cat-card{
+  padding:14px 7px;
+  border-top:5px solid var(--cat,#0b4fb3);
+  min-height:112px;
+}
+.cat-card:before{
+  content:"";
+  position:absolute;
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  right:-30px;
+  top:-32px;
+  background:color-mix(in srgb,var(--cat,#0b4fb3) 16%,transparent);
+}
+.cat-icon{
+  position:relative;
+  z-index:1;
+  width:30px;
+  height:30px;
+  margin:0 auto 6px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:color-mix(in srgb,var(--cat,#0b4fb3) 14%,white);
+  color:var(--cat,#0b4fb3);
+  font-size:1rem;
+  font-weight:950;
+}
+.cat-num{color:var(--cat,var(--primary));font-size:1.32rem}
+.cat-rate{
+  position:relative;
+  z-index:1;
+  font-size:.86rem;
+  color:var(--cat,var(--primary));
+  font-weight:950;
+  margin-top:5px;
+}
+
+/* 표를 인포그래픽 느낌으로 */
+.meeting-table,.district-table,.stats-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:.84rem;
+  background:white;
+  border:1px solid var(--line);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 3px 12px rgba(24,55,96,.05);
+}
+.meeting-table th,.district-table th,.stats-table th{
+  background:#f2f7ff;
+  color:#52606f;
+  padding:12px 5px;
+  text-align:center;
+  border-bottom:1px solid var(--line);
+  font-weight:950;
+}
+.meeting-table td,.district-table td,.stats-table td{
+  padding:12px 5px;
+  text-align:center;
+  border-bottom:1px solid #edf2f8;
+}
+.meeting-table tr:last-child td,
+.district-table tr:last-child td,
+.stats-table tr:last-child td{border-bottom:none}
+.district-table td:first-child,.stats-table td:first-child{
+  font-weight:950;
+  color:var(--navy);
+  text-align:left;
+  padding-left:8px;
+}
+.meeting-name{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-weight:950;
+  color:var(--navy);
+  text-align:left;
+}
+.meeting-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--primary);
+  box-shadow:0 0 0 4px rgba(11,79,179,.10);
+  flex-shrink:0;
+}
+.avg-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:58px;
+  padding:6px 8px;
+  border-radius:999px;
+  background:#eef6ff;
+  color:var(--navy);
+  font-weight:950;
+}
+.rate-box{
+  min-width:58px;
+}
+.rate-text{
+  color:var(--primary);
+  font-weight:1000;
+  font-size:.94rem;
+  line-height:1;
+}
+.mini-track{
+  height:5px;
+  margin:5px auto 0;
+  width:54px;
+  border-radius:99px;
+  background:#e8eef7;
+  overflow:hidden;
+}
+.mini-fill{
+  height:100%;
+  border-radius:99px;
+  background:linear-gradient(90deg,#0b4fb3,#5aa3f0);
+}
+.percent{color:var(--primary);font-weight:950}
+.td-eun{color:#666}
+.td-bong{color:var(--green);font-weight:850}
+.td-mom{color:var(--pink);font-weight:850}
+.td-youth{color:var(--purple);font-weight:850}
+.td-total{font-weight:950;color:var(--navy)}
+.not-submitted{color:#bbb!important;font-size:.8rem}
+.submit-time{font-size:.7rem;color:#aaa;display:block;margin-top:1px}
+.badge{
+  display:inline-block;
+  font-size:.72rem;
+  padding:4px 8px;
+  border-radius:999px;
+  font-weight:950;
+  margin-left:6px;
+}
+.badge-ok{background:#dcfce7;color:#166634}
+.badge-no{background:#fee2e2;color:#991b1b}
+.empty-msg,.loading{
+  text-align:center;
+  color:#9aa7b8;
+  padding:30px 0;
+  font-size:.9rem;
+  line-height:1.55;
+}
+.note{
+  background:linear-gradient(135deg,#edf5ff,#e7f1ff);
+  color:#4a6078;
+  padding:12px 13px;
+  border-radius:15px;
+  font-size:.8rem;
+  line-height:1.5;
+  margin-top:14px;
+  border:1px solid #dbeaff;
+}
+.has-data{cursor:pointer}
+.has-data:active{background:#eef6ff}
+
+.personal-member-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 12px;
+  border-radius:15px;
+  background:#f8fbff;
+  margin-bottom:8px;
+  border-left:5px solid #dbe4ee;
+  cursor:pointer;
+  box-shadow:0 3px 10px rgba(24,55,96,.04);
+}
+.personal-member-name{
+  width:58px;
+  flex-shrink:0;
+  font-size:.9rem;
+  font-weight:950;
+  color:var(--navy);
+}
+.district-mini{font-size:.7rem;color:#999;margin-top:2px}
+.personal-bar-wrap{
+  flex:1;
+  height:13px;
+  background:#e7edf5;
+  border-radius:99px;
+  overflow:hidden;
+}
+.personal-bar{height:100%;border-radius:99px}
+.bar-high{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.bar-mid{background:linear-gradient(90deg,#f39c12,#f7bd45)}
+.bar-low{background:linear-gradient(90deg,#e74c3c,#ff7a6b)}
+.bar-zero{background:#d8dee8}
+.personal-count{
+  width:46px;
+  text-align:right;
+  font-size:.82rem;
+  font-weight:950;
+  color:#555;
+}
+.personal-detail{
+  display:none;
+  background:#f0f6ff;
+  border:1.5px solid #cdd9f0;
+  border-radius:16px;
+  padding:14px;
+  margin:10px 0 12px;
+}
+.date-dot-wrap{display:flex;flex-wrap:wrap;gap:5px}
+.date-dot{
+  padding:6px 8px;
+  border-radius:9px;
+  font-size:.72rem;
+  font-weight:950;
+}
+.date-dot.present{background:var(--accent);color:white}
+.date-dot.absent{background:#fee2e2;color:#c0392b}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:1000;
+  justify-content:center;
+  align-items:center;
+}
+.modal.show{display:flex}
+.modal-box{
+  background:white;
+  width:88%;
+  max-width:430px;
+  border-radius:22px;
+  padding:22px 20px;
+  box-shadow:0 12px 34px rgba(0,0,0,.24);
+  max-height:86vh;
+  overflow-y:auto;
+}
+.modal-box h3{
+  font-size:1.05rem;
+  font-weight:950;
+  color:var(--navy);
+  margin-bottom:16px;
+}
+.edit-info{
+  background:#f8f9fa;
+  border-radius:12px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  font-size:.88rem;
+  color:#555;
+  line-height:1.7;
+}
+.edit-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.edit-row label{
+  font-size:.9rem;
+  font-weight:950;
+  width:70px;
+  flex-shrink:0;
+}
+.edit-row input,.edit-row select{flex:1}
+.edit-total-preview{text-align:center;font-size:.9rem;color:#888;margin:4px 0 14px}
+.modal-btn-row{display:flex;gap:8px;margin-top:4px}
+.btn-edit-save,.btn-edit-delete,.btn-edit-cancel{
+  padding:13px;
+  border-radius:12px;
+  font-size:.95rem;
+  font-weight:950;
+}
+.btn-edit-save{flex:2;background:var(--navy);color:white}
+.btn-edit-delete{flex:1;background:#fee2e2;color:#c0392b}
+.btn-edit-cancel{flex:1;background:#f0f0f0;color:#555}
+
+.pin-display{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:20px;
+}
+.pin-dot{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#e0e0e0;
+}
+.pin-dot.filled{background:var(--primary)}
+.pin-pad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.pin-btn{
+  padding:16px;
+  border:1.5px solid #e0e0e0;
+  border-radius:12px;
+  background:white;
+  font-size:1.2rem;
+  font-weight:850;
+}
+.pin-btn.del{color:#e53e3e;font-size:1rem}
+.pin-error{
+  text-align:center;
+  color:#e53e3e;
+  font-size:.85rem;
+  margin-top:10px;
+  min-height:18px;
+}
+.pin-cancel{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  background:#f0f0f0;
+  color:#555;
+  border-radius:12px;
+  font-size:.95rem;
+  font-weight:850;
+}
+.notice-preview{
+  background:#f8fbff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  font-size:.84rem;
+  color:#52606f;
+  line-height:1.55;
+  margin-top:10px;
+  white-space:pre-line;
+}
+.notice-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+@media(max-width:390px){
+  header h1{font-size:1.02rem}
+  .brand-icon{width:42px;height:42px}
+  .summary-grid{gap:8px}
+  .summary-card{padding:12px 7px;min-height:104px}
+  .s-num{font-size:1.22rem}
+  .category-grid{grid-template-columns:repeat(2,1fr)}
+  .tab-btn{font-size:.72rem}
+  .meeting-table,.district-table{font-size:.78rem}
+  .notice-btn span,.excel-btn span{display:none}
+  .notice-btn,.excel-btn{min-width:42px}
+  .mini-track{width:44px}
+}
 </style>
 </head>
 <body>
@@ -33,59 +661,872 @@ main{padding:14px;padding-bottom:72px}.filter-card,.card{background:white;border
 </header>
 <main>
   <div id="tab-monthly">
-    <div class="filter-card"><div class="filter-row single"><select id="month-select"><option value="all">전체 기간</option></select></div><button class="refresh-btn" id="refresh-btn-monthly">🔄 데이터 새로고침</button></div>
+    <div class="filter-card">
+      <div class="filter-row single">
+        <select id="month-select"><option value="all">전체 기간</option></select>
+      </div>
+      <button class="refresh-btn" id="refresh-btn-monthly">🔄 데이터 새로고침</button>
+    </div>
+
     <div id="monthly-summary"><div class="loading">데이터 불러오는 중...</div></div>
-    <div class="card"><div class="card-title"><i data-lucide="users-round"></i>모임별 통계</div><div id="meeting-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div></div>
-    <div class="card"><div class="card-title"><i data-lucide="bar-chart-3"></i>범주별 평균 출석</div><div id="category-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div><div class="note">ℹ️ 출석률 = 실제 출석 ÷ 전체 등록 인원 / 제출률 = 제출 구역 수 ÷ 전체 구역 수</div></div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="users-round"></i>모임별 통계</div>
+      <div id="meeting-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="bar-chart-3"></i>범주별 평균 출석</div>
+      <div id="category-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div>
+      <div class="note">ℹ️ 출석률 = 실제 출석 ÷ 전체 등록 인원 / 제출률 = 제출 구역 수 ÷ 전체 구역 수</div>
+    </div>
   </div>
+
   <div id="tab-personal" style="display:none;">
-    <div class="filter-card"><div class="personal-controls"><select id="personal-district"><option value="all">전체 구역</option></select><select id="personal-cat"><option value="은장회">은장회</option><option value="봉사회">봉사회</option><option value="어머니회">어머니회</option><option value="청년회">청년회</option></select><select id="personal-type"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select><select id="personal-month"><option value="all">전체 기간</option></select></div><button class="refresh-btn" id="refresh-btn-personal">🔄 데이터 새로고침</button></div>
-    <div class="card"><div class="card-title"><i data-lucide="user-round-check"></i>개인별 출석 현황</div><div class="note" style="margin-bottom:12px;">제출자가 보낸 전체 명단과 출석 명단 기준입니다.</div><div id="personal-summary"></div><div id="personal-detail" class="personal-detail"></div><div id="personal-wrap"><div class="loading">데이터 불러오는 중...</div></div></div>
+    <div class="filter-card">
+      <div class="personal-controls">
+        <select id="personal-district"><option value="all">전체 구역</option></select>
+        <select id="personal-cat">
+          <option value="은장회">은장회</option>
+          <option value="봉사회">봉사회</option>
+          <option value="어머니회">어머니회</option>
+          <option value="청년회">청년회</option>
+        </select>
+        <select id="personal-type">
+          <option value="주일말씀">주일말씀</option>
+          <option value="수요말씀">수요말씀</option>
+          <option value="구역모임">구역모임</option>
+        </select>
+        <select id="personal-month"><option value="all">전체 기간</option></select>
+      </div>
+      <button class="refresh-btn" id="refresh-btn-personal">🔄 데이터 새로고침</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="user-round-check"></i>개인별 출석 현황</div>
+      <div class="note" style="margin-bottom:12px;">제출자가 보낸 전체 명단과 출석 명단 기준입니다.</div>
+      <div id="personal-summary"></div>
+      <div id="personal-detail" class="personal-detail"></div>
+      <div id="personal-wrap"><div class="loading">데이터 불러오는 중...</div></div>
+    </div>
   </div>
+
   <div id="tab-daily" style="display:none;">
-    <div class="filter-card"><div class="filter-row"><input type="date" id="date-select"><select id="type-select"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select></div><button class="refresh-btn" id="refresh-btn-daily">🔄 데이터 새로고침</button></div>
-    <div class="card"><div class="card-title"><i data-lucide="folder-check"></i>일자별 제출현황 <span id="submit-badge" class="badge badge-no">0개 제출</span></div><div id="district-table-wrap"><div class="loading">데이터 불러오는 중...</div></div></div>
-    <div class="card"><div class="card-title"><i data-lucide="calculator"></i>선택 일자 전체 합산</div><div id="total-wrap"><div class="empty-msg">제출된 데이터가 없습니다</div></div></div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <input type="date" id="date-select">
+        <select id="type-select">
+          <option value="주일말씀">주일말씀</option>
+          <option value="수요말씀">수요말씀</option>
+          <option value="구역모임">구역모임</option>
+        </select>
+      </div>
+      <button class="refresh-btn" id="refresh-btn-daily">🔄 데이터 새로고침</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="folder-check"></i>일자별 제출현황 <span id="submit-badge" class="badge badge-no">0개 제출</span></div>
+      <div id="district-table-wrap"><div class="loading">데이터 불러오는 중...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="calculator"></i>선택 일자 전체 합산</div>
+      <div id="total-wrap"><div class="empty-msg">제출된 데이터가 없습니다</div></div>
+    </div>
   </div>
 </main>
-<div class="modal" id="pin-modal"><div class="modal-box"><h3>🔐 관리자 비밀번호</h3><div class="pin-display"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div></div><div class="pin-pad"><button class="pin-btn" data-n="1">1</button><button class="pin-btn" data-n="2">2</button><button class="pin-btn" data-n="3">3</button><button class="pin-btn" data-n="4">4</button><button class="pin-btn" data-n="5">5</button><button class="pin-btn" data-n="6">6</button><button class="pin-btn" data-n="7">7</button><button class="pin-btn" data-n="8">8</button><button class="pin-btn" data-n="9">9</button><button class="pin-btn" data-n="0" style="grid-column:2;">0</button><button class="pin-btn del" id="pin-del">⌫</button></div><div class="pin-error" id="pin-error"></div><button class="pin-cancel" id="pin-cancel">취소</button></div></div>
-<div class="modal" id="edit-modal"><div class="modal-box"><h3>✏️ 출석 수정 / 삭제</h3><div class="edit-info" id="edit-info"></div><div class="edit-row"><label>날짜</label><input type="date" id="edit-date"></div><div class="edit-row"><label>말씀</label><select id="edit-meeting-type"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select></div><div class="edit-row"><label style="color:#666;">은장회</label><input type="number" id="edit-eun" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--green);">봉사회</label><input type="number" id="edit-bong" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--pink);">어머니회</label><input type="number" id="edit-mom" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--purple);">청년회</label><input type="number" id="edit-youth" min="0" max="99"><span>명</span></div><div class="edit-total-preview" id="edit-total-preview">합계: <b>0명</b></div><div class="modal-btn-row"><button class="btn-edit-cancel" id="edit-cancel">취소</button><button class="btn-edit-delete" id="edit-delete">🗑️ 삭제</button><button class="btn-edit-save" id="edit-save">💾 저장</button></div></div></div>
-<div class="modal" id="notice-modal"><div class="modal-box"><h3>📢 전체 공지 보내기</h3><div class="edit-info">공지 저장 후 담당자들이 index 앱을 열면 한 번씩 팝업으로 보입니다.</div><input type="text" id="notice-title" placeholder="공지 제목" value="공지사항"><textarea id="notice-message" placeholder="공지 내용을 입력하세요"></textarea><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.85rem;font-weight:850;color:#52606f;"><input type="checkbox" id="notice-active" checked style="width:18px;height:18px;">공지 활성화</label><div class="notice-preview" id="notice-preview">공지 미리보기</div><div class="notice-actions"><button class="btn-save" id="notice-save">공지 저장</button><button class="btn-save btn-danger" id="notice-stop">공지 중지</button></div><button class="pin-cancel" id="notice-cancel">닫기</button></div></div>
+
+<div class="modal" id="pin-modal">
+  <div class="modal-box">
+    <h3>🔐 관리자 비밀번호</h3>
+    <div class="pin-display">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-btn" data-n="1">1</button>
+      <button class="pin-btn" data-n="2">2</button>
+      <button class="pin-btn" data-n="3">3</button>
+      <button class="pin-btn" data-n="4">4</button>
+      <button class="pin-btn" data-n="5">5</button>
+      <button class="pin-btn" data-n="6">6</button>
+      <button class="pin-btn" data-n="7">7</button>
+      <button class="pin-btn" data-n="8">8</button>
+      <button class="pin-btn" data-n="9">9</button>
+      <button class="pin-btn" data-n="0" style="grid-column:2;">0</button>
+      <button class="pin-btn del" id="pin-del">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <button class="pin-cancel" id="pin-cancel">취소</button>
+  </div>
+</div>
+
+<div class="modal" id="edit-modal">
+  <div class="modal-box">
+    <h3>✏️ 출석 수정 / 삭제</h3>
+    <div class="edit-info" id="edit-info"></div>
+    <div class="edit-row"><label>날짜</label><input type="date" id="edit-date"></div>
+    <div class="edit-row"><label>말씀</label><select id="edit-meeting-type"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select></div>
+    <div class="edit-row"><label style="color:#666;">은장회</label><input type="number" id="edit-eun" min="0" max="99"><span>명</span></div>
+    <div class="edit-row"><label style="color:var(--green);">봉사회</label><input type="number" id="edit-bong" min="0" max="99"><span>명</span></div>
+    <div class="edit-row"><label style="color:var(--pink);">어머니회</label><input type="number" id="edit-mom" min="0" max="99"><span>명</span></div>
+    <div class="edit-row"><label style="color:var(--purple);">청년회</label><input type="number" id="edit-youth" min="0" max="99"><span>명</span></div>
+    <div class="edit-total-preview" id="edit-total-preview">합계: <b>0명</b></div>
+    <div class="modal-btn-row">
+      <button class="btn-edit-cancel" id="edit-cancel">취소</button>
+      <button class="btn-edit-delete" id="edit-delete">🗑️ 삭제</button>
+      <button class="btn-edit-save" id="edit-save">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="notice-modal">
+  <div class="modal-box">
+    <h3>📢 전체 공지 보내기</h3>
+    <div class="edit-info">공지 저장 후 담당자들이 index 앱을 열면 한 번씩 팝업으로 보입니다.</div>
+    <input type="text" id="notice-title" placeholder="공지 제목" value="공지사항">
+    <textarea id="notice-message" placeholder="공지 내용을 입력하세요"></textarea>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.85rem;font-weight:850;color:#52606f;">
+      <input type="checkbox" id="notice-active" checked style="width:18px;height:18px;">공지 활성화
+    </label>
+    <div class="notice-preview" id="notice-preview">공지 미리보기</div>
+    <div class="notice-actions">
+      <button class="btn-save" id="notice-save">공지 저장</button>
+      <button class="btn-save btn-danger" id="notice-stop">공지 중지</button>
+    </div>
+    <button class="pin-cancel" id="notice-cancel">닫기</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",authDomain:"bongsun-17d80.firebaseapp.com",projectId:"bongsun-17d80",storageBucket:"bongsun-17d80.firebasestorage.app",messagingSenderId:"122450922261",appId:"1:122450922261:web:f552a646f323e3a78b771c"};
-const app=initializeApp(firebaseConfig);const db=getFirestore(app);
-const ALL_DISTRICTS=[];[10,20,30,40].forEach(base=>{for(let i=1;i<=5;i++)ALL_DISTRICTS.push(`${base+i}구역`)});
-const MEETING_TYPES=['주일말씀','수요말씀','구역모임'];const CAT_NAMES=['은장회','봉사회','어머니회','청년회'];const CAT_STYLE={'은장회':['td-eun','#666'],'봉사회':['td-bong','var(--green)'],'어머니회':['td-mom','var(--pink)'],'청년회':['td-youth','var(--purple)']};const ADMIN_PIN='0000';let pinInput='',pinCallback=null,editingSubmission=null,currentTab='monthly',allSubmissions=[];
-const elMonth=document.getElementById('month-select'),elDate=document.getElementById('date-select'),elType=document.getElementById('type-select'),elPersonalDistrict=document.getElementById('personal-district'),elPersonalCat=document.getElementById('personal-cat'),elPersonalType=document.getElementById('personal-type'),elPersonalMonth=document.getElementById('personal-month'),elMonthContext=document.getElementById('month-context').querySelector('span');
+
+const firebaseConfig={
+  apiKey:"AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
+  authDomain:"bongsun-17d80.firebaseapp.com",
+  projectId:"bongsun-17d80",
+  storageBucket:"bongsun-17d80.firebasestorage.app",
+  messagingSenderId:"122450922261",
+  appId:"1:122450922261:web:f552a646f323e3a78b771c"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const ALL_DISTRICTS=[];
+[10,20,30,40].forEach(base=>{for(let i=1;i<=5;i++)ALL_DISTRICTS.push(`${base+i}구역`)});
+
+const MEETING_TYPES=['주일말씀','수요말씀','구역모임'];
+const CAT_NAMES=['은장회','봉사회','어머니회','청년회'];
+const CAT_STYLE={
+  '은장회':['td-eun','#64748b','은'],
+  '봉사회':['td-bong','#2ECC71','봉'],
+  '어머니회':['td-mom','#EC5F97','모'],
+  '청년회':['td-youth','#8E5BE8','청']
+};
+const ADMIN_PIN='0000';
+
+let pinInput='',pinCallback=null,editingSubmission=null,currentTab='monthly',allSubmissions=[];
+
+const elMonth=document.getElementById('month-select');
+const elDate=document.getElementById('date-select');
+const elType=document.getElementById('type-select');
+const elPersonalDistrict=document.getElementById('personal-district');
+const elPersonalCat=document.getElementById('personal-cat');
+const elPersonalType=document.getElementById('personal-type');
+const elPersonalMonth=document.getElementById('personal-month');
+const elMonthContext=document.getElementById('month-context').querySelector('span');
+
 elDate.value=new Date().toISOString().split('T')[0];
-function refreshIcons(){if(window.lucide)window.lucide.createIcons()}function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}function safeRate(n,d){return d?Math.round(n/d*100):0}function getCategoryCount(s,c){return s.출석데이터?.[c]?.인원||0}function getCategoryAllNames(s,c){const a=s.출석데이터?.[c]?.전체;return Array.isArray(a)?a:[]}function getCategoryPresentNames(s,c){const a=s.출석데이터?.[c]?.출석;return Array.isArray(a)?a:[]}function getSubmissionTotal(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryCount(s,c),0)}function totalRegisteredInSubmission(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryAllNames(s,c).length,0)}function formatDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return dateKey||'';const[y,m,d]=dateKey.split('-').map(Number);return `${y}. ${m}. ${d}.`}function expectedMeetingTypeByDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return'';const[y,m,d]=dateKey.split('-').map(Number);const day=new Date(y,m-1,d).getDay();if(day===0)return'주일말씀';if(day===3)return'수요말씀';return''}
-function setLoading(){['monthly-summary','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading">데이터 불러오는 중...</div>'})}
-function initOptions(){ALL_DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;elPersonalDistrict.appendChild(o)})}
-async function loadAll(){setLoading();try{allSubmissions=[];for(const district of ALL_DISTRICTS){const ref=collection(db,'submissions',district,'records');const snap=await getDocs(ref);snap.forEach(d=>allSubmissions.push({id:d.id,...d.data()}))}updateMonthOptions();renderMonthly();renderDaily();renderPersonal();refreshIcons()}catch(e){const msg=`<div class="empty-msg">오류: ${escapeHtml(e.message)}</div>`;['monthly-summary','district-table-wrap','personal-wrap'].forEach(id=>document.getElementById(id).innerHTML=msg)}}
-function getMonthLabel(v){if(!v||v==='all')return'전체 기간 월별 통계';const[y,m]=v.split('-');return`${y}년 ${parseInt(m,10)}월 월별 통계`}function updateMonthOptions(){const months=[...new Set(allSubmissions.filter(s=>s.날짜).map(s=>s.날짜.substring(0,7)))].sort().reverse();const fill=(sel,keep)=>{sel.innerHTML='<option value="all">전체 기간</option>';months.forEach(ym=>{const[y,m]=ym.split('-');sel.innerHTML+=`<option value="${ym}">${y}년 ${parseInt(m,10)}월</option>`});if([...sel.options].some(o=>o.value===keep))sel.value=keep;else if(months.length)sel.value=months[0]};fill(elMonth,elMonth.value);fill(elPersonalMonth,elPersonalMonth.value);elMonthContext.textContent=getMonthLabel(elMonth.value)}
-function getMonthFilteredRows(){const v=elMonth.value;return allSubmissions.filter(s=>s.날짜&&(v==='all'||s.날짜.startsWith(v)))}function expectedSubmissionCount(rows,type){const dates=new Set(rows.filter(s=>s.모임===type).map(s=>s.날짜));return dates.size*ALL_DISTRICTS.length}
-function summarizeRows(rows){const typeStats={},catStats={};MEETING_TYPES.forEach(t=>typeStats[t]={present:0,registered:0,submissions:0,dates:new Set()});CAT_NAMES.forEach(c=>catStats[c]={present:0,registered:0,submissions:0});rows.forEach(s=>{const type=s.모임;if(!typeStats[type])return;typeStats[type].submissions++;typeStats[type].dates.add(s.날짜);CAT_NAMES.forEach(cat=>{const p=getCategoryCount(s,cat),r=getCategoryAllNames(s,cat).length;typeStats[type].present+=p;typeStats[type].registered+=r;catStats[cat].present+=p;catStats[cat].registered+=r;catStats[cat].submissions++})});return{typeStats,catStats}}
-function renderMonthly(){elMonthContext.textContent=getMonthLabel(elMonth.value);const rows=getMonthFilteredRows();if(!rows.length){document.getElementById('monthly-summary').innerHTML='<div class="empty-msg">해당 기간 제출 데이터가 없습니다</div>';document.getElementById('meeting-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';document.getElementById('category-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';return}const{typeStats,catStats}=summarizeRows(rows);const totalPresent=rows.reduce((a,s)=>a+getSubmissionTotal(s),0);const totalRegistered=rows.reduce((a,s)=>a+totalRegisteredInSubmission(s),0);const sessions=new Set(rows.map(s=>`${s.날짜}_${s.모임}`));const avg=sessions.size?totalPresent/sessions.size:0;const submittedDistricts=new Set(rows.map(s=>s.구역)).size;document.getElementById('monthly-summary').innerHTML=`<div class="summary-grid"><div class="summary-card"><div class="s-label">전체 평균 출석</div><div class="s-num">${avg.toFixed(1)}명</div></div><div class="summary-card"><div class="s-label">전체 출석률</div><div class="s-num">${safeRate(totalPresent,totalRegistered)}%</div></div><div class="summary-card"><div class="s-label">제출 구역</div><div class="s-num">${submittedDistricts}/20</div></div></div>`;renderMeetingStats(rows,typeStats);renderCategoryStats(catStats);refreshIcons()}
-function renderMeetingStats(rows,typeStats){let html='<table class="meeting-table"><thead><tr><th>모임</th><th>평균출석</th><th>출석률</th><th>제출률</th></tr></thead><tbody>';MEETING_TYPES.forEach(type=>{const st=typeStats[type];const dates=new Set(rows.filter(s=>s.모임===type).map(s=>s.날짜));const avg=dates.size?st.present/dates.size:0;html+=`<tr><td style="font-weight:950;text-align:left;">${type}</td><td>${avg.toFixed(1)}명</td><td class="percent">${safeRate(st.present,st.registered)}%</td><td class="percent">${safeRate(st.submissions,expectedSubmissionCount(rows,type))}%</td></tr>`});html+='</tbody></table>';document.getElementById('meeting-stats-wrap').innerHTML=html}
-function renderCategoryStats(catStats){let html='<div class="category-grid">';CAT_NAMES.forEach(cat=>{const st=catStats[cat],avg=st.submissions?st.present/st.submissions:0,rate=safeRate(st.present,st.registered);html+=`<div class="cat-card"><div class="cat-name">${cat}</div><div class="cat-num">${avg.toFixed(1)}명</div><div class="cat-rate">${rate}%</div></div>`});html+='</div>';document.getElementById('category-stats-wrap').innerHTML=html}
-function renderDaily(){const date=elDate.value,type=elType.value,todayData={};allSubmissions.forEach(s=>{if(s.날짜===date&&s.모임===type)todayData[s.구역]=s});const count=Object.keys(todayData).length;const badge=document.getElementById('submit-badge');badge.textContent=`${count}개 제출`;badge.className=`badge ${count?'badge-ok':'badge-no'}`;renderDistrictTable(todayData);renderTotal(todayData);refreshIcons()}
-function renderDistrictTable(todayData){let html='<table class="district-table"><thead><tr><th>구역</th><th>은장</th><th>봉사</th><th>어머니</th><th>청년</th><th>합계</th></tr></thead><tbody>';ALL_DISTRICTS.forEach(d=>{const s=todayData[d];if(!s){html+=`<tr><td>${d}</td><td colspan="5" class="not-submitted">미제출</td></tr>`}else{const vals=CAT_NAMES.map(c=>getCategoryCount(s,c));const total=vals.reduce((a,b)=>a+b,0);let time='';if(s.제출시간?.toDate){const t=s.제출시간.toDate();time=`<span class="submit-time">${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</span>`}html+=`<tr class="has-data" data-id="${escapeHtml(s.id)}"><td>${d}${time}</td><td class="td-eun">${vals[0]}</td><td class="td-bong">${vals[1]}</td><td class="td-mom">${vals[2]}</td><td class="td-youth">${vals[3]}</td><td class="td-total">${total}</td></tr>`}});html+='</tbody></table>';const wrap=document.getElementById('district-table-wrap');wrap.innerHTML=html;wrap.querySelectorAll('.has-data').forEach(tr=>{const s=Object.values(todayData).find(x=>x.id===tr.dataset.id);tr.addEventListener('click',()=>openPinModal(()=>openEditModal(s)))})}
-function renderTotal(todayData){const submitted=Object.values(todayData);if(!submitted.length){document.getElementById('total-wrap').innerHTML='<div class="empty-msg">제출된 데이터가 없습니다</div>';return}const t={};CAT_NAMES.forEach(c=>t[c]=0);submitted.forEach(s=>CAT_NAMES.forEach(c=>t[c]+=getCategoryCount(s,c)));const grand=CAT_NAMES.reduce((a,c)=>a+t[c],0);document.getElementById('total-wrap').innerHTML=`<div class="category-grid" style="grid-template-columns:repeat(2,1fr);">${CAT_NAMES.map(c=>`<div class="cat-card"><div class="cat-name">${c}</div><div class="cat-num">${t[c]}명</div></div>`).join('')}</div><div class="note" style="background:var(--navy);color:white;text-align:center;font-weight:950;font-size:1rem;">총 ${grand}명 참석 (${submitted.length}개 구역 제출)</div>`}
-function getFilteredPersonalSubmissions(){return allSubmissions.filter(s=>(elPersonalDistrict.value==='all'||s.구역===elPersonalDistrict.value)&&s.모임===elPersonalType.value&&(elPersonalMonth.value==='all'||(s.날짜||'').startsWith(elPersonalMonth.value))).sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||''))}
-function renderPersonal(){const wrap=document.getElementById('personal-wrap'),summary=document.getElementById('personal-summary'),detail=document.getElementById('personal-detail');detail.style.display='none';const cat=elPersonalCat.value,rows=getFilteredPersonalSubmissions();if(!rows.length){summary.innerHTML='';wrap.innerHTML='<div class="empty-msg">해당 조건의 제출 기록이 없습니다</div>';return}const map={};rows.forEach(s=>{const all=getCategoryAllNames(s,cat),present=getCategoryPresentNames(s,cat);all.forEach(name=>{if(!map[name])map[name]={name,total:0,present:0,dates:[],districts:new Set()};const ok=present.includes(name);map[name].total++;if(ok)map[name].present++;map[name].dates.push({district:s.구역,date:s.날짜,present:ok});map[name].districts.add(s.구역)})});const members=Object.values(map).sort((a,b)=>(b.present/(b.total||1))-(a.present/(a.total||1))||a.name.localeCompare(b.name,'ko'));summary.innerHTML=`<div class="summary-grid"><div class="summary-card"><div class="s-label">제출 기록</div><div class="s-num">${rows.length}</div></div><div class="summary-card"><div class="s-label">구역 수</div><div class="s-num">${new Set(rows.map(s=>s.구역)).size}</div></div><div class="summary-card"><div class="s-label">평균 출석</div><div class="s-num">${(rows.reduce((a,s)=>a+getCategoryCount(s,cat),0)/rows.length).toFixed(1)}</div></div></div>`;if(!members.length){wrap.innerHTML='<div class="empty-msg">개인 명단 데이터가 없습니다</div>';return}wrap.innerHTML='';members.forEach(m=>{const pct=m.total?m.present/m.total*100:0,bar=pct>=75?'bar-high':pct>=40?'bar-mid':pct>0?'bar-low':'bar-zero';const row=document.createElement('div');row.className='personal-member-row';row.innerHTML=`<div><div class="personal-member-name">${escapeHtml(m.name)}</div><div class="district-mini">${[...m.districts].join(', ')}</div></div><div class="personal-bar-wrap"><div class="personal-bar ${bar}" style="width:${Math.min(pct,100)}%;"></div></div><div class="personal-count">${m.present}/${m.total}</div>`;row.onclick=()=>showPersonalDetail(m,cat);wrap.appendChild(row)})}
-function showPersonalDetail(m,cat){const d=document.getElementById('personal-detail');d.innerHTML=`<div style="font-weight:950;color:var(--navy);margin-bottom:10px;">${escapeHtml(m.name)} · ${cat}</div><div class="date-dot-wrap">${m.dates.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>`<span class="date-dot ${x.present?'present':'absent'}">${new Date(x.date).getMonth()+1}/${new Date(x.date).getDate()} ${x.district.replace('구역','')}</span>`).join('')}</div><div class="note"><b>요약</b><br>출석 ${m.present}회 / 대상 ${m.total}회 · 출석률 ${m.total?(m.present/m.total*100).toFixed(0):0}%</div>`;d.style.display='block';d.scrollIntoView({behavior:'smooth',block:'nearest'})}
-function openPinModal(cb){pinInput='';pinCallback=cb;document.getElementById('pin-error').textContent='';updatePinDots();document.getElementById('pin-modal').classList.add('show')}function updatePinDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('filled',i<pinInput.length)}function handlePin(n){if(pinInput.length>=4)return;pinInput+=n;updatePinDots();if(pinInput.length===4){if(pinInput===ADMIN_PIN){document.getElementById('pin-modal').classList.remove('show');const cb=pinCallback;pinCallback=null;if(cb)cb()}else{document.getElementById('pin-error').textContent='비밀번호가 맞지 않습니다.';pinInput='';setTimeout(updatePinDots,200)}}}
-function openEditModal(s){editingSubmission=s;document.getElementById('edit-info').innerHTML=`<b>${s.구역}</b><br>날짜와 말씀 종류를 바꿔서 다른 위치로 이동 저장할 수 있습니다.`;document.getElementById('edit-date').value=s.날짜;document.getElementById('edit-meeting-type').value=s.모임;document.getElementById('edit-eun').value=getCategoryCount(s,'은장회');document.getElementById('edit-bong').value=getCategoryCount(s,'봉사회');document.getElementById('edit-mom').value=getCategoryCount(s,'어머니회');document.getElementById('edit-youth').value=getCategoryCount(s,'청년회');updateEditTotal();document.getElementById('edit-modal').classList.add('show')}
-function updateEditTotal(){const total=['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id)=>a+(parseInt(document.getElementById(id).value)||0),0);document.getElementById('edit-total-preview').innerHTML=`합계: <b>${total}명</b>`}
-async function saveEdit(){if(!editingSubmission)return;const s=editingSubmission,newDate=document.getElementById('edit-date').value,newType=document.getElementById('edit-meeting-type').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('날짜를 선택해주세요.');return}const expected=expectedMeetingTypeByDate(newDate);if(expected&&['주일말씀','수요말씀'].includes(newType)&&expected!==newType){if(!confirm(`${formatDate(newDate)}은 ${expected}입니다.\n현재 ${newType}으로 저장하려고 합니다.\n그래도 저장할까요?`))return}const newData={...(s.출석데이터||{})};CAT_NAMES.forEach(cat=>{if(!newData[cat])newData[cat]={전체:[],출석:[],인원:0}});newData['은장회'].인원=parseInt(document.getElementById('edit-eun').value)||0;newData['봉사회'].인원=parseInt(document.getElementById('edit-bong').value)||0;newData['어머니회'].인원=parseInt(document.getElementById('edit-mom').value)||0;newData['청년회'].인원=parseInt(document.getElementById('edit-youth').value)||0;const oldId=`${s.날짜}_${s.모임}`,newId=`${newDate}_${newType}`,oldRef=doc(db,'submissions',s.구역,'records',oldId),newRef=doc(db,'submissions',s.구역,'records',newId);try{if(newId!==oldId){const snap=await getDoc(newRef);if(snap.exists()&&!confirm(`${s.구역} ${newDate} ${newType} 기록이 이미 있습니다.\n덮어쓸까요?`))return;await setDoc(newRef,{...s,id:newId,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()},{merge:false});await deleteDoc(oldRef);elDate.value=newDate;elType.value=newType;alert(`${s.날짜} ${s.모임} 기록을\n${newDate} ${newType}(으)로 이동 저장했습니다.`)}else{await updateDoc(oldRef,{날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()});alert('수정되었습니다.')}document.getElementById('edit-modal').classList.remove('show');await loadAll()}catch(e){alert('수정 실패: '+e.message)}}
-async function deleteEdit(){if(!editingSubmission)return;const s=editingSubmission;if(!confirm(`${s.구역} ${s.날짜} ${s.모임} 기록을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`))return;try{await deleteDoc(doc(db,'submissions',s.구역,'records',`${s.날짜}_${s.모임}`));document.getElementById('edit-modal').classList.remove('show');alert('삭제되었습니다.');await loadAll()}catch(e){alert('삭제 실패: '+e.message)}}
-function switchTab(tab){currentTab=tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.getElementById('tab-monthly').style.display=tab==='monthly'?'block':'none';document.getElementById('tab-personal').style.display=tab==='personal'?'block':'none';document.getElementById('tab-daily').style.display=tab==='daily'?'block':'none';if(tab==='monthly'){elMonthContext.textContent=getMonthLabel(elMonth.value);renderMonthly()}if(tab==='personal'){elMonthContext.textContent='개인별 출석 현황';renderPersonal()}if(tab==='daily'){elMonthContext.textContent='일자별 제출현황';renderDaily()}refreshIcons()}
-async function openNoticeModal(){document.getElementById('notice-modal').classList.add('show');try{const snap=await getDoc(doc(db,'notices','global'));if(snap.exists()){const n=snap.data();document.getElementById('notice-title').value=n.title||'공지사항';document.getElementById('notice-message').value=n.message||'';document.getElementById('notice-active').checked=n.active!==false;updateNoticePreview()}}catch(e){console.warn(e)}}function updateNoticePreview(){const t=document.getElementById('notice-title').value||'공지사항',m=document.getElementById('notice-message').value||'공지 내용 미입력';document.getElementById('notice-preview').textContent=`[${t}]\n${m}`}async function saveNotice(){const title=document.getElementById('notice-title').value.trim()||'공지사항',message=document.getElementById('notice-message').value.trim();if(!message){alert('공지 내용을 입력해주세요.');return}const noticeId=`notice_${Date.now()}`;try{await setDoc(doc(db,'notices','global'),{noticeId,title,message,active:document.getElementById('notice-active').checked,createdAt:serverTimestamp()},{merge:false});alert('전체 공지를 저장했습니다.');document.getElementById('notice-modal').classList.remove('show')}catch(e){alert('공지 저장 실패: '+e.message)}}async function stopNotice(){if(!confirm('현재 공지를 중지할까요?'))return;try{await setDoc(doc(db,'notices','global'),{active:false,stoppedAt:serverTimestamp()},{merge:true});alert('공지 중지 완료');document.getElementById('notice-modal').classList.remove('show')}catch(e){alert('공지 중지 실패: '+e.message)}}
-async function exportExcelReport(){const rows=getMonthFilteredRows();if(!rows.length){alert('추출할 제출 데이터가 없습니다.');return}if(!window.ExcelJS){alert('엑셀 라이브러리를 불러오지 못했습니다.');return}const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('제출기록');ws.addRow(['날짜','모임','구역','은장회','봉사회','어머니회','청년회','합계']);rows.sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||'')||(a.모임||'').localeCompare(b.모임||'')||(a.구역||'').localeCompare(b.구역||'ko')).forEach(s=>{const vals=CAT_NAMES.map(c=>getCategoryCount(s,c));ws.addRow([s.날짜,s.모임,s.구역,...vals,vals.reduce((a,b)=>a+b,0)])});ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4FB3'}};ws.columns.forEach(c=>c.width=14);const buffer=await wb.xlsx.writeBuffer();const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`봉선출석통계_${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-function initEvents(){document.getElementById('admin-home-btn').onclick=()=>{switchTab('monthly');window.scrollTo({top:0,behavior:'smooth'})};document.getElementById('export-excel-btn').onclick=exportExcelReport;document.getElementById('open-notice-btn').onclick=()=>openPinModal(openNoticeModal);document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));document.getElementById('refresh-btn-monthly').onclick=loadAll;document.getElementById('refresh-btn-personal').onclick=loadAll;document.getElementById('refresh-btn-daily').onclick=loadAll;elMonth.onchange=renderMonthly;elDate.onchange=renderDaily;elType.onchange=renderDaily;[elPersonalDistrict,elPersonalCat,elPersonalType,elPersonalMonth].forEach(el=>el.onchange=renderPersonal);document.querySelectorAll('.pin-btn[data-n]').forEach(b=>b.onclick=()=>handlePin(b.dataset.n));document.getElementById('pin-del').onclick=()=>{pinInput=pinInput.slice(0,-1);updatePinDots()};document.getElementById('pin-cancel').onclick=()=>document.getElementById('pin-modal').classList.remove('show');['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id=>document.getElementById(id).addEventListener('input',updateEditTotal));document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-modal').classList.remove('show');document.getElementById('edit-save').onclick=saveEdit;document.getElementById('edit-delete').onclick=deleteEdit;document.getElementById('notice-cancel').onclick=()=>document.getElementById('notice-modal').classList.remove('show');document.getElementById('notice-save').onclick=saveNotice;document.getElementById('notice-stop').onclick=stopNotice;['notice-title','notice-message'].forEach(id=>document.getElementById(id).addEventListener('input',updateNoticePreview));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}))}
-initOptions();initEvents();updateNoticePreview();refreshIcons();loadAll();
+
+function refreshIcons(){if(window.lucide)window.lucide.createIcons()}
+function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function safeRate(n,d){return d?Math.round(n/d*100):0}
+function clampPct(v){return Math.max(0,Math.min(100,Number(v)||0))}
+function rateBox(rate){
+  const pct=clampPct(rate);
+  return `<div class="rate-box"><div class="rate-text">${pct}%</div><div class="mini-track"><div class="mini-fill" style="width:${pct}%;"></div></div></div>`;
+}
+function getCategoryCount(s,c){return s.출석데이터?.[c]?.인원||0}
+function getCategoryAllNames(s,c){const a=s.출석데이터?.[c]?.전체;return Array.isArray(a)?a:[]}
+function getCategoryPresentNames(s,c){const a=s.출석데이터?.[c]?.출석;return Array.isArray(a)?a:[]}
+function getSubmissionTotal(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryCount(s,c),0)}
+function totalRegisteredInSubmission(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryAllNames(s,c).length,0)}
+function formatDate(dateKey){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return dateKey||'';
+  const[y,m,d]=dateKey.split('-').map(Number);
+  return `${y}. ${m}. ${d}.`;
+}
+function expectedMeetingTypeByDate(dateKey){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return'';
+  const[y,m,d]=dateKey.split('-').map(Number);
+  const day=new Date(y,m-1,d).getDay();
+  if(day===0)return'주일말씀';
+  if(day===3)return'수요말씀';
+  return'';
+}
+
+function setLoading(){
+  ['monthly-summary','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML='<div class="loading">데이터 불러오는 중...</div>';
+  });
+}
+
+function initOptions(){
+  ALL_DISTRICTS.forEach(d=>{
+    const o=document.createElement('option');
+    o.value=d;
+    o.textContent=d;
+    elPersonalDistrict.appendChild(o);
+  });
+}
+
+async function loadAll(){
+  setLoading();
+  try{
+    allSubmissions=[];
+    for(const district of ALL_DISTRICTS){
+      const ref=collection(db,'submissions',district,'records');
+      const snap=await getDocs(ref);
+      snap.forEach(d=>allSubmissions.push({id:d.id,...d.data()}));
+    }
+    updateMonthOptions();
+    renderMonthly();
+    renderDaily();
+    renderPersonal();
+    refreshIcons();
+  }catch(e){
+    const msg=`<div class="empty-msg">오류: ${escapeHtml(e.message)}</div>`;
+    ['monthly-summary','district-table-wrap','personal-wrap'].forEach(id=>document.getElementById(id).innerHTML=msg);
+  }
+}
+
+function getMonthLabel(v){
+  if(!v||v==='all')return'전체 기간 월별 통계';
+  const[y,m]=v.split('-');
+  return`${y}년 ${parseInt(m,10)}월 월별 통계`;
+}
+
+function updateMonthOptions(){
+  const months=[...new Set(allSubmissions.filter(s=>s.날짜).map(s=>s.날짜.substring(0,7)))].sort().reverse();
+  const fill=(sel,keep)=>{
+    sel.innerHTML='<option value="all">전체 기간</option>';
+    months.forEach(ym=>{
+      const[y,m]=ym.split('-');
+      sel.innerHTML+=`<option value="${ym}">${y}년 ${parseInt(m,10)}월</option>`;
+    });
+    if([...sel.options].some(o=>o.value===keep))sel.value=keep;
+    else if(months.length)sel.value=months[0];
+  };
+  fill(elMonth,elMonth.value);
+  fill(elPersonalMonth,elPersonalMonth.value);
+  elMonthContext.textContent=getMonthLabel(elMonth.value);
+}
+
+function getMonthFilteredRows(){
+  const v=elMonth.value;
+  return allSubmissions.filter(s=>s.날짜&&(v==='all'||s.날짜.startsWith(v)));
+}
+
+function expectedSubmissionCount(rows,type){
+  const dates=new Set(rows.filter(s=>s.모임===type).map(s=>s.날짜));
+  return dates.size*ALL_DISTRICTS.length;
+}
+
+function summarizeRows(rows){
+  const typeStats={},catStats={};
+  MEETING_TYPES.forEach(t=>typeStats[t]={present:0,registered:0,submissions:0,dates:new Set()});
+  CAT_NAMES.forEach(c=>catStats[c]={present:0,registered:0,submissions:0});
+  rows.forEach(s=>{
+    const type=s.모임;
+    if(!typeStats[type])return;
+    typeStats[type].submissions++;
+    typeStats[type].dates.add(s.날짜);
+    CAT_NAMES.forEach(cat=>{
+      const p=getCategoryCount(s,cat),r=getCategoryAllNames(s,cat).length;
+      typeStats[type].present+=p;
+      typeStats[type].registered+=r;
+      catStats[cat].present+=p;
+      catStats[cat].registered+=r;
+      catStats[cat].submissions++;
+    });
+  });
+  return{typeStats,catStats};
+}
+
+function renderMonthly(){
+  elMonthContext.textContent=getMonthLabel(elMonth.value);
+  const rows=getMonthFilteredRows();
+
+  if(!rows.length){
+    document.getElementById('monthly-summary').innerHTML='<div class="empty-msg">해당 기간 제출 데이터가 없습니다</div>';
+    document.getElementById('meeting-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';
+    document.getElementById('category-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';
+    return;
+  }
+
+  const{typeStats,catStats}=summarizeRows(rows);
+  const totalPresent=rows.reduce((a,s)=>a+getSubmissionTotal(s),0);
+  const totalRegistered=rows.reduce((a,s)=>a+totalRegisteredInSubmission(s),0);
+  const sessions=new Set(rows.map(s=>`${s.날짜}_${s.모임}`));
+  const avg=sessions.size?totalPresent/sessions.size:0;
+  const submittedDistricts=new Set(rows.map(s=>s.구역)).size;
+
+  document.getElementById('monthly-summary').innerHTML=`
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="users-round"></i></div>
+        <div class="s-label">전체 평균 출석</div>
+        <div class="s-num">${avg.toFixed(1)}명</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="percent"></i></div>
+        <div class="s-label">전체 출석률</div>
+        <div class="s-num">${safeRate(totalPresent,totalRegistered)}%</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="clipboard-check"></i></div>
+        <div class="s-label">제출 구역</div>
+        <div class="s-num">${submittedDistricts}/20</div>
+      </div>
+    </div>
+  `;
+
+  renderMeetingStats(rows,typeStats);
+  renderCategoryStats(catStats);
+  refreshIcons();
+}
+
+function renderMeetingStats(rows,typeStats){
+  let html='<table class="meeting-table"><thead><tr><th>모임</th><th>평균출석</th><th>출석률</th><th>제출률</th></tr></thead><tbody>';
+
+  MEETING_TYPES.forEach(type=>{
+    const st=typeStats[type];
+    const dates=new Set(rows.filter(s=>s.모임===type).map(s=>s.날짜));
+    const avg=dates.size?st.present/dates.size:0;
+    const attendanceRate=safeRate(st.present,st.registered);
+    const submitRate=safeRate(st.submissions,expectedSubmissionCount(rows,type));
+
+    html+=`
+      <tr>
+        <td>
+          <div class="meeting-name">
+            <span class="meeting-dot"></span>
+            <span>${type}</span>
+          </div>
+        </td>
+        <td><span class="avg-chip">${avg.toFixed(1)}명</span></td>
+        <td>${rateBox(attendanceRate)}</td>
+        <td>${rateBox(submitRate)}</td>
+      </tr>
+    `;
+  });
+
+  html+='</tbody></table>';
+  document.getElementById('meeting-stats-wrap').innerHTML=html;
+}
+
+function renderCategoryStats(catStats){
+  let html='<div class="category-grid">';
+
+  CAT_NAMES.forEach(cat=>{
+    const st=catStats[cat];
+    const avg=st.submissions?st.present/st.submissions:0;
+    const rate=safeRate(st.present,st.registered);
+    const style=CAT_STYLE[cat]||['','#0b4fb3',cat.slice(0,1)];
+
+    html+=`
+      <div class="cat-card" style="--cat:${style[1]};">
+        <div class="cat-icon">${style[2]}</div>
+        <div class="cat-name">${cat}</div>
+        <div class="cat-num">${avg.toFixed(1)}명</div>
+        <div class="cat-rate">${rate}%</div>
+      </div>
+    `;
+  });
+
+  html+='</div>';
+  document.getElementById('category-stats-wrap').innerHTML=html;
+}
+
+function renderDaily(){
+  const date=elDate.value,type=elType.value,todayData={};
+  allSubmissions.forEach(s=>{
+    if(s.날짜===date&&s.모임===type)todayData[s.구역]=s;
+  });
+  const count=Object.keys(todayData).length;
+  const badge=document.getElementById('submit-badge');
+  badge.textContent=`${count}개 제출`;
+  badge.className=`badge ${count?'badge-ok':'badge-no'}`;
+  renderDistrictTable(todayData);
+  renderTotal(todayData);
+  refreshIcons();
+}
+
+function renderDistrictTable(todayData){
+  let html='<table class="district-table"><thead><tr><th>구역</th><th>은장</th><th>봉사</th><th>어머니</th><th>청년</th><th>합계</th></tr></thead><tbody>';
+
+  ALL_DISTRICTS.forEach(d=>{
+    const s=todayData[d];
+    if(!s){
+      html+=`<tr><td>${d}</td><td colspan="5" class="not-submitted">미제출</td></tr>`;
+    }else{
+      const vals=CAT_NAMES.map(c=>getCategoryCount(s,c));
+      const total=vals.reduce((a,b)=>a+b,0);
+      let time='';
+      if(s.제출시간?.toDate){
+        const t=s.제출시간.toDate();
+        time=`<span class="submit-time">${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</span>`;
+      }
+      html+=`
+        <tr class="has-data" data-id="${escapeHtml(s.id)}">
+          <td>${d}${time}</td>
+          <td class="td-eun">${vals[0]}</td>
+          <td class="td-bong">${vals[1]}</td>
+          <td class="td-mom">${vals[2]}</td>
+          <td class="td-youth">${vals[3]}</td>
+          <td class="td-total">${total}</td>
+        </tr>
+      `;
+    }
+  });
+
+  html+='</tbody></table>';
+
+  const wrap=document.getElementById('district-table-wrap');
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.has-data').forEach(tr=>{
+    const s=Object.values(todayData).find(x=>x.id===tr.dataset.id);
+    tr.addEventListener('click',()=>openPinModal(()=>openEditModal(s)));
+  });
+}
+
+function renderTotal(todayData){
+  const submitted=Object.values(todayData);
+  if(!submitted.length){
+    document.getElementById('total-wrap').innerHTML='<div class="empty-msg">제출된 데이터가 없습니다</div>';
+    return;
+  }
+
+  const t={};
+  CAT_NAMES.forEach(c=>t[c]=0);
+  submitted.forEach(s=>CAT_NAMES.forEach(c=>t[c]+=getCategoryCount(s,c)));
+  const grand=CAT_NAMES.reduce((a,c)=>a+t[c],0);
+
+  document.getElementById('total-wrap').innerHTML=`
+    <div class="category-grid" style="grid-template-columns:repeat(2,1fr);">
+      ${CAT_NAMES.map(c=>{
+        const style=CAT_STYLE[c]||['','#0b4fb3',c.slice(0,1)];
+        return `
+          <div class="cat-card" style="--cat:${style[1]};">
+            <div class="cat-icon">${style[2]}</div>
+            <div class="cat-name">${c}</div>
+            <div class="cat-num">${t[c]}명</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="note" style="background:linear-gradient(135deg,var(--navy),var(--primary));color:white;text-align:center;font-weight:950;font-size:1rem;">
+      총 ${grand}명 참석 (${submitted.length}개 구역 제출)
+    </div>
+  `;
+}
+
+function getFilteredPersonalSubmissions(){
+  return allSubmissions.filter(s=>
+    (elPersonalDistrict.value==='all'||s.구역===elPersonalDistrict.value)&&
+    s.모임===elPersonalType.value&&
+    (elPersonalMonth.value==='all'||(s.날짜||'').startsWith(elPersonalMonth.value))
+  ).sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||''));
+}
+
+function renderPersonal(){
+  const wrap=document.getElementById('personal-wrap');
+  const summary=document.getElementById('personal-summary');
+  const detail=document.getElementById('personal-detail');
+  detail.style.display='none';
+
+  const cat=elPersonalCat.value;
+  const rows=getFilteredPersonalSubmissions();
+
+  if(!rows.length){
+    summary.innerHTML='';
+    wrap.innerHTML='<div class="empty-msg">해당 조건의 제출 기록이 없습니다</div>';
+    return;
+  }
+
+  const map={};
+  rows.forEach(s=>{
+    const all=getCategoryAllNames(s,cat);
+    const present=getCategoryPresentNames(s,cat);
+    all.forEach(name=>{
+      if(!map[name])map[name]={name,total:0,present:0,dates:[],districts:new Set()};
+      const ok=present.includes(name);
+      map[name].total++;
+      if(ok)map[name].present++;
+      map[name].dates.push({district:s.구역,date:s.날짜,present:ok});
+      map[name].districts.add(s.구역);
+    });
+  });
+
+  const members=Object.values(map).sort((a,b)=>(b.present/(b.total||1))-(a.present/(a.total||1))||a.name.localeCompare(b.name,'ko'));
+
+  summary.innerHTML=`
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="files"></i></div>
+        <div class="s-label">제출 기록</div>
+        <div class="s-num">${rows.length}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="map-pinned"></i></div>
+        <div class="s-label">구역 수</div>
+        <div class="s-num">${new Set(rows.map(s=>s.구역)).size}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon"><i data-lucide="user-check"></i></div>
+        <div class="s-label">평균 출석</div>
+        <div class="s-num">${(rows.reduce((a,s)=>a+getCategoryCount(s,cat),0)/rows.length).toFixed(1)}</div>
+      </div>
+    </div>
+  `;
+
+  if(!members.length){
+    wrap.innerHTML='<div class="empty-msg">개인 명단 데이터가 없습니다</div>';
+    refreshIcons();
+    return;
+  }
+
+  wrap.innerHTML='';
+  members.forEach(m=>{
+    const pct=m.total?m.present/m.total*100:0;
+    const bar=pct>=75?'bar-high':pct>=40?'bar-mid':pct>0?'bar-low':'bar-zero';
+    const row=document.createElement('div');
+    row.className='personal-member-row';
+    row.innerHTML=`
+      <div>
+        <div class="personal-member-name">${escapeHtml(m.name)}</div>
+        <div class="district-mini">${[...m.districts].join(', ')}</div>
+      </div>
+      <div class="personal-bar-wrap"><div class="personal-bar ${bar}" style="width:${Math.min(pct,100)}%;"></div></div>
+      <div class="personal-count">${m.present}/${m.total}</div>
+    `;
+    row.onclick=()=>showPersonalDetail(m,cat);
+    wrap.appendChild(row);
+  });
+
+  refreshIcons();
+}
+
+function showPersonalDetail(m,cat){
+  const d=document.getElementById('personal-detail');
+  d.innerHTML=`
+    <div style="font-weight:950;color:var(--navy);margin-bottom:10px;">${escapeHtml(m.name)} · ${cat}</div>
+    <div class="date-dot-wrap">
+      ${m.dates.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>`<span class="date-dot ${x.present?'present':'absent'}">${new Date(x.date).getMonth()+1}/${new Date(x.date).getDate()} ${x.district.replace('구역','')}</span>`).join('')}
+    </div>
+    <div class="note"><b>요약</b><br>출석 ${m.present}회 / 대상 ${m.total}회 · 출석률 ${m.total?(m.present/m.total*100).toFixed(0):0}%</div>
+  `;
+  d.style.display='block';
+  d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function openPinModal(cb){
+  pinInput='';
+  pinCallback=cb;
+  document.getElementById('pin-error').textContent='';
+  updatePinDots();
+  document.getElementById('pin-modal').classList.add('show');
+}
+
+function updatePinDots(){
+  for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('filled',i<pinInput.length);
+}
+
+function handlePin(n){
+  if(pinInput.length>=4)return;
+  pinInput+=n;
+  updatePinDots();
+  if(pinInput.length===4){
+    if(pinInput===ADMIN_PIN){
+      document.getElementById('pin-modal').classList.remove('show');
+      const cb=pinCallback;
+      pinCallback=null;
+      if(cb)cb();
+    }else{
+      document.getElementById('pin-error').textContent='비밀번호가 맞지 않습니다.';
+      pinInput='';
+      setTimeout(updatePinDots,200);
+    }
+  }
+}
+
+function openEditModal(s){
+  editingSubmission=s;
+  document.getElementById('edit-info').innerHTML=`<b>${s.구역}</b><br>날짜와 말씀 종류를 바꿔서 다른 위치로 이동 저장할 수 있습니다.`;
+  document.getElementById('edit-date').value=s.날짜;
+  document.getElementById('edit-meeting-type').value=s.모임;
+  document.getElementById('edit-eun').value=getCategoryCount(s,'은장회');
+  document.getElementById('edit-bong').value=getCategoryCount(s,'봉사회');
+  document.getElementById('edit-mom').value=getCategoryCount(s,'어머니회');
+  document.getElementById('edit-youth').value=getCategoryCount(s,'청년회');
+  updateEditTotal();
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function updateEditTotal(){
+  const total=['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id)=>a+(parseInt(document.getElementById(id).value)||0),0);
+  document.getElementById('edit-total-preview').innerHTML=`합계: <b>${total}명</b>`;
+}
+
+async function saveEdit(){
+  if(!editingSubmission)return;
+
+  const s=editingSubmission;
+  const newDate=document.getElementById('edit-date').value;
+  const newType=document.getElementById('edit-meeting-type').value;
+
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){
+    alert('날짜를 선택해주세요.');
+    return;
+  }
+
+  const expected=expectedMeetingTypeByDate(newDate);
+  if(expected&&['주일말씀','수요말씀'].includes(newType)&&expected!==newType){
+    if(!confirm(`${formatDate(newDate)}은 ${expected}입니다.\n현재 ${newType}으로 저장하려고 합니다.\n그래도 저장할까요?`))return;
+  }
+
+  const newData={...(s.출석데이터||{})};
+  CAT_NAMES.forEach(cat=>{
+    if(!newData[cat])newData[cat]={전체:[],출석:[],인원:0};
+  });
+
+  newData['은장회'].인원=parseInt(document.getElementById('edit-eun').value)||0;
+  newData['봉사회'].인원=parseInt(document.getElementById('edit-bong').value)||0;
+  newData['어머니회'].인원=parseInt(document.getElementById('edit-mom').value)||0;
+  newData['청년회'].인원=parseInt(document.getElementById('edit-youth').value)||0;
+
+  const oldId=`${s.날짜}_${s.모임}`;
+  const newId=`${newDate}_${newType}`;
+  const oldRef=doc(db,'submissions',s.구역,'records',oldId);
+  const newRef=doc(db,'submissions',s.구역,'records',newId);
+
+  try{
+    if(newId!==oldId){
+      const snap=await getDoc(newRef);
+      if(snap.exists()&&!confirm(`${s.구역} ${newDate} ${newType} 기록이 이미 있습니다.\n덮어쓸까요?`))return;
+      await setDoc(newRef,{...s,id:newId,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()},{merge:false});
+      await deleteDoc(oldRef);
+      elDate.value=newDate;
+      elType.value=newType;
+      alert(`${s.날짜} ${s.모임} 기록을\n${newDate} ${newType}(으)로 이동 저장했습니다.`);
+    }else{
+      await updateDoc(oldRef,{날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()});
+      alert('수정되었습니다.');
+    }
+    document.getElementById('edit-modal').classList.remove('show');
+    await loadAll();
+  }catch(e){
+    alert('수정 실패: '+e.message);
+  }
+}
+
+async function deleteEdit(){
+  if(!editingSubmission)return;
+  const s=editingSubmission;
+  if(!confirm(`${s.구역} ${s.날짜} ${s.모임} 기록을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`))return;
+
+  try{
+    await deleteDoc(doc(db,'submissions',s.구역,'records',`${s.날짜}_${s.모임}`));
+    document.getElementById('edit-modal').classList.remove('show');
+    alert('삭제되었습니다.');
+    await loadAll();
+  }catch(e){
+    alert('삭제 실패: '+e.message);
+  }
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.getElementById('tab-monthly').style.display=tab==='monthly'?'block':'none';
+  document.getElementById('tab-personal').style.display=tab==='personal'?'block':'none';
+  document.getElementById('tab-daily').style.display=tab==='daily'?'block':'none';
+
+  if(tab==='monthly'){
+    elMonthContext.textContent=getMonthLabel(elMonth.value);
+    renderMonthly();
+  }
+  if(tab==='personal'){
+    elMonthContext.textContent='개인별 출석 현황';
+    renderPersonal();
+  }
+  if(tab==='daily'){
+    elMonthContext.textContent='일자별 제출현황';
+    renderDaily();
+  }
+  refreshIcons();
+}
+
+async function openNoticeModal(){
+  document.getElementById('notice-modal').classList.add('show');
+  try{
+    const snap=await getDoc(doc(db,'notices','global'));
+    if(snap.exists()){
+      const n=snap.data();
+      document.getElementById('notice-title').value=n.title||'공지사항';
+      document.getElementById('notice-message').value=n.message||'';
+      document.getElementById('notice-active').checked=n.active!==false;
+      updateNoticePreview();
+    }
+  }catch(e){
+    console.warn(e);
+  }
+}
+
+function updateNoticePreview(){
+  const t=document.getElementById('notice-title').value||'공지사항';
+  const m=document.getElementById('notice-message').value||'공지 내용 미입력';
+  document.getElementById('notice-preview').textContent=`[${t}]\n${m}`;
+}
+
+async function saveNotice(){
+  const title=document.getElementById('notice-title').value.trim()||'공지사항';
+  const message=document.getElementById('notice-message').value.trim();
+
+  if(!message){
+    alert('공지 내용을 입력해주세요.');
+    return;
+  }
+
+  const noticeId=`notice_${Date.now()}`;
+
+  try{
+    await setDoc(doc(db,'notices','global'),{
+      noticeId,
+      title,
+      message,
+      active:document.getElementById('notice-active').checked,
+      createdAt:serverTimestamp()
+    },{merge:false});
+    alert('전체 공지를 저장했습니다.');
+    document.getElementById('notice-modal').classList.remove('show');
+  }catch(e){
+    alert('공지 저장 실패: '+e.message);
+  }
+}
+
+async function stopNotice(){
+  if(!confirm('현재 공지를 중지할까요?'))return;
+
+  try{
+    await setDoc(doc(db,'notices','global'),{active:false,stoppedAt:serverTimestamp()},{merge:true});
+    alert('공지 중지 완료');
+    document.getElementById('notice-modal').classList.remove('show');
+  }catch(e){
+    alert('공지 중지 실패: '+e.message);
+  }
+}
+
+async function exportExcelReport(){
+  const rows=getMonthFilteredRows();
+
+  if(!rows.length){
+    alert('추출할 제출 데이터가 없습니다.');
+    return;
+  }
+
+  if(!window.ExcelJS){
+    alert('엑셀 라이브러리를 불러오지 못했습니다.');
+    return;
+  }
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('제출기록');
+
+  ws.addRow(['날짜','모임','구역','은장회','봉사회','어머니회','청년회','합계']);
+
+  rows.sort((a,b)=>
+    (a.날짜||'').localeCompare(b.날짜||'')||
+    (a.모임||'').localeCompare(b.모임||'')||
+    (a.구역||'').localeCompare(b.구역||'ko')
+  ).forEach(s=>{
+    const vals=CAT_NAMES.map(c=>getCategoryCount(s,c));
+    ws.addRow([s.날짜,s.모임,s.구역,...vals,vals.reduce((a,b)=>a+b,0)]);
+  });
+
+  ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};
+  ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4FB3'}};
+  ws.columns.forEach(c=>c.width=14);
+
+  const buffer=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`봉선출석통계_${new Date().toISOString().slice(0,10)}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function initEvents(){
+  document.getElementById('admin-home-btn').onclick=()=>{
+    switchTab('monthly');
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  document.getElementById('export-excel-btn').onclick=exportExcelReport;
+  document.getElementById('open-notice-btn').onclick=()=>openPinModal(openNoticeModal);
+
+  document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+  document.getElementById('refresh-btn-monthly').onclick=loadAll;
+  document.getElementById('refresh-btn-personal').onclick=loadAll;
+  document.getElementById('refresh-btn-daily').onclick=loadAll;
+
+  elMonth.onchange=renderMonthly;
+  elDate.onchange=renderDaily;
+  elType.onchange=renderDaily;
+
+  [elPersonalDistrict,elPersonalCat,elPersonalType,elPersonalMonth].forEach(el=>el.onchange=renderPersonal);
+
+  document.querySelectorAll('.pin-btn[data-n]').forEach(b=>b.onclick=()=>handlePin(b.dataset.n));
+
+  document.getElementById('pin-del').onclick=()=>{
+    pinInput=pinInput.slice(0,-1);
+    updatePinDots();
+  };
+
+  document.getElementById('pin-cancel').onclick=()=>document.getElementById('pin-modal').classList.remove('show');
+
+  ['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id=>document.getElementById(id).addEventListener('input',updateEditTotal));
+
+  document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-modal').classList.remove('show');
+  document.getElementById('edit-save').onclick=saveEdit;
+  document.getElementById('edit-delete').onclick=deleteEdit;
+
+  document.getElementById('notice-cancel').onclick=()=>document.getElementById('notice-modal').classList.remove('show');
+  document.getElementById('notice-save').onclick=saveNotice;
+  document.getElementById('notice-stop').onclick=stopNotice;
+
+  ['notice-title','notice-message'].forEach(id=>document.getElementById(id).addEventListener('input',updateNoticePreview));
+
+  document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{
+    if(e.target===m)m.classList.remove('show');
+  }));
+}
+
+initOptions();
+initEvents();
+updateNoticePreview();
+refreshIcons();
+loadAll();
 </script>
 </body>
 </html>
