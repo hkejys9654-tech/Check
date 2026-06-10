@@ -1609,7 +1609,7 @@
             <i data-lucide="save"></i>
             <div>
                 <div class="big-text">저장하기</div>
-                <div class="small-text">내 기기 + 서버 자동 저장</div>
+                <div class="small-text">내 기기에 기록 저장</div>
             </div>
         </button>
     </div>
@@ -2203,25 +2203,15 @@
         updateSaveIndicator(!!stillExists);
         updateRecordStatusBanner(!!stillExists);
 
-        let serverSaved = false;
-        let serverError = '';
-
         try {
-            if (typeof window.submitAttendanceToFirebase !== 'function') {
-                throw new Error('서버 연결이 아직 준비되지 않았습니다.');
+            if (typeof window.submitAttendanceToFirebase === 'function') {
+                await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload());
             }
-
-            await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload());
-            serverSaved = true;
         } catch (err) {
-            serverError = err && err.message ? err.message : String(err);
+            console.warn('remote save failed', err);
         }
 
-        if (serverSaved) {
-            alert('저장되었습니다.\n서버 전송 완료.');
-        } else {
-            alert('내 폰에는 저장됐지만 서버 전송 실패:\n' + serverError);
-        }
+        alert('저장되었습니다.');
     }
     function moveCurrentRecordToMeeting(oldType, newType) {
         const date = elDate.value;
