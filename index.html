@@ -1861,8 +1861,8 @@
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
-    const APP_VERSION = '2026.06.10-notice-mismatch-check';
-    const SILENT_UPDATE_VERSION = '2026.06.10-notice-mismatch-check';
+    const APP_VERSION = '2026.06.10-local-auto-sync';
+    const SILENT_UPDATE_VERSION = '2026.06.10-local-auto-sync';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -3930,21 +3930,100 @@
         return issues;
     }
 
-    function warnMeetingMismatchOnOpen() {
-        const issues = findLocalMeetingMismatches();
-        if (issues.length === 0) return;
+    function mergeAttendanceNameRecords(a = [], b = []) {
+        const result = [];
+        const seen = new Set();
 
-        const preview = issues.slice(0, 5).map(item =>
-            `${item.district} ${formatNoticeDate(item.dateKey)}은 ${item.expected}인데 ${item.type}으로 저장되어 있습니다.`
+        [...a, ...b].forEach(name => {
+            const clean = normalizeNameValue(name);
+            if (!clean || seen.has(clean)) return;
+            seen.add(clean);
+            result.push(clean);
+        });
+
+        return result;
+    }
+
+    function applyLocalMeetingAutoCorrections() {
+        const corrections = [];
+
+        Object.entries(allAttendanceRecords || {}).forEach(([district, records]) => {
+            getValidRecordDates(records || {}).forEach(dateKey => {
+                const dayRecords = records[dateKey] || {};
+
+                ['주일말씀', '수요말씀'].forEach(type => {
+                    const record = dayRecords[type];
+                    if (!Array.isArray(record)) return;
+
+                    const expected = getExpectedMeetingTypeByDate(dateKey);
+                    if (!expected || expected === type) return;
+
+                    const existingTarget = Array.isArray(dayRecords[expected]) ? dayRecords[expected] : [];
+                    const mergedRecord = mergeAttendanceNameRecords(existingTarget, record);
+
+                    dayRecords[expected] = mergedRecord;
+                    delete dayRecords[type];
+
+                    corrections.push({
+                        district,
+                        dateKey,
+                        from: type,
+                        to: expected,
+                        record: mergedRecord
+                    });
+                });
+
+                if (Object.keys(dayRecords).length === 0) delete records[dateKey];
+            });
+        });
+
+        if (corrections.length > 0) saveRecords();
+        return corrections;
+    }
+
+    async function syncLocalCorrectionsToFirebase(corrections = []) {
+        if (!corrections.length) return;
+
+        for (const item of corrections) {
+            try {
+                if (typeof window.submitAttendanceToFirebase === 'function') {
+                    await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload({
+                        district: item.district,
+                        date: item.dateKey,
+                        type: item.to,
+                        record: item.record
+                    }));
+                }
+
+                if (typeof window.deleteAttendanceFromFirebase === 'function') {
+                    await window.deleteAttendanceFromFirebase(item.district, item.dateKey, item.from);
+                }
+            } catch (err) {
+                console.warn('local correction sync failed', item, err);
+            }
+        }
+    }
+
+    function syncLocalMeetingMismatchesOnOpen() {
+        const corrections = applyLocalMeetingAutoCorrections();
+        if (corrections.length === 0) return corrections;
+
+        const preview = corrections.slice(0, 5).map(item =>
+            `${item.district} ${formatNoticeDate(item.dateKey)}: ${item.from} → ${item.to}`
         ).join('\n');
-        const more = issues.length > 5 ? `\n외 ${issues.length - 5}건 더 있습니다.` : '';
+        const more = corrections.length > 5 ? `\n외 ${corrections.length - 5}건 더 정리되었습니다.` : '';
+
+        syncLocalCorrectionsToFirebase(corrections);
 
         setTimeout(() => {
-            alert(`날짜와 말씀 종류가 맞지 않는 기록이 있습니다.
-바꿀 때까지 앱을 열 때마다 안내됩니다.
+            alert(`관리자 기준에 따라 저장 기록을 정리했습니다.
 
-${preview}${more}`);
+${preview}${more}
+
+이제 저장하면 정리된 기록이 서버로 전송됩니다.`);
         }, 700);
+
+        return corrections;
     }
 
     function escapeHtml(value) {
@@ -4099,6 +4178,7 @@ ${preview}${more}`);
         elDate.value = new Date().toISOString().split('T')[0];
         previousMeetingType = elType.value;
         loadData();
+        syncLocalMeetingMismatchesOnOpen();
         loadWorkingRecord();
         renderAttendanceGrid();
         initEventListeners();
@@ -4107,7 +4187,6 @@ ${preview}${more}`);
             localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
         }
         showUpdateNotice();
-        warnMeetingMismatchOnOpen();
         checkGlobalNotice();
     }
 
