@@ -14,7 +14,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -38,6 +38,11 @@
                 },
                 { merge: true }
             );
+        };
+
+        window.deleteAttendanceFromFirebase = async function(district, date, type) {
+            const docId = `${date}_${type}`;
+            await deleteDoc(doc(firestoreDb, 'submissions', district, 'records', docId));
         };
     </script>
 
@@ -1836,8 +1841,8 @@
     const STORAGE_KEY_PRAYERS = 'guPrayerList_v1';
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
-    const APP_VERSION = '2026.06.10-server-sync-v1';
-    const SILENT_UPDATE_VERSION = '2026.06.10-server-sync-v1';
+    const APP_VERSION = '2026.06.10-full-sync-date-check';
+    const SILENT_UPDATE_VERSION = '2026.06.10-full-sync-date-check';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -1924,10 +1929,14 @@
         localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allAttendanceRecords));
     }
 
-    function getMembers() {
-        const d = elDistrict.value;
+    function getMembersForDistrict(district) {
+        const d = district || elDistrict.value;
         if (!allMembersData[d]) allMembersData[d] = { eun: [], bong: [], mom: [], youth: [] };
         return allMembersData[d];
+    }
+
+    function getMembers() {
+        return getMembersForDistrict(elDistrict.value);
     }
 
     function getRecords() {
@@ -2155,14 +2164,18 @@
         });
     }
 
-    function buildFirebaseSubmissionPayload() {
-        const members = getMembers();
+    function buildFirebaseSubmissionPayload(options = {}) {
+        const district = options.district || elDistrict.value;
+        const date = options.date || elDate.value;
+        const targetType = options.type || elType.value;
+        const targetRecord = Array.isArray(options.record) ? options.record : workingRecord;
+        const members = getMembersForDistrict(district);
         const attendanceData = {};
 
         CAT_ORDER.forEach(k => {
             const cat = CATEGORIES[k];
             const allNames = uniqueNames(members[cat.key] || []);
-            const presentNames = allNames.filter(name => workingRecord.includes(name));
+            const presentNames = allNames.filter(name => targetRecord.includes(name));
 
             attendanceData[cat.name] = {
                 전체: allNames,
@@ -2172,17 +2185,98 @@
         });
 
         return {
-            구역: elDistrict.value,
-            날짜: elDate.value,
-            모임: elType.value,
+            구역: district,
+            날짜: date,
+            모임: targetType,
             출석데이터: attendanceData
         };
+    }
+
+    function formatNoticeDate(dateKey) {
+        if (!isValidRecordDateKey(dateKey)) return dateKey;
+        const [y, m, d] = dateKey.split('-').map(Number);
+        return `${y}. ${m}. ${d}.`;
+    }
+
+    function getExpectedMeetingTypeByDate(dateKey) {
+        if (!isValidRecordDateKey(dateKey)) return '';
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const day = new Date(y, m - 1, d).getDay();
+        if (day === 0) return '주일말씀';
+        if (day === 3) return '수요말씀';
+        return '';
+    }
+
+    function confirmMeetingDateMismatch(dateKey, selectedType) {
+        if (selectedType !== '주일말씀' && selectedType !== '수요말씀') return true;
+        const expected = getExpectedMeetingTypeByDate(dateKey);
+        if (!expected || expected === selectedType) return true;
+
+        return confirm(
+            `${formatNoticeDate(dateKey)}은 ${expected}입니다.\n` +
+            `현재 ${selectedType}으로 선택되어 있습니다.\n\n` +
+            `그래도 저장하시겠습니까?`
+        );
+    }
+
+    async function syncAllLocalRecordsToFirebase() {
+        if (typeof window.submitAttendanceToFirebase !== 'function') return { ok: 0, fail: 0 };
+
+        let ok = 0;
+        let fail = 0;
+
+        const districtEntries = Object.entries(allAttendanceRecords || {});
+        for (const [district, districtRecords] of districtEntries) {
+            const validDates = getValidRecordDates(districtRecords || {});
+
+            for (const date of validDates) {
+                const dayRecords = districtRecords[date] || {};
+                for (const [type, record] of Object.entries(dayRecords)) {
+                    if (!Array.isArray(record)) continue;
+
+                    try {
+                        await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload({
+                            district,
+                            date,
+                            type,
+                            record
+                        }));
+                        ok++;
+                    } catch (err) {
+                        fail++;
+                        console.warn('remote full sync item failed', district, date, type, err);
+                    }
+                }
+            }
+        }
+
+        return { ok, fail };
+    }
+
+    async function syncMovedRecordToFirebase(date, oldType, newType, namesToMove) {
+        try {
+            if (typeof window.submitAttendanceToFirebase === 'function') {
+                await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload({
+                    date,
+                    type: newType,
+                    record: namesToMove
+                }));
+            }
+
+            if (oldType !== newType && typeof window.deleteAttendanceFromFirebase === 'function') {
+                await window.deleteAttendanceFromFirebase(elDistrict.value, date, oldType);
+            }
+        } catch (err) {
+            console.warn('remote move save failed', err);
+        }
     }
 
     async function saveCurrentRecord() {
         const records = getRecords();
         const date = elDate.value;
         const type = elType.value;
+
+        if (!confirmMeetingDateMismatch(date, type)) return;
 
         if (workingRecord.length === 0) {
             if (!confirm('출석자가 0명입니다. 저장하시겠습니까?\n기존 기록이 있다면 0명으로 덮어쓰기 됩니다.')) return;
@@ -2204,11 +2298,12 @@
         updateRecordStatusBanner(!!stillExists);
 
         try {
-            if (typeof window.submitAttendanceToFirebase === 'function') {
-                await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload());
+            if (!stillExists && typeof window.deleteAttendanceFromFirebase === 'function') {
+                await window.deleteAttendanceFromFirebase(elDistrict.value, date, type);
             }
+            await syncAllLocalRecordsToFirebase();
         } catch (err) {
-            console.warn('remote save failed', err);
+            console.warn('remote full sync failed', err);
         }
 
         alert('저장되었습니다.');
@@ -2243,6 +2338,8 @@
         isDirty = false;
         previousMeetingType = newType;
         elType.value = newType;
+
+        syncMovedRecordToFirebase(date, oldType, newType, namesToMove);
 
         loadWorkingRecord();
         renderAttendanceGrid();
