@@ -12,6 +12,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
+            authDomain: "bongsun-17d80.firebaseapp.com",
+            projectId: "bongsun-17d80",
+            storageBucket: "bongsun-17d80.firebasestorage.app",
+            messagingSenderId: "122450922261",
+            appId: "1:122450922261:web:f552a646f323e3a78b771c"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const firestoreDb = getFirestore(firebaseApp);
+
+        window.submitAttendanceToFirebase = async function(submission) {
+            const docId = `${submission.날짜}_${submission.모임}`;
+            await setDoc(
+                doc(firestoreDb, 'submissions', submission.구역, 'records', docId),
+                {
+                    ...submission,
+                    제출시간: serverTimestamp()
+                },
+                { merge: true }
+            );
+        };
+    </script>
+
     <style>
         :root {
             --primary: #0b4fb3;
@@ -1580,7 +1609,7 @@
             <i data-lucide="save"></i>
             <div>
                 <div class="big-text">저장하기</div>
-                <div class="small-text">내 기기에 기록 저장</div>
+                <div class="small-text">내 기기 + 서버 자동 저장</div>
             </div>
         </button>
     </div>
@@ -1807,7 +1836,8 @@
     const STORAGE_KEY_PRAYERS = 'guPrayerList_v1';
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
-    const APP_VERSION = '2026.06.06-prayer-image-table-v2';
+    const APP_VERSION = '2026.06.10-server-sync-v1';
+    const SILENT_UPDATE_VERSION = '2026.06.10-server-sync-v1';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -2125,7 +2155,31 @@
         });
     }
 
-    function saveCurrentRecord() {
+    function buildFirebaseSubmissionPayload() {
+        const members = getMembers();
+        const attendanceData = {};
+
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            const allNames = uniqueNames(members[cat.key] || []);
+            const presentNames = allNames.filter(name => workingRecord.includes(name));
+
+            attendanceData[cat.name] = {
+                전체: allNames,
+                출석: presentNames,
+                인원: presentNames.length
+            };
+        });
+
+        return {
+            구역: elDistrict.value,
+            날짜: elDate.value,
+            모임: elType.value,
+            출석데이터: attendanceData
+        };
+    }
+
+    async function saveCurrentRecord() {
         const records = getRecords();
         const date = elDate.value;
         const type = elType.value;
@@ -2149,7 +2203,25 @@
         updateSaveIndicator(!!stillExists);
         updateRecordStatusBanner(!!stillExists);
 
-        alert('저장되었습니다.');
+        let serverSaved = false;
+        let serverError = '';
+
+        try {
+            if (typeof window.submitAttendanceToFirebase !== 'function') {
+                throw new Error('서버 연결이 아직 준비되지 않았습니다.');
+            }
+
+            await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload());
+            serverSaved = true;
+        } catch (err) {
+            serverError = err && err.message ? err.message : String(err);
+        }
+
+        if (serverSaved) {
+            alert('저장되었습니다.\n서버 전송 완료.');
+        } else {
+            alert('내 폰에는 저장됐지만 서버 전송 실패:\n' + serverError);
+        }
     }
     function moveCurrentRecordToMeeting(oldType, newType) {
         const date = elDate.value;
@@ -3859,6 +3931,9 @@
         renderAttendanceGrid();
         initEventListeners();
         refreshIcons();
+        if (APP_VERSION === SILENT_UPDATE_VERSION) {
+            localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
+        }
         showUpdateNotice();
     }
 
