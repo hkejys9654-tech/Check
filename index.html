@@ -14,7 +14,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -43,6 +43,11 @@
         window.deleteAttendanceFromFirebase = async function(district, date, type) {
             const docId = `${date}_${type}`;
             await deleteDoc(doc(firestoreDb, 'submissions', district, 'records', docId));
+        };
+
+        window.getGlobalNoticeFromFirebase = async function() {
+            const snap = await getDoc(doc(firestoreDb, 'notices', 'global'));
+            return snap.exists() ? snap.data() : null;
         };
     </script>
 
@@ -1704,6 +1709,20 @@
     </div>
 </div>
 
+<div class="modal" id="global-notice-modal">
+    <div class="modal-content update-modal-content">
+        <div class="update-hero">
+            <div class="update-badge">전체 공지</div>
+            <h2 id="global-notice-title">공지사항</h2>
+            <p>감독자가 보낸 안내입니다.</p>
+        </div>
+        <div class="update-body">
+            <div id="global-notice-message" style="white-space:pre-line;line-height:1.65;color:#334155;font-size:0.92rem;font-weight:750;"></div>
+            <button class="btn-save" id="btn-global-notice-confirm" type="button" style="margin-top:16px;">확인</button>
+        </div>
+    </div>
+</div>
+
 
 <div class="modal" id="setup-modal">
     <div class="modal-content">
@@ -1841,8 +1860,9 @@
     const STORAGE_KEY_PRAYERS = 'guPrayerList_v1';
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
-    const APP_VERSION = '2026.06.10-full-sync-date-check';
-    const SILENT_UPDATE_VERSION = '2026.06.10-full-sync-date-check';
+    const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
+    const APP_VERSION = '2026.06.10-notice-mismatch-check';
+    const SILENT_UPDATE_VERSION = '2026.06.10-notice-mismatch-check';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -3895,6 +3915,73 @@
         document.getElementById('update-modal').classList.remove('show');
     }
 
+    function findLocalMeetingMismatches() {
+        const issues = [];
+        Object.entries(allAttendanceRecords || {}).forEach(([district, records]) => {
+            getValidRecordDates(records || {}).forEach(dateKey => {
+                const dayRecords = records[dateKey] || {};
+                Object.keys(dayRecords).forEach(type => {
+                    if (type !== '주일말씀' && type !== '수요말씀') return;
+                    const expected = getExpectedMeetingTypeByDate(dateKey);
+                    if (expected && expected !== type) issues.push({ district, dateKey, type, expected });
+                });
+            });
+        });
+        return issues;
+    }
+
+    function warnMeetingMismatchOnOpen() {
+        const issues = findLocalMeetingMismatches();
+        if (issues.length === 0) return;
+
+        const preview = issues.slice(0, 5).map(item =>
+            `${item.district} ${formatNoticeDate(item.dateKey)}은 ${item.expected}인데 ${item.type}으로 저장되어 있습니다.`
+        ).join('
+');
+        const more = issues.length > 5 ? `
+외 ${issues.length - 5}건 더 있습니다.` : '';
+
+        setTimeout(() => {
+            alert(`날짜와 말씀 종류가 맞지 않는 기록이 있습니다.
+바꿀 때까지 앱을 열 때마다 안내됩니다.
+
+${preview}${more}`);
+        }, 700);
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    async function checkGlobalNotice() {
+        if (typeof window.getGlobalNoticeFromFirebase !== 'function') return;
+        try {
+            const notice = await window.getGlobalNoticeFromFirebase();
+            if (!notice || notice.active === false) return;
+            const noticeId = notice.noticeId || notice.id || '';
+            const message = String(notice.message || '').trim();
+            if (!noticeId || !message) return;
+            if (localStorage.getItem(STORAGE_KEY_GLOBAL_NOTICE) === noticeId) return;
+
+            document.getElementById('global-notice-title').textContent = notice.title || '공지사항';
+            document.getElementById('global-notice-message').innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
+            const modal = document.getElementById('global-notice-modal');
+            const btn = document.getElementById('btn-global-notice-confirm');
+            btn.onclick = () => {
+                localStorage.setItem(STORAGE_KEY_GLOBAL_NOTICE, noticeId);
+                modal.classList.remove('show');
+            };
+            setTimeout(() => modal.classList.add('show'), 500);
+        } catch (err) {
+            console.warn('global notice check failed', err);
+        }
+    }
+
     function initEventListeners() {
         elDistrict.addEventListener('change', e => {
             if (!confirmIfDirty()) {
@@ -4022,6 +4109,8 @@
             localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
         }
         showUpdateNotice();
+        warnMeetingMismatchOnOpen();
+        checkGlobalNotice();
     }
 
     init();
