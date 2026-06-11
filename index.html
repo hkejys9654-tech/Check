@@ -14,7 +14,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, deleteDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",
@@ -48,6 +48,13 @@
         window.getGlobalNoticeFromFirebase = async function() {
             const snap = await getDoc(doc(firestoreDb, 'notices', 'global'));
             return snap.exists() ? snap.data() : null;
+        };
+
+        window.getDistrictRecordsFromFirebase = async function(district) {
+            const snap = await getDocs(collection(firestoreDb, 'submissions', district, 'records'));
+            const rows = [];
+            snap.forEach(docSnap => rows.push({ id: docSnap.id, ...docSnap.data() }));
+            return rows;
         };
     </script>
 
@@ -1861,8 +1868,9 @@
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
-    const APP_VERSION = '2026.06.10-local-auto-sync';
-    const SILENT_UPDATE_VERSION = '2026.06.10-local-auto-sync';
+    const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
+    const APP_VERSION = '2026.06.11-admin-auto-sync';
+    const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -2317,13 +2325,10 @@
         updateSaveIndicator(!!stillExists);
         updateRecordStatusBanner(!!stillExists);
 
-        try {
-            if (!stillExists && typeof window.deleteAttendanceFromFirebase === 'function') {
-                await window.deleteAttendanceFromFirebase(elDistrict.value, date, type);
-            }
-            await syncAllLocalRecordsToFirebase();
-        } catch (err) {
-            console.warn('remote full sync failed', err);
+        const serverSaved = await syncCurrentRecordToFirebase(date, type, [...workingRecord], !!stillExists);
+
+        if (serverSaved) {
+            markServerSyncedDistrict(elDistrict.value);
         }
 
         alert('저장되었습니다.');
@@ -3915,6 +3920,103 @@
         document.getElementById('update-modal').classList.remove('show');
     }
 
+    function getServerSyncedDistricts() {
+        const raw = localStorage.getItem(STORAGE_KEY_SERVER_SYNCED_DISTRICTS);
+        try {
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function hasServerSyncedDistrict(district) {
+        return !!getServerSyncedDistricts()[district];
+    }
+
+    function markServerSyncedDistrict(district) {
+        const data = getServerSyncedDistricts();
+        data[district] = true;
+        localStorage.setItem(STORAGE_KEY_SERVER_SYNCED_DISTRICTS, JSON.stringify(data));
+    }
+
+    function getRemoteRecordDateAndType(item = {}) {
+        const id = String(item.id || '');
+        const firstUnderscore = id.indexOf('_');
+        const idDate = firstUnderscore > -1 ? id.slice(0, firstUnderscore) : '';
+        const idType = firstUnderscore > -1 ? id.slice(firstUnderscore + 1) : '';
+        return {
+            date: normalizeNameValue(item.날짜 || idDate),
+            type: normalizeNameValue(item.모임 || idType)
+        };
+    }
+
+    function getRemoteAttendanceNames(item = {}) {
+        const data = item.출석데이터 || {};
+        const names = [];
+
+        Object.values(data).forEach(catData => {
+            if (catData && Array.isArray(catData.출석)) names.push(...catData.출석);
+        });
+
+        return uniqueNames(names);
+    }
+
+    function buildLocalRecordsFromRemoteDocs(remoteDocs = []) {
+        const remoteRecords = {};
+
+        remoteDocs.forEach(item => {
+            const { date, type } = getRemoteRecordDateAndType(item);
+            if (!isValidRecordDateKey(date) || !type) return;
+            if (!remoteRecords[date]) remoteRecords[date] = {};
+            remoteRecords[date][type] = getRemoteAttendanceNames(item);
+        });
+
+        return remoteRecords;
+    }
+
+    async function syncDistrictFromFirebase(district = elDistrict.value) {
+        if (typeof window.getDistrictRecordsFromFirebase !== 'function') return false;
+        if (navigator.onLine === false) return false;
+
+        try {
+            const remoteDocs = await window.getDistrictRecordsFromFirebase(district);
+            const alreadyServerBased = hasServerSyncedDistrict(district);
+
+            if (remoteDocs.length === 0 && !alreadyServerBased) return false;
+
+            allAttendanceRecords[district] = buildLocalRecordsFromRemoteDocs(remoteDocs);
+            saveRecords();
+            markServerSyncedDistrict(district);
+            return true;
+        } catch (err) {
+            console.warn('server sync failed', err);
+            return false;
+        }
+    }
+
+    async function syncCurrentRecordToFirebase(date, type, record, stillExists) {
+        try {
+            if (!stillExists && typeof window.deleteAttendanceFromFirebase === 'function') {
+                await window.deleteAttendanceFromFirebase(elDistrict.value, date, type);
+                return true;
+            }
+
+            if (stillExists && typeof window.submitAttendanceToFirebase === 'function') {
+                await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload({
+                    district: elDistrict.value,
+                    date,
+                    type,
+                    record
+                }));
+                return true;
+            }
+        } catch (err) {
+            console.warn('current record sync failed', err);
+        }
+
+        return false;
+    }
+
     function findLocalMeetingMismatches() {
         const issues = [];
         Object.entries(allAttendanceRecords || {}).forEach(([district, records]) => {
@@ -4006,23 +4108,7 @@
 
     function syncLocalMeetingMismatchesOnOpen() {
         const corrections = applyLocalMeetingAutoCorrections();
-        if (corrections.length === 0) return corrections;
-
-        const preview = corrections.slice(0, 5).map(item =>
-            `${item.district} ${formatNoticeDate(item.dateKey)}: ${item.from} → ${item.to}`
-        ).join('\n');
-        const more = corrections.length > 5 ? `\n외 ${corrections.length - 5}건 더 정리되었습니다.` : '';
-
         syncLocalCorrectionsToFirebase(corrections);
-
-        setTimeout(() => {
-            alert(`관리자 기준에 따라 저장 기록을 정리했습니다.
-
-${preview}${more}
-
-이제 저장하면 정리된 기록이 서버로 전송됩니다.`);
-        }, 700);
-
         return corrections;
     }
 
@@ -4060,20 +4146,24 @@ ${preview}${more}
     }
 
     function initEventListeners() {
-        elDistrict.addEventListener('change', e => {
+        elDistrict.addEventListener('change', async e => {
             if (!confirmIfDirty()) {
                 e.target.value = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
                 return;
             }
 
             localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
+            await syncDistrictFromFirebase(elDistrict.value);
+            syncLocalMeetingMismatchesOnOpen();
             loadWorkingRecord();
             renderAttendanceGrid();
             if (document.getElementById('prayer-section').classList.contains('show')) renderPrayerList();
         });
 
-        elDate.addEventListener('change', () => {
+        elDate.addEventListener('change', async () => {
             if (!confirmIfDirty()) return;
+            await syncDistrictFromFirebase(elDistrict.value);
+            syncLocalMeetingMismatchesOnOpen();
             loadWorkingRecord();
             renderAttendanceGrid();
         });
@@ -4173,11 +4263,12 @@ ${preview}${more}
         });
     }
 
-    function init() {
+    async function init() {
         buildDistrictDropdown();
         elDate.value = new Date().toISOString().split('T')[0];
         previousMeetingType = elType.value;
         loadData();
+        await syncDistrictFromFirebase(elDistrict.value);
         syncLocalMeetingMismatchesOnOpen();
         loadWorkingRecord();
         renderAttendanceGrid();
