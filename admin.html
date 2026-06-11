@@ -302,44 +302,81 @@ textarea{
   line-height:1.1;
 }
 .cat-card{
-  padding:14px 7px;
-  border-top:5px solid var(--cat,#0b4fb3);
-  min-height:112px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:11px 7px 10px;
+  background:white;
+  text-align:center;
+  min-height:126px;
+  box-shadow:0 4px 16px rgba(24,55,96,0.07);
+  transition:transform 0.12s;
 }
-.cat-card:before{
-  content:"";
-  position:absolute;
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  right:-30px;
-  top:-32px;
-  background:rgba(11,79,179,.08);
-}
+.cat-card:active{transform:scale(0.985)}
+.cat-card:before{display:none}
 .cat-icon{
   position:relative;
   z-index:1;
-  width:30px;
-  height:30px;
+  width:40px;
+  height:40px;
   margin:0 auto 6px;
-  border-radius:12px;
+  border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#f3f7ff;
-  color:var(--cat,#0b4fb3);
-  font-size:1rem;
-  font-weight:950;
 }
-.cat-num{color:var(--cat,var(--primary));font-size:1.32rem}
+.cat-icon i{
+  width:22px;
+  height:22px;
+  stroke-width:2.25;
+}
+.cat-name{
+  position:relative;
+  z-index:1;
+  font-size:.78rem;
+  font-weight:950;
+  color:#444;
+  margin-bottom:5px;
+  letter-spacing:-.4px;
+}
+.cat-count{
+  position:relative;
+  z-index:1;
+  font-size:1.16rem;
+  font-weight:950;
+  color:#222;
+  letter-spacing:-.5px;
+}
+.cat-count .slash{
+  color:#8995a7;
+  font-weight:800;
+  font-size:.86rem;
+}
 .cat-rate{
   position:relative;
   z-index:1;
-  font-size:.86rem;
-  color:var(--cat,var(--primary));
+  font-size:.82rem;
+  color:var(--primary);
   font-weight:950;
-  margin-top:5px;
+  margin:5px 0 7px;
 }
+.progress{
+  height:8px;
+  background:#e8eef7;
+  border-radius:9px;
+  overflow:hidden;
+}
+.progress > div{
+  height:100%;
+  border-radius:9px;
+}
+.cat-eun .cat-icon{background:#edf4ff;color:var(--primary)}
+.cat-bong .cat-icon{background:#eafaef;color:var(--green)}
+.cat-mom .cat-icon{background:#fff0f6;color:var(--pink)}
+.cat-youth .cat-icon{background:#f3edff;color:var(--purple)}
+.cat-eun .progress > div{background:var(--primary)}
+.cat-bong .progress > div{background:var(--green)}
+.cat-mom .progress > div{background:var(--pink)}
+.cat-youth .progress > div{background:var(--purple)}
 
 .meeting-table,.district-table,.stats-table{
   width:100%;
@@ -863,11 +900,11 @@ const ALL_DISTRICTS=[];
 
 const MEETING_TYPES=['주일말씀','수요말씀','구역모임'];
 const CAT_NAMES=['은장회','봉사회','어머니회','청년회'];
-const CAT_STYLE={
-  '은장회':['td-eun','#64748b','은'],
-  '봉사회':['td-bong','#2ECC71','봉'],
-  '어머니회':['td-mom','#EC5F97','모'],
-  '청년회':['td-youth','#8E5BE8','청']
+const CAT_META={
+  '은장회':{tdClass:'td-eun',cardClass:'cat-eun',icon:'users-round'},
+  '봉사회':{tdClass:'td-bong',cardClass:'cat-bong',icon:'hand-heart'},
+  '어머니회':{tdClass:'td-mom',cardClass:'cat-mom',icon:'heart'},
+  '청년회':{tdClass:'td-youth',cardClass:'cat-youth',icon:'sparkles'}
 };
 const ADMIN_PIN='0000';
 
@@ -1079,14 +1116,15 @@ function renderCategoryStats(catStats){
     const st=catStats[cat];
     const avg=st.submissions?st.present/st.submissions:0;
     const rate=safeRate(st.present,st.registered);
-    const style=CAT_STYLE[cat]||['','#0b4fb3',cat.slice(0,1)];
+    const meta=CAT_META[cat]||{cardClass:'cat-eun',icon:'users-round'};
 
     html+=`
-      <div class="cat-card" style="--cat:${style[1]};">
-        <div class="cat-icon">${style[2]}</div>
+      <div class="cat-card ${meta.cardClass}">
+        <div class="cat-icon"><i data-lucide="${meta.icon}"></i></div>
         <div class="cat-name">${cat}</div>
-        <div class="cat-num">${avg.toFixed(1)}명</div>
+        <div class="cat-count">${avg.toFixed(1)}<span class="slash"> 명 평균</span></div>
         <div class="cat-rate">${rate}%</div>
+        <div class="progress"><div style="width:${Math.min(rate,100)}%;"></div></div>
       </div>
     `;
   });
@@ -1162,12 +1200,12 @@ function renderTotal(todayData){
   document.getElementById('total-wrap').innerHTML=`
     <div class="category-grid" style="grid-template-columns:repeat(2,1fr);">
       ${CAT_NAMES.map(c=>{
-        const style=CAT_STYLE[c]||['','#0b4fb3',c.slice(0,1)];
+        const meta=CAT_META[c]||{cardClass:'cat-eun',icon:'users-round'};
         return `
-          <div class="cat-card" style="--cat:${style[1]};">
-            <div class="cat-icon">${style[2]}</div>
+          <div class="cat-card ${meta.cardClass}">
+            <div class="cat-icon"><i data-lucide="${meta.icon}"></i></div>
             <div class="cat-name">${c}</div>
-            <div class="cat-num">${t[c]}명</div>
+            <div class="cat-count">${t[c]}<span class="slash"> 명</span></div>
           </div>
         `;
       }).join('')}
