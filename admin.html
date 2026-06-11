@@ -274,6 +274,9 @@ textarea{
   box-shadow:0 6px 14px rgba(11,79,179,.22);
 }
 .summary-icon i{width:19px;height:19px}
+.summary-card.missing-card .summary-icon{background:linear-gradient(145deg,#f59e0b,#f97316);box-shadow:0 6px 14px rgba(245,158,11,.24)}
+.summary-card.missing-card .s-num{color:#ea580c}
+.summary-card.missing-card .s-label{color:#7c2d12}
 .s-label,.cat-name{
   position:relative;
   z-index:1;
@@ -845,7 +848,7 @@ textarea{
 
 
     <div class="card">
-      <div class="card-title"><i data-lucide="map-pinned"></i>제출구역 보기 <span id="monthly-district-badge" class="badge badge-no">0개 구역</span></div>
+      <div class="card-title"><i data-lucide="map-pinned"></i>제출구역 목록 <span id="monthly-district-badge" class="badge badge-no">0개 구역</span></div>
       <div id="monthly-district-list"><div class="loading">데이터 불러오는 중...</div></div>
     </div>
 
@@ -857,12 +860,12 @@ textarea{
       <div id="monthly-district-detail"></div>
     </div>
 
-    <div class="card">
+    <div class="card monthly-analysis-card" style="display:none;">
       <div class="card-title"><i data-lucide="users-round"></i>모임별 통계</div>
       <div id="meeting-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div>
     </div>
 
-    <div class="card">
+    <div class="card monthly-analysis-card" style="display:none;">
       <div class="card-title"><i data-lucide="bar-chart-3"></i>범주별 평균 출석</div>
       <div id="category-stats-wrap"><div class="loading">데이터 불러오는 중...</div></div>
       <div class="note">ℹ️ 출석률 = 실제 출석 ÷ 전체 등록 인원 / 제출률 = 제출 구역 수 ÷ 전체 구역 수</div>
@@ -1168,36 +1171,32 @@ function renderMonthly(){
     return;
   }
 
-  const{typeStats,catStats}=summarizeRows(rows);
-  const totalPresent=rows.reduce((a,s)=>a+getSubmissionTotal(s),0);
-  const totalRegistered=rows.reduce((a,s)=>a+totalRegisteredInSubmission(s),0);
-  const sessions=new Set(rows.map(s=>`${s.날짜}_${s.모임}`));
-  const avg=sessions.size?totalPresent/sessions.size:0;
-  const submittedDistricts=new Set(rows.map(s=>s.구역)).size;
+  const submittedDistrictSet=new Set(rows.map(s=>s.구역).filter(Boolean));
+  const submittedOfficial=ALL_DISTRICTS.filter(d=>submittedDistrictSet.has(d)).length;
+  const missingCount=Math.max(ALL_DISTRICTS.length-submittedOfficial,0);
+  const recordCount=rows.length;
 
   document.getElementById('monthly-summary').innerHTML=`
     <div class="summary-grid">
       <div class="summary-card">
-        <div class="summary-icon"><i data-lucide="users-round"></i></div>
-        <div class="s-label">전체 평균 출석</div>
-        <div class="s-num">${avg.toFixed(1)}명</div>
+        <div class="summary-icon"><i data-lucide="map-pinned"></i></div>
+        <div class="s-label">제출 구역</div>
+        <div class="s-num">${submittedDistrictSet.size}개</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-icon"><i data-lucide="percent"></i></div>
-        <div class="s-label">전체 출석률</div>
-        <div class="s-num">${safeRate(totalPresent,totalRegistered)}%</div>
+      <div class="summary-card missing-card">
+        <div class="summary-icon"><i data-lucide="triangle-alert"></i></div>
+        <div class="s-label">미제출 구역</div>
+        <div class="s-num">${missingCount}개</div>
       </div>
       <div class="summary-card">
         <div class="summary-icon"><i data-lucide="clipboard-check"></i></div>
-        <div class="s-label">제출 구역</div>
-        <div class="s-num">${submittedDistricts}/20</div>
+        <div class="s-label">제출 기록</div>
+        <div class="s-num">${recordCount}건</div>
       </div>
     </div>
   `;
 
   renderMonthlyDistricts(rows);
-  renderMeetingStats(rows,typeStats);
-  renderCategoryStats(catStats);
   refreshIcons();
 }
 
@@ -1232,15 +1231,13 @@ function renderMonthlyDistricts(rows){
   list.innerHTML=`<div class="monthly-district-grid">${all.map(d=>{
     const districtRows=map[d]||[];
     const counts=MEETING_TYPES.map(t=>districtRows.filter(s=>s.모임===t).length);
-    const total=districtRows.reduce((a,s)=>a+getSubmissionTotal(s),0);
-    const avg=districtRows.length?total/districtRows.length:0;
     return `
       <button type="button" class="submit-district-card" data-district="${escapeHtml(d)}">
         <div class="district-card-title">
           <span>${escapeHtml(d)}</span>
           <span class="district-card-count">${districtRows.length}건</span>
         </div>
-        <div class="district-card-sub">주일 ${counts[0]} · 수요 ${counts[1]} · 구역 ${counts[2]}<br>평균 출석 ${avg.toFixed(1)}명</div>
+        <div class="district-card-sub">주일 ${counts[0]} · 수요 ${counts[1]} · 구역 ${counts[2]}<br>눌러서 상세 통계 보기</div>
       </button>`;
   }).join('')}</div>`;
 
