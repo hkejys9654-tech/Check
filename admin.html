@@ -260,16 +260,7 @@ textarea{
   background:linear-gradient(145deg,rgba(11,79,179,.10),rgba(255,255,255,0) 55%);
   pointer-events:none;
 }
-.summary-card:after{
-  content:"";
-  position:absolute;
-  width:68px;
-  height:68px;
-  border-radius:50%;
-  right:-24px;
-  bottom:-28px;
-  background:rgba(11,79,179,.12);
-}
+.summary-card:after{display:none}
 .summary-icon{
   width:32px;
   height:32px;
@@ -377,6 +368,112 @@ textarea{
 .cat-bong .progress > div{background:var(--green)}
 .cat-mom .progress > div{background:var(--pink)}
 .cat-youth .progress > div{background:var(--purple)}
+
+
+.monthly-district-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+}
+.submit-district-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:12px 10px;
+  text-align:left;
+  box-shadow:0 4px 14px rgba(24,55,96,.06);
+  cursor:pointer;
+}
+.submit-district-card:active{transform:scale(.985);background:#eef6ff}
+.district-card-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  color:var(--navy);
+  font-size:.96rem;
+  font-weight:950;
+  margin-bottom:7px;
+}
+.district-card-count{
+  font-size:.72rem;
+  color:var(--primary);
+  background:#edf5ff;
+  padding:4px 7px;
+  border-radius:999px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.district-card-sub{
+  color:#687789;
+  font-size:.76rem;
+  line-height:1.45;
+  font-weight:800;
+}
+.district-detail-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:12px;
+}
+.district-detail-title{
+  color:var(--navy);
+  font-weight:950;
+  font-size:1rem;
+}
+.small-light-btn{
+  background:#f3f7fc;
+  color:#667789;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:.78rem;
+  font-weight:900;
+}
+.district-kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.district-kpi{
+  background:linear-gradient(145deg,#ffffff,#f7fbff);
+  border:1px solid #dbe9f8;
+  border-radius:16px;
+  padding:12px 7px;
+  text-align:center;
+  box-shadow:0 4px 13px rgba(24,55,96,.06);
+}
+.kpi-label{
+  font-size:.74rem;
+  color:#667789;
+  font-weight:950;
+  letter-spacing:-.3px;
+  margin-bottom:5px;
+}
+.kpi-value{
+  color:var(--primary);
+  font-size:1.28rem;
+  font-weight:1000;
+  letter-spacing:-.8px;
+  line-height:1.1;
+}
+.kpi-sub{
+  margin-top:4px;
+  color:#9aa6b6;
+  font-size:.68rem;
+  font-weight:850;
+}
+.session-dot-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.session-dot{
+  padding:6px 8px;
+  border-radius:9px;
+  background:#eef6ff;
+  color:#31557e;
+  font-size:.72rem;
+  font-weight:900;
+}
 
 .meeting-table,.district-table,.stats-table{
   width:100%;
@@ -682,6 +779,10 @@ textarea{
   .summary-grid{gap:8px}
   .summary-card{padding:12px 7px;min-height:104px}
   .s-num{font-size:1.22rem}
+  .district-kpi-grid{gap:7px}
+  .district-kpi{padding:11px 5px}
+  .kpi-value{font-size:1.12rem}
+  .kpi-sub{font-size:.62rem}
   .category-grid{grid-template-columns:repeat(2,1fr)}
   .tab-btn{font-size:.72rem}
   .meeting-table,.district-table{font-size:.78rem}
@@ -741,6 +842,20 @@ textarea{
     </div>
 
     <div id="monthly-summary"><div class="loading">데이터 불러오는 중...</div></div>
+
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="map-pinned"></i>제출구역 보기 <span id="monthly-district-badge" class="badge badge-no">0개 구역</span></div>
+      <div id="monthly-district-list"><div class="loading">데이터 불러오는 중...</div></div>
+    </div>
+
+    <div class="card" id="monthly-district-detail-card" style="display:none;">
+      <div class="district-detail-head">
+        <div class="district-detail-title" id="monthly-district-detail-title">구역별 상세</div>
+        <button class="small-light-btn" id="close-monthly-district-detail" type="button">닫기</button>
+      </div>
+      <div id="monthly-district-detail"></div>
+    </div>
 
     <div class="card">
       <div class="card-title"><i data-lucide="users-round"></i>모임별 통계</div>
@@ -949,7 +1064,7 @@ function expectedMeetingTypeByDate(dateKey){
 }
 
 function setLoading(){
-  ['monthly-summary','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap'].forEach(id=>{
+  ['monthly-summary','monthly-district-list','monthly-district-detail','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.innerHTML='<div class="loading">데이터 불러오는 중...</div>';
   });
@@ -1043,6 +1158,11 @@ function renderMonthly(){
 
   if(!rows.length){
     document.getElementById('monthly-summary').innerHTML='<div class="empty-msg">해당 기간 제출 데이터가 없습니다</div>';
+    document.getElementById('monthly-district-list').innerHTML='<div class="empty-msg">제출한 구역이 없습니다</div>';
+    const detailCard=document.getElementById('monthly-district-detail-card');
+    if(detailCard)detailCard.style.display='none';
+    const badge=document.getElementById('monthly-district-badge');
+    if(badge){badge.textContent='0개 구역';badge.className='badge badge-no';}
     document.getElementById('meeting-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';
     document.getElementById('category-stats-wrap').innerHTML='<div class="empty-msg">기록 없음</div>';
     return;
@@ -1075,8 +1195,114 @@ function renderMonthly(){
     </div>
   `;
 
+  renderMonthlyDistricts(rows);
   renderMeetingStats(rows,typeStats);
   renderCategoryStats(catStats);
+  refreshIcons();
+}
+
+
+function renderMonthlyDistricts(rows){
+  const list=document.getElementById('monthly-district-list');
+  const badge=document.getElementById('monthly-district-badge');
+  const detailCard=document.getElementById('monthly-district-detail-card');
+  if(detailCard)detailCard.style.display='none';
+
+  const map={};
+  rows.forEach(s=>{
+    if(!s.구역)return;
+    if(!map[s.구역])map[s.구역]=[];
+    map[s.구역].push(s);
+  });
+
+  const districts=ALL_DISTRICTS.filter(d=>map[d]?.length);
+  const extra=Object.keys(map).filter(d=>!ALL_DISTRICTS.includes(d)).sort((a,b)=>a.localeCompare(b,'ko'));
+  const all=[...districts,...extra];
+
+  if(badge){
+    badge.textContent=`${all.length}개 구역`;
+    badge.className=`badge ${all.length?'badge-ok':'badge-no'}`;
+  }
+
+  if(!all.length){
+    list.innerHTML='<div class="empty-msg">제출한 구역이 없습니다</div>';
+    return;
+  }
+
+  list.innerHTML=`<div class="monthly-district-grid">${all.map(d=>{
+    const districtRows=map[d]||[];
+    const counts=MEETING_TYPES.map(t=>districtRows.filter(s=>s.모임===t).length);
+    const total=districtRows.reduce((a,s)=>a+getSubmissionTotal(s),0);
+    const avg=districtRows.length?total/districtRows.length:0;
+    return `
+      <button type="button" class="submit-district-card" data-district="${escapeHtml(d)}">
+        <div class="district-card-title">
+          <span>${escapeHtml(d)}</span>
+          <span class="district-card-count">${districtRows.length}건</span>
+        </div>
+        <div class="district-card-sub">주일 ${counts[0]} · 수요 ${counts[1]} · 구역 ${counts[2]}<br>평균 출석 ${avg.toFixed(1)}명</div>
+      </button>`;
+  }).join('')}</div>`;
+
+  list.querySelectorAll('.submit-district-card').forEach(btn=>{
+    btn.addEventListener('click',()=>renderMonthlyDistrictDetail(btn.dataset.district));
+  });
+}
+
+function renderMonthlyDistrictDetail(district){
+  const detailCard=document.getElementById('monthly-district-detail-card');
+  const title=document.getElementById('monthly-district-detail-title');
+  const detail=document.getElementById('monthly-district-detail');
+  const rows=getMonthFilteredRows()
+    .filter(s=>s.구역===district)
+    .sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||'')||(a.모임||'').localeCompare(b.모임||''));
+
+  if(!rows.length){
+    detail.innerHTML='<div class="empty-msg">해당 구역 제출 기록이 없습니다</div>';
+    detailCard.style.display='block';
+    return;
+  }
+
+  title.textContent=`${district} · ${elMonth.value==='all'?'전체 기간':getMonthLabel(elMonth.value).replace(' 월별 통계','')}`;
+
+  const totalPresent=rows.reduce((a,s)=>a+getSubmissionTotal(s),0);
+  const totalRegistered=rows.reduce((a,s)=>a+totalRegisteredInSubmission(s),0);
+  const avg=rows.length?totalPresent/rows.length:0;
+
+  let table='<table class="meeting-table"><thead><tr><th>모임</th><th>제출</th><th>평균출석</th><th>출석률</th><th>은장평균</th><th>봉사평균</th><th>어머니평균</th><th>청년평균</th></tr></thead><tbody>';
+  MEETING_TYPES.forEach(type=>{
+    const typeRows=rows.filter(s=>s.모임===type);
+    const present=typeRows.reduce((a,s)=>a+getSubmissionTotal(s),0);
+    const registered=typeRows.reduce((a,s)=>a+totalRegisteredInSubmission(s),0);
+    const catVals=CAT_NAMES.map(c=>typeRows.length?typeRows.reduce((a,s)=>a+getCategoryCount(s,c),0)/typeRows.length:0);
+    table+=`
+      <tr>
+        <td><div class="meeting-name"><span class="meeting-dot"></span><span>${type}</span></div></td>
+        <td>${typeRows.length}회</td>
+        <td><span class="avg-chip">${typeRows.length?(present/typeRows.length).toFixed(1):'0.0'}명</span></td>
+        <td>${rateBox(safeRate(present,registered))}</td>
+        <td class="td-eun">${catVals[0].toFixed(1)}</td>
+        <td class="td-bong">${catVals[1].toFixed(1)}</td>
+        <td class="td-mom">${catVals[2].toFixed(1)}</td>
+        <td class="td-youth">${catVals[3].toFixed(1)}</td>
+      </tr>`;
+  });
+  table+='</tbody></table>';
+
+  detail.innerHTML=`
+    <div class="district-kpi-grid">
+      <div class="district-kpi"><div class="kpi-label">제출 기록</div><div class="kpi-value">${rows.length}건</div><div class="kpi-sub">선택 기간</div></div>
+      <div class="district-kpi"><div class="kpi-label">평균 출석</div><div class="kpi-value">${avg.toFixed(1)}명</div><div class="kpi-sub">제출 1회 기준</div></div>
+      <div class="district-kpi"><div class="kpi-label">출석률</div><div class="kpi-value">${safeRate(totalPresent,totalRegistered)}%</div><div class="kpi-sub">전체 대비</div></div>
+    </div>
+    ${table}
+    <div class="session-dot-wrap">
+      ${rows.map(s=>`<span class="session-dot">${formatDate(s.날짜).replace(/^\d{4}\. /,'')}${s.모임.replace('말씀','')}</span>`).join('')}
+    </div>
+  `;
+
+  detailCard.style.display='block';
+  detailCard.scrollIntoView({behavior:'smooth',block:'start'});
   refreshIcons();
 }
 
@@ -1569,6 +1795,9 @@ function initEvents(){
   document.getElementById('refresh-btn-monthly').onclick=loadAll;
   document.getElementById('refresh-btn-personal').onclick=loadAll;
   document.getElementById('refresh-btn-daily').onclick=loadAll;
+  document.getElementById('close-monthly-district-detail').onclick=()=>{
+    document.getElementById('monthly-district-detail-card').style.display='none';
+  };
 
   elMonth.onchange=renderMonthly;
   elDate.onchange=renderDaily;
