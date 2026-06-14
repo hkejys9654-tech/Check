@@ -1626,7 +1626,7 @@
             <i data-lucide="save"></i>
             <div>
                 <div class="big-text">저장하기</div>
-                <div class="small-text">내 기기에 기록 저장</div>
+                <div class="small-text">기기와 서버에 기록 저장</div>
             </div>
         </button>
     </div>
@@ -1869,8 +1869,8 @@
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
     const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
-    const APP_VERSION = '2026.06.11-admin-auto-sync';
-    const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync';
+    const APP_VERSION = '2026.06.11-admin-auto-sync-save-all';
+    const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -2281,6 +2281,37 @@
         return { ok, fail };
     }
 
+    async function syncCurrentDistrictRecordsToFirebase(district = elDistrict.value) {
+        if (typeof window.submitAttendanceToFirebase !== 'function') return { ok: 0, fail: 0 };
+
+        const districtRecords = allAttendanceRecords[district] || {};
+        const validDates = getValidRecordDates(districtRecords || {});
+        let ok = 0;
+        let fail = 0;
+
+        for (const date of validDates) {
+            const dayRecords = districtRecords[date] || {};
+            for (const [type, record] of Object.entries(dayRecords)) {
+                if (!Array.isArray(record)) continue;
+
+                try {
+                    await window.submitAttendanceToFirebase(buildFirebaseSubmissionPayload({
+                        district,
+                        date,
+                        type,
+                        record
+                    }));
+                    ok++;
+                } catch (err) {
+                    fail++;
+                    console.warn('current district full sync failed', district, date, type, err);
+                }
+            }
+        }
+
+        return { ok, fail };
+    }
+
     async function syncMovedRecordToFirebase(date, oldType, newType, namesToMove) {
         try {
             if (typeof window.submitAttendanceToFirebase === 'function') {
@@ -2300,18 +2331,22 @@
     }
 
     async function saveCurrentRecord() {
-        const records = getRecords();
+        const district = elDistrict.value;
         const date = elDate.value;
         const type = elType.value;
+        const currentNames = [...workingRecord];
 
         if (!confirmMeetingDateMismatch(date, type)) return;
 
-        if (workingRecord.length === 0) {
+        if (currentNames.length === 0) {
             if (!confirm('출석자가 0명입니다. 저장하시겠습니까?\n기존 기록이 있다면 0명으로 덮어쓰기 됩니다.')) return;
         }
 
+        const serverSynced = await syncDistrictFromFirebase(district);
+        const records = getRecords();
+
         if (!records[date]) records[date] = {};
-        records[date][type] = [...workingRecord];
+        records[date][type] = currentNames;
 
         if (records[date][type].length === 0) {
             delete records[date][type];
@@ -2322,13 +2357,30 @@
         isDirty = false;
 
         const stillExists = records[date] && records[date][type];
+        workingRecord = stillExists ? [...records[date][type]] : [];
         updateSaveIndicator(!!stillExists);
         updateRecordStatusBanner(!!stillExists);
+        updateAllVisuals();
 
-        const serverSaved = await syncCurrentRecordToFirebase(date, type, [...workingRecord], !!stillExists);
+        let serverSaved = false;
+
+        if (serverSynced) {
+            if (!stillExists && typeof window.deleteAttendanceFromFirebase === 'function') {
+                try {
+                    await window.deleteAttendanceFromFirebase(district, date, type);
+                } catch (err) {
+                    console.warn('current record delete failed', err);
+                }
+            }
+
+            const fullResult = await syncCurrentDistrictRecordsToFirebase(district);
+            serverSaved = fullResult.fail === 0;
+        } else {
+            serverSaved = await syncCurrentRecordToFirebase(date, type, currentNames, !!stillExists);
+        }
 
         if (serverSaved) {
-            markServerSyncedDistrict(elDistrict.value);
+            markServerSyncedDistrict(district);
         }
 
         alert('저장되었습니다.');
