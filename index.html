@@ -1869,8 +1869,8 @@
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
     const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
-    const APP_VERSION = '2026.06.11-admin-auto-sync-save-all';
-    const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all';
+    const APP_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
+    const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
 
     const CATEGORIES = {
         EUN:   { key: 'eun',   name: '은장회',   titleClass: 'title-eun',   btnClass: 'eun',   cardClass: 'cat-eun',   rowClass: 'eun-row',   icon: 'users-round' },
@@ -4026,6 +4026,40 @@
         return remoteRecords;
     }
 
+    function cloneAttendanceRecords(records = {}) {
+        const cloned = {};
+
+        Object.entries(records || {}).forEach(([date, dayRecords]) => {
+            if (!isValidRecordDateKey(date)) return;
+            cloned[date] = {};
+
+            Object.entries(dayRecords || {}).forEach(([type, record]) => {
+                if (!Array.isArray(record)) return;
+                cloned[date][type] = uniqueNames(record);
+            });
+
+            if (Object.keys(cloned[date]).length === 0) delete cloned[date];
+        });
+
+        return cloned;
+    }
+
+    function mergeFirstServerSyncRecords(localRecords = {}, remoteRecords = {}) {
+        const merged = cloneAttendanceRecords(localRecords);
+
+        Object.entries(remoteRecords || {}).forEach(([date, dayRecords]) => {
+            if (!isValidRecordDateKey(date)) return;
+            if (!merged[date]) merged[date] = {};
+
+            Object.entries(dayRecords || {}).forEach(([type, record]) => {
+                if (!Array.isArray(record)) return;
+                merged[date][type] = uniqueNames(record);
+            });
+        });
+
+        return merged;
+    }
+
     async function syncDistrictFromFirebase(district = elDistrict.value) {
         if (typeof window.getDistrictRecordsFromFirebase !== 'function') return false;
         if (navigator.onLine === false) return false;
@@ -4033,12 +4067,17 @@
         try {
             const remoteDocs = await window.getDistrictRecordsFromFirebase(district);
             const alreadyServerBased = hasServerSyncedDistrict(district);
+            const remoteRecords = buildLocalRecordsFromRemoteDocs(remoteDocs);
 
-            if (remoteDocs.length === 0 && !alreadyServerBased) return false;
+            if (alreadyServerBased) {
+                allAttendanceRecords[district] = remoteRecords;
+                saveRecords();
+                markServerSyncedDistrict(district);
+                return true;
+            }
 
-            allAttendanceRecords[district] = buildLocalRecordsFromRemoteDocs(remoteDocs);
+            allAttendanceRecords[district] = mergeFirstServerSyncRecords(allAttendanceRecords[district] || {}, remoteRecords);
             saveRecords();
-            markServerSyncedDistrict(district);
             return true;
         } catch (err) {
             console.warn('server sync failed', err);
