@@ -957,6 +957,10 @@ textarea{
   <div class="modal-box">
     <h3>✏️ 출석 수정 / 삭제</h3>
     <div class="edit-info" id="edit-info"></div>
+    <div class="edit-row">
+      <label>구역</label>
+      <select id="edit-district"></select>
+    </div>
     <div class="edit-row"><label>날짜</label><input type="date" id="edit-date"></div>
     <div class="edit-row">
       <label>말씀</label>
@@ -1074,11 +1078,19 @@ function setLoading(){
 }
 
 function initOptions(){
+  const editDistrictSelect=document.getElementById('edit-district');
   ALL_DISTRICTS.forEach(d=>{
     const o=document.createElement('option');
     o.value=d;
     o.textContent=d;
     elPersonalDistrict.appendChild(o);
+
+    if(editDistrictSelect){
+      const editOption=document.createElement('option');
+      editOption.value=d;
+      editOption.textContent=d;
+      editDistrictSelect.appendChild(editOption);
+    }
   });
 }
 
@@ -1570,7 +1582,8 @@ function handlePin(n){
 
 function openEditModal(s){
   editingSubmission=s;
-  document.getElementById('edit-info').innerHTML=`<b>${s.구역}</b><br>날짜와 말씀 종류를 바꿔서 다른 위치로 이동 저장할 수 있습니다.`;
+  document.getElementById('edit-info').innerHTML=`<b>${s.구역}</b><br>구역, 날짜, 말씀 종류를 바꿔서 다른 위치로 이동 저장할 수 있습니다.`;
+  document.getElementById('edit-district').value=s.구역;
   document.getElementById('edit-date').value=s.날짜;
   document.getElementById('edit-meeting-type').value=s.모임;
   document.getElementById('edit-eun').value=getCategoryCount(s,'은장회');
@@ -1590,8 +1603,14 @@ async function saveEdit(){
   if(!editingSubmission)return;
 
   const s=editingSubmission;
+  const newDistrict=document.getElementById('edit-district').value;
   const newDate=document.getElementById('edit-date').value;
   const newType=document.getElementById('edit-meeting-type').value;
+
+  if(!newDistrict){
+    alert('구역을 선택해주세요.');
+    return;
+  }
 
   if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){
     alert('날짜를 선택해주세요.');
@@ -1616,19 +1635,20 @@ async function saveEdit(){
   const oldId=`${s.날짜}_${s.모임}`;
   const newId=`${newDate}_${newType}`;
   const oldRef=doc(db,'submissions',s.구역,'records',oldId);
-  const newRef=doc(db,'submissions',s.구역,'records',newId);
+  const newRef=doc(db,'submissions',newDistrict,'records',newId);
+  const isMoved=newDistrict!==s.구역||newId!==oldId;
 
   try{
-    if(newId!==oldId){
+    if(isMoved){
       const snap=await getDoc(newRef);
-      if(snap.exists()&&!confirm(`${s.구역} ${newDate} ${newType} 기록이 이미 있습니다.\n덮어쓸까요?`))return;
-      await setDoc(newRef,{...s,id:newId,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()},{merge:false});
+      if(snap.exists()&&!confirm(`${newDistrict} ${newDate} ${newType} 기록이 이미 있습니다.\n덮어쓸까요?`))return;
+      await setDoc(newRef,{...s,id:newId,구역:newDistrict,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()},{merge:false});
       await deleteDoc(oldRef);
       elDate.value=newDate;
       elType.value=newType;
-      alert(`${s.날짜} ${s.모임} 기록을\n${newDate} ${newType}(으)로 이동 저장했습니다.`);
+      alert(`${s.구역} ${s.날짜} ${s.모임} 기록을\n${newDistrict} ${newDate} ${newType}(으)로 이동 저장했습니다.`);
     }else{
-      await updateDoc(oldRef,{날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()});
+      await updateDoc(oldRef,{구역:newDistrict,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()});
       alert('수정되었습니다.');
     }
     document.getElementById('edit-modal').classList.remove('show');
