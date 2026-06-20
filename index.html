@@ -4066,18 +4066,15 @@
 
         try {
             const remoteDocs = await window.getDistrictRecordsFromFirebase(district);
-            const alreadyServerBased = hasServerSyncedDistrict(district);
             const remoteRecords = buildLocalRecordsFromRemoteDocs(remoteDocs);
 
-            if (alreadyServerBased) {
-                allAttendanceRecords[district] = remoteRecords;
-                saveRecords();
-                markServerSyncedDistrict(district);
-                return true;
-            }
-
+            // 긴급 복구 모드:
+            // 서버에 없는 과거 local 기록은 절대 지우지 않는다.
+            // 같은 날짜/같은 모임에 서버 기록이 있으면 관리자 수정본을 우선 반영한다.
+            // 그래서 admin 삭제 실수는 상대 index의 local 기록까지 즉시 삭제하지 않는다.
             allAttendanceRecords[district] = mergeFirstServerSyncRecords(allAttendanceRecords[district] || {}, remoteRecords);
             saveRecords();
+            markServerSyncedDistrict(district);
             return true;
         } catch (err) {
             console.warn('server sync failed', err);
@@ -4208,171 +4205,6 @@
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    async function checkGlobalNotice() {
-        if (typeof window.getGlobalNoticeFromFirebase !== 'function') return;
-        try {
-            const notice = await window.getGlobalNoticeFromFirebase();
-            if (!notice || notice.active === false) return;
-            const noticeId = notice.noticeId || notice.id || '';
-            const message = String(notice.message || '').trim();
-            if (!noticeId || !message) return;
-            if (localStorage.getItem(STORAGE_KEY_GLOBAL_NOTICE) === noticeId) return;
-
-            document.getElementById('global-notice-title').textContent = notice.title || '공지사항';
-            document.getElementById('global-notice-message').innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
-            const modal = document.getElementById('global-notice-modal');
-            const btn = document.getElementById('btn-global-notice-confirm');
-            btn.onclick = () => {
-                localStorage.setItem(STORAGE_KEY_GLOBAL_NOTICE, noticeId);
-                modal.classList.remove('show');
-            };
-            setTimeout(() => modal.classList.add('show'), 500);
-        } catch (err) {
-            console.warn('global notice check failed', err);
-        }
-    }
-
-    function initEventListeners() {
-        elDistrict.addEventListener('change', async e => {
-            if (!confirmIfDirty()) {
-                e.target.value = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';
-                return;
-            }
-
-            localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
-            await syncDistrictFromFirebase(elDistrict.value);
-            syncLocalMeetingMismatchesOnOpen();
-            loadWorkingRecord();
-            renderAttendanceGrid();
-            if (document.getElementById('prayer-section').classList.contains('show')) renderPrayerList();
-        });
-
-        elDate.addEventListener('change', async () => {
-            if (!confirmIfDirty()) return;
-            await syncDistrictFromFirebase(elDistrict.value);
-            syncLocalMeetingMismatchesOnOpen();
-            loadWorkingRecord();
-            renderAttendanceGrid();
-        });
-
-        elType.addEventListener('change', handleMeetingTypeChange);
-
-        document.getElementById('btn-home').addEventListener('click', showHomePage);
-
-        document.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));
-        document.getElementById('btn-template-download').addEventListener('click', downloadMemberTemplate);
-        document.getElementById('btn-member-upload').addEventListener('click', () => triggerFilePicker('member-upload-input'));
-        document.getElementById('member-upload-input').addEventListener('change', handleMemberFileUpload);
-        document.getElementById('save-setup').addEventListener('click', saveSetup);
-        elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
-
-        document.querySelector('.btn-prayer').addEventListener('click', openPrayerSection);
-        elPrayerDistrict.addEventListener('change', e => selectPrayerDistrict(e.target.value));
-        elPrayerImageDistrict.addEventListener('change', updatePrayerImageConfirmSummary);
-        document.getElementById('btn-add-prayer').addEventListener('click', addPrayerMember);
-        document.getElementById('btn-prayer-template').addEventListener('click', downloadPrayerTemplate);
-        document.getElementById('btn-prayer-upload').addEventListener('click', () => triggerFilePicker('prayer-upload-input'));
-        document.getElementById('btn-export-prayer').addEventListener('click', exportPrayerList);
-        document.getElementById('btn-export-prayer-image').addEventListener('click', openPrayerImageConfirm);
-        document.getElementById('btn-confirm-prayer-image').addEventListener('click', confirmPrayerImageExport);
-        document.getElementById('btn-download-prayer-images').addEventListener('click', downloadAllPrayerImages);
-        document.getElementById('prayer-upload-input').addEventListener('change', handlePrayerFileUpload);
-
-        document.querySelector('.btn-share').addEventListener('click', openShare);
-        document.getElementById('btn-share-text').addEventListener('click', shareAsText);
-        document.getElementById('btn-share-image').addEventListener('click', shareAsImage);
-        document.getElementById('btn-download-image').addEventListener('click', downloadImage);
-
-        document.querySelector('.btn-stats').addEventListener('click', openStats);
-        document.getElementById('btn-update-confirm').addEventListener('click', confirmUpdateNotice);
-
-        document.querySelectorAll('.stats-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                currentStatsType = tab.dataset.type;
-                document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                renderStats();
-            });
-        });
-
-        document.getElementById('stats-month-select').addEventListener('change', e => {
-            currentStatsMonth = e.target.value;
-            renderStats();
-        });
-
-        document.querySelectorAll('.stats-main-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const main = tab.dataset.main;
-                document.querySelectorAll('.stats-main-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById('stats-monthly-wrap').style.display = main === 'monthly' ? 'block' : 'none';
-                document.getElementById('stats-personal-wrap').style.display = main === 'personal' ? 'block' : 'none';
-                if (main === 'personal') renderPersonalStats();
-            });
-        });
-
-        document.querySelectorAll('.personal-cat-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                currentPersonalCat = tab.dataset.cat;
-                document.querySelectorAll('.personal-cat-tab').forEach(t => t.classList.remove('active','eun','bong','mom','youth'));
-                tab.classList.add('active', CATEGORIES[currentPersonalCat].btnClass);
-                renderPersonalStats();
-            });
-        });
-
-        document.querySelectorAll('.personal-type-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                currentPersonalType = tab.dataset.mtype;
-                document.querySelectorAll('.personal-type-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                renderPersonalStats();
-            });
-        });
-
-        document.getElementById('personal-month-select').addEventListener('change', e => {
-            currentPersonalMonth = e.target.value;
-            renderPersonalStats();
-        });
-
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')));
-        });
-
-        window.addEventListener('click', e => {
-            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
-        });
-
-        window.addEventListener('beforeunload', e => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-    }
-
-    async function init() {
-        buildDistrictDropdown();
-        elDate.value = new Date().toISOString().split('T')[0];
-        previousMeetingType = elType.value;
-        loadData();
-        await syncDistrictFromFirebase(elDistrict.value);
-        syncLocalMeetingMismatchesOnOpen();
-        loadWorkingRecord();
-        renderAttendanceGrid();
-        initEventListeners();
-        refreshIcons();
-        if (APP_VERSION === SILENT_UPDATE_VERSION) {
-            localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
-        }
-        showUpdateNotice();
-        checkGlobalNotice();
-    }
-
-    init();
-</script>
+            .replace(/"/g, '&quot;')\n.replace(/'/g, '&#039;');\n}\n\nasync function checkGlobalNotice() {\nif (typeof window.getGlobalNoticeFromFirebase !== 'function') return;\ntry {\nconst notice = await window.getGlobalNoticeFromFirebase();\nif (!notice || notice.active === false) return;\nconst noticeId = notice.noticeId || notice.id || '';\nconst message = String(notice.message || '').trim();\nif (!noticeId || !message) return;\nif (localStorage.getItem(STORAGE_KEY_GLOBAL_NOTICE) === noticeId) return;\n\ndocument.getElementById('global-notice-title').textContent = notice.title || '공지사항';\ndocument.getElementById('global-notice-message').innerHTML = escapeHtml(message).replace(/\n/g, '<br>');\nconst modal = document.getElementById('global-notice-modal');\nconst btn = document.getElementById('btn-global-notice-confirm');\nbtn.onclick = () => {\nlocalStorage.setItem(STORAGE_KEY_GLOBAL_NOTICE, noticeId);\nmodal.classList.remove('show');\n};\nsetTimeout(() => modal.classList.add('show'), 500);\n} catch (err) {\nconsole.warn('global notice check failed', err);\n}\n}\n\nfunction initEventListeners() {\nelDistrict.addEventListener('change', async e => {\nif (!confirmIfDirty()) {\ne.target.value = localStorage.getItem(STORAGE_KEY_LASTDISTRICT) || '11구역';\nreturn;\n}\n\nlocalStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);\nawait syncDistrictFromFirebase(elDistrict.value);\nsyncLocalMeetingMismatchesOnOpen();\nloadWorkingRecord();\nrenderAttendanceGrid();\nif (document.getElementById('prayer-section').classList.contains('show')) renderPrayerList();\n});\n\nelDate.addEventListener('change', async () => {\nif (!confirmIfDirty()) return;\nawait syncDistrictFromFirebase(elDistrict.value);\nsyncLocalMeetingMismatchesOnOpen();\nloadWorkingRecord();\nrenderAttendanceGrid();\n});\n\nelType.addEventListener('change', handleMeetingTypeChange);\n\ndocument.getElementById('btn-home').addEventListener('click', showHomePage);\n\ndocument.querySelectorAll('.btn-setup').forEach(btn => btn.addEventListener('click', openSetup));\ndocument.getElementById('btn-template-download').addEventListener('click', downloadMemberTemplate);\ndocument.getElementById('btn-member-upload').addEventListener('click', () => triggerFilePicker('member-upload-input'));\ndocument.getElementById('member-upload-input').addEventListener('change', handleMemberFileUpload);\ndocument.getElementById('save-setup').addEventListener('click', saveSetup);\nelBtnSaveRecord.addEventListener('click', saveCurrentRecord);\n\ndocument.querySelector('.btn-prayer').addEventListener('click', openPrayerSection);\nelPrayerDistrict.addEventListener('change', e => selectPrayerDistrict(e.target.value));\nelPrayerImageDistrict.addEventListener('change', updatePrayerImageConfirmSummary);\ndocument.getElementById('btn-add-prayer').addEventListener('click', addPrayerMember);\ndocument.getElementById('btn-prayer-template').addEventListener('click', downloadPrayerTemplate);\ndocument.getElementById('btn-prayer-upload').addEventListener('click', () => triggerFilePicker('prayer-upload-input'));\ndocument.getElementById('btn-export-prayer').addEventListener('click', exportPrayerList);\ndocument.getElementById('btn-export-prayer-image').addEventListener('click', openPrayerImageConfirm);\ndocument.getElementById('btn-confirm-prayer-image').addEventListener('click', confirmPrayerImageExport);\ndocument.getElementById('btn-download-prayer-images').addEventListener('click', downloadAllPrayerImages);\ndocument.getElementById('prayer-upload-input').addEventListener('change', handlePrayerFileUpload);\n\ndocument.querySelector('.btn-share').addEventListener('click', openShare);\ndocument.getElementById('btn-share-text').addEventListener('click', shareAsText);\ndocument.getElementById('btn-share-image').addEventListener('click', shareAsImage);\ndocument.getElementById('btn-download-image').addEventListener('click', downloadImage);\n\ndocument.querySelector('.btn-stats').addEventListener('click', openStats);\ndocument.getElementById('btn-update-confirm').addEventListener('click', confirmUpdateNotice);\n\ndocument.querySelectorAll('.stats-tab').forEach(tab => {\ntab.addEventListener('click', () => {\ncurrentStatsType = tab.dataset.type;\ndocument.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));\ntab.classList.add('active');\nrenderStats();\n});\n});\n\ndocument.getElementById('stats-month-select').addEventListener('change', e => {\ncurrentStatsMonth = e.target.value;\nrenderStats();\n});\n\ndocument.querySelectorAll('.stats-main-tab').forEach(tab => {\ntab.addEventListener('click', () => {\nconst main = tab.dataset.main;\ndocument.querySelectorAll('.stats-main-tab').forEach(t => t.classList.remove('active'));\ntab.classList.add('active');\ndocument.getElementById('stats-monthly-wrap').style.display = main === 'monthly' ? 'block' : 'none';\ndocument.getElementById('stats-personal-wrap').style.display = main === 'personal' ? 'block' : 'none';\nif (main === 'personal') renderPersonalStats();\n});\n});\n\ndocument.querySelectorAll('.personal-cat-tab').forEach(tab => {\ntab.addEventListener('click', () => {\ncurrentPersonalCat = tab.dataset.cat;\ndocument.querySelectorAll('.personal-cat-tab').forEach(t => t.classList.remove('active','eun','bong','mom','youth'));\ntab.classList.add('active', CATEGORIES[currentPersonalCat].btnClass);\nrenderPersonalStats();\n});\n});\n\ndocument.querySelectorAll('.personal-type-tab').forEach(tab => {\ntab.addEventListener('click', () => {\ncurrentPersonalType = tab.dataset.mtype;\ndocument.querySelectorAll('.personal-type-tab').forEach(t => t.classList.remove('active'));\ntab.classList.add('active');\nrenderPersonalStats();\n});\n});\n\ndocument.getElementById('personal-month-select').addEventListener('change', e => {\ncurrentPersonalMonth = e.target.value;\nrenderPersonalStats();\n});\n\ndocument.querySelectorAll('.close-modal').forEach(btn => {\nbtn.addEventListener('click', () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')));\n});\n\nwindow.addEventListener('click', e => {\nif (e.target.classList.contains('modal')) e.target.classList.remove('show');\n});\n\nwindow.addEventListener('beforeunload', e => {\nif (isDirty) {\ne.preventDefault();\ne.returnValue = '';\n}\n});\n}\n\nasync function init() {\nbuildDistrictDropdown();\nelDate.value = new Date().toISOString().split('T')[0];\npreviousMeetingType = elType.value;\nloadData();\nawait syncDistrictFromFirebase(elDistrict.value);\nsyncLocalMeetingMismatchesOnOpen();\nloadWorkingRecord();\nrenderAttendanceGrid();\ninitEventListeners();\nrefreshIcons();\nif (APP_VERSION === SILENT_UPDATE_VERSION) {\nlocalStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);\n}\nshowUpdateNotice();\ncheckGlobalNotice();\n}\n\ninit();\n</script>
 </body>
 </html>
