@@ -159,21 +159,21 @@
         .brand-icon {
             width: 48px;
             height: 48px;
-            border-radius: 18px;
-            background: rgba(255,255,255,0.16);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.22);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.13);
+            box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.22), 0 6px 15px rgba(4,28,72,0.18);
             color: white;
             padding: 0;
             cursor: pointer;
         }
 
         .brand-icon i {
-            width: 29px;
-            height: 29px;
-            stroke-width: 2.2;
+            width: 28px;
+            height: 28px;
+            stroke-width: 2.6;
         }
 
         header h1 {
@@ -670,7 +670,7 @@
             box-shadow: 0 8px 24px rgba(24,55,96,0.18);
             border: 1px solid var(--line);
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             overflow: hidden;
         }
 
@@ -693,6 +693,41 @@
             color: var(--primary);
             stroke-width: 2.3;
         }
+
+        .more-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .more-menu-btn {
+            min-height: 74px;
+            border-radius: 14px;
+            background: #f7fbff;
+            border: 1.5px solid #d7e8ff;
+            color: var(--navy);
+            padding: 12px 8px;
+            font-size: 0.86rem;
+            font-weight: 950;
+            text-align: center;
+        }
+
+        .more-menu-btn i {
+            display: block;
+            width: 25px;
+            height: 25px;
+            margin: 0 auto 6px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .more-menu-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .more-menu-btn.primary i { color: white; }
 
         .modal {
             display: none;
@@ -1954,7 +1989,7 @@
 
         @media (max-width: 390px) {
             header h1 { font-size: 1.08rem; }
-            .brand-icon { width: 42px; height: 42px; border-radius: 15px; }
+            .brand-icon { width: 42px; height: 42px; border-radius: 50%; }
             .selector-card { grid-template-columns: 0.9fr 1.25fr 1fr; }
             .selector-card select, .selector-card input[type="date"] { font-size: 0.78rem; }
             .summary-num, .rate-num { font-size: 1.74rem; }
@@ -1972,7 +2007,7 @@
 <header>
     <div class="top-bar">
         <div class="brand-wrap">
-            <button class="brand-icon" id="btn-home" type="button" aria-label="홈으로 가기"><i data-lucide="book-open-check"></i></button>
+            <button class="brand-icon" id="btn-home" type="button" aria-label="출석체크 홈으로 가기"><i data-lucide="house"></i></button>
             <div>
                 <h1>구역 출석관리 시스템</h1>
             </div>
@@ -2118,10 +2153,23 @@
 
 <div class="bottom-tools">
     <button class="tool-btn btn-setup" type="button"><i data-lucide="users-round"></i>명단설정</button>
-    <button class="tool-btn btn-prayer" type="button"><i data-lucide="clipboard-list"></i>기도명단</button>
-    <button class="tool-btn btn-volunteer" type="button"><i data-lucide="calendar-check-2"></i>봉사참석</button>
     <button class="tool-btn btn-share" type="button"><i data-lucide="share-2"></i>공유하기</button>
-    <button class="tool-btn btn-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
+    <button class="tool-btn btn-volunteer" type="button"><i data-lucide="calendar-check-2"></i>봉사참석</button>
+    <button class="tool-btn btn-more" type="button"><i data-lucide="menu"></i>더보기</button>
+</div>
+
+<div class="modal" id="more-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>더보기</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="more-menu-grid">
+            <button class="more-menu-btn primary" id="more-home" type="button"><i data-lucide="house"></i>출석체크 홈</button>
+            <button class="more-menu-btn" id="more-prayer" type="button"><i data-lucide="clipboard-list"></i>기도명단</button>
+            <button class="more-menu-btn" id="more-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
+        </div>
+    </div>
 </div>
 
 <div class="modal" id="update-modal">
@@ -5191,7 +5239,6 @@ document.getElementById('member-upload-input').addEventListener('change', handle
 document.getElementById('save-setup').addEventListener('click', saveSetup);
 elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
 
-document.querySelector('.btn-prayer').addEventListener('click', openPrayerSection);
 elPrayerDistrict.addEventListener('change', e => selectPrayerDistrict(e.target.value));
 elPrayerImageDistrict.addEventListener('change', updatePrayerImageConfirmSummary);
 document.getElementById('btn-add-prayer').addEventListener('click', addPrayerMember);
@@ -5229,7 +5276,19 @@ document.getElementById('btn-share-text').addEventListener('click', shareAsText)
 document.getElementById('btn-share-image').addEventListener('click', shareAsImage);
 document.getElementById('btn-download-image').addEventListener('click', downloadImage);
 
-document.querySelector('.btn-stats').addEventListener('click', openStats);
+document.querySelector('.btn-more').addEventListener('click', () => {
+document.getElementById('more-modal').classList.add('show');
+refreshIcons();
+});
+document.getElementById('more-home').addEventListener('click', showHomePage);
+document.getElementById('more-prayer').addEventListener('click', () => {
+document.getElementById('more-modal').classList.remove('show');
+openPrayerSection();
+});
+document.getElementById('more-stats').addEventListener('click', () => {
+document.getElementById('more-modal').classList.remove('show');
+openStats();
+});
 document.getElementById('btn-update-confirm').addEventListener('click', confirmUpdateNotice);
 
 document.querySelectorAll('.stats-tab').forEach(tab => {
