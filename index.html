@@ -670,7 +670,7 @@
             box-shadow: 0 8px 24px rgba(24,55,96,0.18);
             border: 1px solid var(--line);
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             overflow: hidden;
         }
 
@@ -1570,6 +1570,388 @@
             font-weight: 800;
         }
 
+        .volunteer-section-card {
+            display: none;
+            padding: 14px;
+            scroll-margin-top: 150px;
+        }
+
+        .volunteer-section-card.show { display: block; }
+
+        .volunteer-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--navy);
+            font-weight: 950;
+            font-size: 1rem;
+        }
+
+        .volunteer-head i {
+            width: 22px;
+            height: 22px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .volunteer-head .volunteer-count {
+            margin-left: auto;
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 850;
+        }
+
+        .volunteer-help {
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #667789;
+            margin-bottom: 12px;
+            font-weight: 750;
+        }
+
+        .volunteer-panel {
+            border: 1.5px solid #d7e8ff;
+            border-radius: 14px;
+            padding: 13px;
+            margin-bottom: 12px;
+            background: linear-gradient(145deg, #f5f9ff, #edf5ff);
+        }
+
+        .volunteer-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--navy);
+            font-size: 0.92rem;
+            font-weight: 950;
+            margin-bottom: 10px;
+        }
+
+        .volunteer-panel-title i {
+            width: 19px;
+            height: 19px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .volunteer-field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .volunteer-field-grid.single { grid-template-columns: 1fr; }
+
+        .volunteer-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: #617089;
+            font-size: 0.74rem;
+            font-weight: 900;
+        }
+
+        .volunteer-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.5px solid #cbd9ec;
+            border-radius: 11px;
+            background: white;
+            padding: 0 10px;
+        }
+
+        .volunteer-input-wrap input {
+            width: 100%;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 850;
+            padding: 12px 0;
+        }
+
+        .volunteer-input-wrap span {
+            flex-shrink: 0;
+            color: var(--primary);
+            font-size: 0.86rem;
+            font-weight: 950;
+        }
+
+        .volunteer-section-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin: 13px 0 9px;
+            color: var(--navy);
+            font-size: 0.9rem;
+            font-weight: 950;
+        }
+
+        .volunteer-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .volunteer-chip {
+            min-height: 38px;
+            border: 1.5px solid #d7dfeb;
+            border-radius: 999px;
+            background: white;
+            color: #425066;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .volunteer-chip i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #d7dfeb;
+            display: inline-block;
+        }
+
+        .volunteer-chip.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .volunteer-chip.active i { background: rgba(255,255,255,0.85); }
+
+        .volunteer-chip.morning.active { background: #8FCC52; border-color: #8FCC52; color: #21350f; }
+        .volunteer-chip.afternoon.active { background: #F4B400; border-color: #F4B400; color: #503900; }
+        .volunteer-chip.night.active { background: #C9BFA6; border-color: #C9BFA6; color: #403a2c; }
+        .volunteer-chip.mark.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .volunteer-day {
+            border: 1px solid #e1e8f2;
+            border-radius: 13px;
+            background: #fbfdff;
+            padding: 11px;
+            margin-bottom: 9px;
+        }
+
+        .volunteer-day-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 9px;
+        }
+
+        .volunteer-day-date {
+            color: var(--navy);
+            font-size: 0.92rem;
+            font-weight: 950;
+        }
+
+        .volunteer-day-dow {
+            color: white;
+            background: #64748b;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .volunteer-day-all {
+            margin-left: auto;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            padding: 7px 10px;
+            font-size: 0.74rem;
+            font-weight: 900;
+        }
+
+        .volunteer-vehicle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .volunteer-vehicle-box {
+            border: 1px solid #e1e8f2;
+            border-radius: 13px;
+            background: #fbfdff;
+            padding: 11px;
+        }
+
+        .volunteer-vehicle-box b {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--navy);
+            font-size: 0.82rem;
+            font-weight: 950;
+        }
+
+        .volunteer-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .volunteer-action {
+            min-height: 44px;
+            border-radius: 12px;
+            padding: 11px 8px;
+            font-size: 0.86rem;
+            font-weight: 950;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .volunteer-action i {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.4;
+        }
+
+        .volunteer-action.primary { background: var(--primary); color: white; }
+        .volunteer-action.green { background: var(--save); color: white; }
+        .volunteer-action.light { background: white; color: var(--primary); border: 1.5px solid #cfe2ff; }
+
+        .volunteer-roster {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .volunteer-roster.show { display: block; }
+
+        .volunteer-person {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid #e1e8f2;
+            border-radius: 12px;
+            background: #fbfdff;
+            padding: 10px;
+            margin-top: 8px;
+        }
+
+        .volunteer-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 950;
+        }
+
+        .volunteer-person-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .volunteer-person-info b {
+            display: block;
+            color: var(--navy);
+            font-size: 0.88rem;
+            font-weight: 950;
+        }
+
+        .volunteer-person-info small {
+            display: block;
+            color: #64748b;
+            font-size: 0.74rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .volunteer-person-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .volunteer-person-actions button {
+            border-radius: 9px;
+            padding: 7px 9px;
+            background: white;
+            color: #526176;
+            border: 1px solid #d7dfeb;
+            font-size: 0.74rem;
+            font-weight: 900;
+        }
+
+        .volunteer-person-actions .danger {
+            color: var(--danger);
+            border-color: #f3c6c4;
+        }
+
+        .volunteer-preview-content {
+            width: 96%;
+            max-width: 680px;
+            padding: 16px;
+        }
+
+        .volunteer-preview-wrap {
+            overflow: auto;
+            border: 1px solid #d8e2ef;
+            border-radius: 12px;
+            max-height: 64vh;
+            background: white;
+        }
+
+        .volunteer-preview-table {
+            min-width: 1180px;
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 0.72rem;
+            color: #24364d;
+        }
+
+        .volunteer-preview-table th,
+        .volunteer-preview-table td {
+            border: 1px solid #d8e2ef;
+            padding: 5px 4px;
+            text-align: center;
+            vertical-align: middle;
+            height: 28px;
+            background: white;
+        }
+
+        .volunteer-preview-table th {
+            background: #eef5ff;
+            color: var(--navy);
+            font-weight: 950;
+        }
+
+        .volunteer-preview-table .title-row th {
+            background: #1b3a6b;
+            color: white;
+            font-size: 0.95rem;
+            height: 36px;
+        }
+
+        .volunteer-preview-table .memo-row th {
+            background: #f7fbff;
+            color: #31557e;
+            text-align: left;
+        }
+
+        .volunteer-preview-table .fill-morning { background: #8FCC52; color: #21350f; }
+        .volunteer-preview-table .fill-afternoon { background: #F4B400; color: #503900; }
+        .volunteer-preview-table .fill-night { background: #F8F7F3; color: #403a2c; }
+        .volunteer-preview-table .fill-mark { background: #eaf3ff; color: var(--primary); }
+
         @media (max-width: 390px) {
             header h1 { font-size: 1.08rem; }
             .brand-icon { width: 42px; height: 42px; border-radius: 15px; }
@@ -1579,6 +1961,9 @@
             .big-action .big-text { font-size: 0.98rem; }
             .category-grid { grid-template-columns: repeat(2, 1fr); }
             .bottom-tools { left: 10px; right: 10px; }
+            .tool-btn { font-size: 0.66rem; }
+            .tool-btn i { width: 20px; height: 20px; }
+            .volunteer-field-grid, .volunteer-vehicle-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -1666,11 +2051,75 @@
             </table>
         </div>
     </section>
+
+    <section class="card volunteer-section-card" id="volunteer-section">
+        <div class="volunteer-head">
+            <i data-lucide="calendar-check-2"></i>
+            하계수양회 봉사자 접수
+            <span class="volunteer-count" id="volunteer-count">0명</span>
+        </div>
+        <div class="volunteer-help">
+            봉사자별 가능한 일정과 차량 이용 여부를 입력한 뒤, 입력상황을 엑셀 원본 형태로 바로 확인할 수 있습니다.
+        </div>
+
+        <div class="volunteer-panel">
+            <div class="volunteer-panel-title"><i data-lucide="map-pin"></i> 기본 정보</div>
+            <div class="volunteer-field-grid">
+                <div class="volunteer-field">
+                    <label for="volunteer-district">구역</label>
+                    <div class="volunteer-input-wrap">
+                        <input id="volunteer-district" inputmode="numeric" autocomplete="off" placeholder="예: 11">
+                        <span>구역</span>
+                    </div>
+                </div>
+                <div class="volunteer-field">
+                    <label for="volunteer-name">성명</label>
+                    <div class="volunteer-input-wrap">
+                        <input id="volunteer-name" autocomplete="off" placeholder="봉사자 이름">
+                    </div>
+                </div>
+                <div class="volunteer-field">
+                    <label for="volunteer-phone">휴대폰</label>
+                    <div class="volunteer-input-wrap">
+                        <input id="volunteer-phone" inputmode="numeric" autocomplete="off" placeholder="010-0000-0000">
+                    </div>
+                </div>
+                <div class="volunteer-field">
+                    <label>구분</label>
+                    <div class="volunteer-chip-row" id="volunteer-category-chips">
+                        <button class="volunteer-chip volunteer-category" data-cat="봉사회" type="button"><i></i>봉사회</button>
+                        <button class="volunteer-chip volunteer-category" data-cat="어머니회" type="button"><i></i>어머니회</button>
+                        <button class="volunteer-chip volunteer-category" data-cat="청년형제" type="button"><i></i>청년형제</button>
+                        <button class="volunteer-chip volunteer-category" data-cat="청년자매" type="button"><i></i>청년자매</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="volunteer-section-title">참석 가능 일정</div>
+            <div id="volunteer-days"></div>
+
+            <div class="volunteer-section-title">차량 이용</div>
+            <div class="volunteer-vehicle-grid" id="volunteer-vehicles"></div>
+
+            <div class="volunteer-actions">
+                <button class="volunteer-action light" id="volunteer-add-person" type="button"><i data-lucide="user-plus"></i>명단에 추가</button>
+                <button class="volunteer-action light" id="volunteer-preview-btn" type="button"><i data-lucide="table-2"></i>입력상황 보기</button>
+                <button class="volunteer-action green" id="volunteer-export-btn" type="button"><i data-lucide="file-spreadsheet"></i>엑셀 만들기</button>
+                <button class="volunteer-action primary" id="volunteer-reset-btn" type="button"><i data-lucide="rotate-ccw"></i>입력 초기화</button>
+            </div>
+
+            <div class="volunteer-roster" id="volunteer-roster-wrap">
+                <div class="volunteer-section-title">추가된 봉사자</div>
+                <div id="volunteer-roster"></div>
+            </div>
+        </div>
+    </section>
 </main>
 
 <div class="bottom-tools">
     <button class="tool-btn btn-setup" type="button"><i data-lucide="users-round"></i>명단설정</button>
     <button class="tool-btn btn-prayer" type="button"><i data-lucide="clipboard-list"></i>기도명단</button>
+    <button class="tool-btn btn-volunteer" type="button"><i data-lucide="calendar-check-2"></i>봉사참석</button>
     <button class="tool-btn btn-share" type="button"><i data-lucide="share-2"></i>공유하기</button>
     <button class="tool-btn btn-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
 </div>
@@ -1679,39 +2128,32 @@
     <div class="modal-content update-modal-content">
         <div class="update-hero">
             <div class="update-badge">새로운 업데이트</div>
-            <h2>더 편하고 크게 개선됐어요</h2>
-            <p>기존 명단과 출석 기록은 그대로 유지됩니다.</p>
+            <h2>하계수양회 봉사자 접수 가능</h2>
+            <p>아래 봉사참석 탭에서 입력·확인·엑셀 저장까지 할 수 있어요.</p>
         </div>
         <div class="update-body">
             <div class="update-item">
                 <div class="update-item-mark">1</div>
                 <div>
-                    <div class="update-item-title">모바일 엑셀 기능 개선</div>
-                    <div class="update-item-text">구역원·기도명단 업로드와 엑셀 서식·추출이 모바일에서도 동작합니다.</div>
+                    <div class="update-item-title">봉사참석 탭 추가</div>
+                    <div class="update-item-text">아래 탭을 눌러 봉사자 참석 가능 시간을 접수하세요.</div>
                 </div>
             </div>
             <div class="update-item">
                 <div class="update-item-mark">2</div>
                 <div>
-                    <div class="update-item-title">기도명단 이미지 큰 글씨 적용</div>
-                    <div class="update-item-text">한 페이지에 3명씩 보기 좋게 나누고 이름과 상세 글자를 크게 키웠습니다.</div>
+                    <div class="update-item-title">입력상황 바로 확인</div>
+                    <div class="update-item-text">엑셀 원본 모양으로 접수 현황을 한눈에 볼 수 있습니다.</div>
                 </div>
             </div>
             <div class="update-item">
                 <div class="update-item-mark">3</div>
                 <div>
-                    <div class="update-item-title">기도명단 구역 실수 방지</div>
-                    <div class="update-item-text">출석 구역과 기도명단 구역을 분리하고 이미지 생성 전에 구역을 다시 확인합니다.</div>
+                    <div class="update-item-title">구역 자동 저장</div>
+                    <div class="update-item-text">한 번 입력한 구역은 다음 접속 때 자동으로 불러옵니다.</div>
                 </div>
             </div>
-            <div class="update-item">
-                <div class="update-item-mark">4</div>
-                <div>
-                    <div class="update-item-title">파일 저장·공유 안정화</div>
-                    <div class="update-item-text">휴대폰의 공유 및 파일 저장 화면을 활용하도록 개선했습니다.</div>
-                </div>
-            </div>
-            <button class="btn-save" id="btn-update-confirm" type="button" style="margin-top:14px;">업데이트 확인</button>
+            <button class="btn-save" id="btn-update-confirm" type="button" style="margin-top:14px;">확인했어요</button>
         </div>
     </div>
 </div>
@@ -1820,6 +2262,18 @@
     </div>
 </div>
 
+<div class="modal" id="volunteer-preview-modal">
+    <div class="modal-content volunteer-preview-content">
+        <div class="modal-header">
+            <h2>봉사자 입력상황</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="help-text">가로로 밀어 엑셀 원본 형태의 입력 현황을 확인하세요.</div>
+        <div class="volunteer-preview-wrap" id="volunteer-preview-wrap"></div>
+        <button class="btn-save" id="volunteer-preview-export" type="button" style="margin-top:12px;">엑셀 만들기</button>
+    </div>
+</div>
+
 <div class="modal" id="prayer-image-confirm-modal">
     <div class="modal-content prayer-image-confirm-content">
         <div class="modal-header">
@@ -1866,10 +2320,11 @@
     const STORAGE_KEY_LASTDISTRICT = 'guAttendance_lastDistrict';
     const STORAGE_KEY_PRAYERS = 'guPrayerList_v1';
     const STORAGE_KEY_PRAYER_DISTRICT = 'guPrayer_lastDistrict';
+    const STORAGE_KEY_VOLUNTEER_DISTRICT = 'guVolunteer_lastDistrict';
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
     const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
-    const APP_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
+    const APP_VERSION = '2026.07.01-volunteer-registration';
     const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
 
     const CATEGORIES = {
@@ -1883,6 +2338,18 @@
     const TYPE_CLASS = { '주일말씀': 'sunday', '수요말씀': 'wednesday', '구역모임': 'gathering' };
     const TYPE_BG    = { '주일말씀': '#fdedec', '수요말씀': '#f5eef8', '구역모임': '#eef5fc' };
     const TYPE_COLOR = { '주일말씀': '#c0392b', '수요말씀': '#8e44ad', '구역모임': '#4A90E2' };
+    const VOLUNTEER_DAYS = [
+        { date: '8/6', dow: '목', slots: [{ c: 'E', t: '선발대', mark: true }] },
+        { date: '8/7', dow: '금', slots: [{ c: 'F', t: '본대', mark: true }, { c: 'G', t: '09~12', f: 'morning' }, { c: 'H', t: '12~15', f: 'afternoon' }, { c: 'I', t: '15~18', f: 'afternoon' }, { c: 'J', t: '18~21', f: 'afternoon' }, { c: 'K', t: '21~24', f: 'night' }] },
+        { date: '8/8', dow: '토', slots: [{ c: 'L', t: '06~09', f: 'morning' }, { c: 'M', t: '09~12', f: 'morning' }, { c: 'N', t: '12~15', f: 'afternoon' }, { c: 'O', t: '15~18', f: 'afternoon' }, { c: 'P', t: '18~21', f: 'afternoon' }, { c: 'Q', t: '21~24', f: 'night' }] },
+        { date: '8/9', dow: '일', slots: [{ c: 'R', t: '06~09', f: 'morning' }, { c: 'S', t: '09~12', f: 'morning' }, { c: 'T', t: '12~15', f: 'afternoon' }, { c: 'U', t: '15~18', f: 'afternoon' }, { c: 'V', t: '18~21', f: 'afternoon' }, { c: 'W', t: '21~24', f: 'night' }] },
+        { date: '8/10', dow: '월', slots: [{ c: 'X', t: '06~12', f: 'morning' }] }
+    ];
+    const VOLUNTEER_VEHICLES = [
+        { title: '개인 차량', items: [{ c: 'Y', t: '갈 때' }, { c: 'Z', t: '올 때' }] },
+        { title: '교회 차량', items: [{ c: 'AA', t: '갈 때' }, { c: 'AB', t: '올 때' }] }
+    ];
+    const VOLUNTEER_FILL = { morning: 'FF92D050', afternoon: 'FFFFC000', night: 'FFF8F7F3' };
 
     let allMembersData = {};
     let allAttendanceRecords = {};
@@ -1893,6 +2360,8 @@
     let lastGeneratedImageFilename = '';
     let prayerImageFiles = [];
     let lastPrayerImageDistrict = '';
+    let volunteerState = { roster: [], form: newVolunteerForm() };
+    let volunteerUiReady = false;
     let currentStatsType = '주일말씀';
     let currentStatsMonth = 'all';
     let previousMeetingType = '주일말씀';
@@ -1906,6 +2375,10 @@
     const elAttendance = document.getElementById('attendance-content');
     const elPrayerDistrict = document.getElementById('prayer-district-select');
     const elPrayerImageDistrict = document.getElementById('prayer-image-district-select');
+    const elVolunteerSection = document.getElementById('volunteer-section');
+    const elVolunteerDistrict = document.getElementById('volunteer-district');
+    const elVolunteerName = document.getElementById('volunteer-name');
+    const elVolunteerPhone = document.getElementById('volunteer-phone');
     const elSetupDistrictLabel = document.getElementById('setup-district-label');
     const elSaveIndicator = document.getElementById('save-indicator');
     const elBtnSaveRecord = document.getElementById('btn-save-record');
@@ -3033,6 +3506,455 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
+    function newVolunteerForm() {
+        return { name: '', phone: '', cat: '', cells: {} };
+    }
+
+    function cloneVolunteerPerson(person) {
+        return {
+            name: person.name,
+            phone: person.phone,
+            cat: person.cat,
+            cells: Object.assign({}, person.cells)
+        };
+    }
+
+    function getVolunteerDistrictNumber() {
+        const raw = normalizeNameValue(elVolunteerDistrict.value);
+        const digits = raw.replace(/[^0-9]/g, '');
+        return digits || raw.replace(/구역/g, '').trim();
+    }
+
+    function getVolunteerDistrictLabel() {
+        const district = getVolunteerDistrictNumber();
+        if (!district) return '';
+        return district.endsWith('구역') ? district : `${district}구역`;
+    }
+
+    function saveVolunteerDistrict() {
+        const district = getVolunteerDistrictNumber();
+        if (district) {
+            elVolunteerDistrict.value = district;
+            localStorage.setItem(STORAGE_KEY_VOLUNTEER_DISTRICT, district);
+        }
+    }
+
+    function initVolunteerDistrict() {
+        const saved = localStorage.getItem(STORAGE_KEY_VOLUNTEER_DISTRICT);
+        const current = String(elDistrict.value || '').replace(/[^0-9]/g, '');
+        elVolunteerDistrict.value = saved || current || '11';
+    }
+
+    function initVolunteerUi() {
+        if (volunteerUiReady) return;
+        volunteerUiReady = true;
+        initVolunteerDistrict();
+
+        const daysWrap = document.getElementById('volunteer-days');
+        daysWrap.innerHTML = '';
+        VOLUNTEER_DAYS.forEach(day => {
+            const dayBox = document.createElement('div');
+            dayBox.className = 'volunteer-day';
+            const selectableSlots = day.slots.filter(slot => !slot.mark);
+            const dayAll = selectableSlots.length > 1
+                ? `<button class="volunteer-day-all" data-day="${day.date}" type="button">하루 종일</button>`
+                : '';
+            const chips = day.slots.map(slot => {
+                const cls = `volunteer-chip volunteer-slot ${slot.mark ? 'mark' : slot.f || ''}`;
+                return `<button class="${cls}" data-col="${slot.c}" type="button"><i></i>${slot.t}</button>`;
+            }).join('');
+
+            dayBox.innerHTML = `
+                <div class="volunteer-day-head">
+                    <span class="volunteer-day-date">${day.date}</span>
+                    <span class="volunteer-day-dow">${day.dow}</span>
+                    ${dayAll}
+                </div>
+                <div class="volunteer-chip-row">${chips}</div>`;
+            daysWrap.appendChild(dayBox);
+        });
+
+        const vehicleWrap = document.getElementById('volunteer-vehicles');
+        vehicleWrap.innerHTML = '';
+        VOLUNTEER_VEHICLES.forEach(group => {
+            const box = document.createElement('div');
+            box.className = 'volunteer-vehicle-box';
+            box.innerHTML = `<b>${group.title}</b><div class="volunteer-chip-row">${
+                group.items.map(item => `<button class="volunteer-chip volunteer-vehicle" data-col="${item.c}" type="button"><i></i>${item.t}</button>`).join('')
+            }</div>`;
+            vehicleWrap.appendChild(box);
+        });
+
+        syncVolunteerForm();
+        renderVolunteerRoster();
+        refreshIcons();
+    }
+
+    function syncVolunteerForm() {
+        elVolunteerName.value = volunteerState.form.name;
+        elVolunteerPhone.value = volunteerState.form.phone;
+
+        document.querySelectorAll('.volunteer-category').forEach(chip => {
+            chip.classList.toggle('active', chip.dataset.cat === volunteerState.form.cat);
+        });
+
+        document.querySelectorAll('.volunteer-slot, .volunteer-vehicle').forEach(chip => {
+            chip.classList.toggle('active', !!volunteerState.form.cells[chip.dataset.col]);
+        });
+
+        updateVolunteerCount();
+    }
+
+    function volunteerFormHasData() {
+        return !!(
+            volunteerState.form.name.trim() ||
+            volunteerState.form.phone.trim() ||
+            volunteerState.form.cat ||
+            Object.keys(volunteerState.form.cells).length
+        );
+    }
+
+    function collectVolunteerPeople() {
+        const people = volunteerState.roster.map(cloneVolunteerPerson);
+        if (volunteerState.form.name.trim()) people.push(cloneVolunteerPerson(volunteerState.form));
+        return people;
+    }
+
+    function updateVolunteerCount() {
+        const count = volunteerState.roster.length + (volunteerState.form.name.trim() ? 1 : 0);
+        document.getElementById('volunteer-count').textContent = `${count}명`;
+    }
+
+    function getVolunteerPersonSummary(person) {
+        const days = [];
+        VOLUNTEER_DAYS.forEach(day => {
+            if (day.slots.some(slot => person.cells[slot.c])) days.push(day.date);
+        });
+        const vehicleCount = ['Y', 'Z', 'AA', 'AB'].filter(col => person.cells[col]).length;
+        const parts = [person.cat || '구분없음'];
+        if (days.length) parts.push(days.join(', '));
+        if (vehicleCount) parts.push(`차량 ${vehicleCount}`);
+        return parts.join(' · ');
+    }
+
+    function renderVolunteerRoster() {
+        const wrap = document.getElementById('volunteer-roster-wrap');
+        const list = document.getElementById('volunteer-roster');
+
+        if (!volunteerState.roster.length) {
+            wrap.classList.remove('show');
+            list.innerHTML = '';
+            updateVolunteerCount();
+            return;
+        }
+
+        wrap.classList.add('show');
+        list.innerHTML = '';
+        volunteerState.roster.forEach((person, index) => {
+            const item = document.createElement('div');
+            item.className = 'volunteer-person';
+            item.innerHTML = `
+                <div class="volunteer-avatar">${escapeHtml((person.name || '?').slice(0, 1))}</div>
+                <div class="volunteer-person-info">
+                    <b>${escapeHtml(person.name || '이름없음')}</b>
+                    <small>${escapeHtml(getVolunteerPersonSummary(person))}</small>
+                </div>
+                <div class="volunteer-person-actions">
+                    <button data-volunteer-edit="${index}" type="button">수정</button>
+                    <button class="danger" data-volunteer-delete="${index}" type="button">삭제</button>
+                </div>`;
+            list.appendChild(item);
+        });
+        updateVolunteerCount();
+    }
+
+    function addVolunteerPerson() {
+        if (!elVolunteerName.value.trim()) {
+            alert('봉사자 이름을 입력해주세요.');
+            elVolunteerName.focus();
+            return;
+        }
+
+        volunteerState.form.name = elVolunteerName.value.trim();
+        volunteerState.form.phone = elVolunteerPhone.value.trim();
+        volunteerState.roster.push(cloneVolunteerPerson(volunteerState.form));
+        volunteerState.form = newVolunteerForm();
+        syncVolunteerForm();
+        renderVolunteerRoster();
+        elVolunteerName.focus();
+    }
+
+    function resetVolunteerCurrentForm() {
+        if (volunteerFormHasData() && !confirm('현재 입력 중인 봉사자 내용을 초기화할까요?')) return;
+        volunteerState.form = newVolunteerForm();
+        syncVolunteerForm();
+    }
+
+    function handleVolunteerClick(event) {
+        const target = event.target.closest('.volunteer-category, .volunteer-slot, .volunteer-vehicle, .volunteer-day-all, [data-volunteer-edit], [data-volunteer-delete]');
+        if (!target || !elVolunteerSection.contains(target)) return;
+
+        if (target.classList.contains('volunteer-category')) {
+            const wasActive = target.classList.contains('active');
+            document.querySelectorAll('.volunteer-category').forEach(chip => chip.classList.remove('active'));
+            volunteerState.form.cat = wasActive ? '' : target.dataset.cat;
+            if (!wasActive) target.classList.add('active');
+            updateVolunteerCount();
+            return;
+        }
+
+        if (target.classList.contains('volunteer-day-all')) {
+            const day = VOLUNTEER_DAYS.find(item => item.date === target.dataset.day);
+            if (!day) return;
+            const slots = day.slots.filter(slot => !slot.mark);
+            const allOn = slots.every(slot => volunteerState.form.cells[slot.c]);
+            slots.forEach(slot => {
+                if (allOn) delete volunteerState.form.cells[slot.c];
+                else volunteerState.form.cells[slot.c] = 1;
+            });
+            syncVolunteerForm();
+            return;
+        }
+
+        if (target.classList.contains('volunteer-slot') || target.classList.contains('volunteer-vehicle')) {
+            const col = target.dataset.col;
+            if (volunteerState.form.cells[col]) delete volunteerState.form.cells[col];
+            else volunteerState.form.cells[col] = 1;
+            target.classList.toggle('active', !!volunteerState.form.cells[col]);
+            return;
+        }
+
+        const editIndex = target.getAttribute('data-volunteer-edit');
+        if (editIndex !== null) {
+            volunteerState.form = cloneVolunteerPerson(volunteerState.roster[Number(editIndex)]);
+            volunteerState.roster.splice(Number(editIndex), 1);
+            renderVolunteerRoster();
+            syncVolunteerForm();
+            elVolunteerName.focus();
+            return;
+        }
+
+        const deleteIndex = target.getAttribute('data-volunteer-delete');
+        if (deleteIndex !== null) {
+            volunteerState.roster.splice(Number(deleteIndex), 1);
+            renderVolunteerRoster();
+        }
+    }
+
+    function getVolunteerPreviewSlotClass(slot) {
+        if (slot.mark) return 'fill-mark';
+        if (slot.f === 'morning') return 'fill-morning';
+        if (slot.f === 'afternoon') return 'fill-afternoon';
+        if (slot.f === 'night') return 'fill-night';
+        return '';
+    }
+
+    function volunteerEncodeCol(index) {
+        let label = '';
+        let current = index;
+        while (current >= 0) {
+            label = String.fromCharCode((current % 26) + 65) + label;
+            current = Math.floor(current / 26) - 1;
+        }
+        return label;
+    }
+
+    function buildVolunteerPreviewHtml() {
+        const districtLabel = getVolunteerDistrictLabel() || '구역';
+        const people = collectVolunteerPeople();
+        let html = `<table class="volunteer-preview-table">
+            <thead>
+                <tr class="title-row"><th colspan="28">* ${escapeHtml(districtLabel)} 봉사자 일자별 참석 파악 *</th></tr>
+                <tr class="memo-row"><th colspan="28">(${escapeHtml(districtLabel)}) 입력상황</th></tr>
+                <tr>
+                    <th rowspan="3">No</th><th rowspan="3">성명</th><th rowspan="3">휴대폰</th><th>구분</th>`;
+
+        VOLUNTEER_DAYS.forEach(day => {
+            html += `<th colspan="${day.slots.length}">${escapeHtml(day.date)}(${escapeHtml(day.dow)})</th>`;
+        });
+        html += `<th colspan="4">차량이용</th></tr><tr><th>봉/어</th>`;
+
+        VOLUNTEER_DAYS.forEach(day => {
+            day.slots.forEach(slot => {
+                html += `<th rowspan="2" class="${getVolunteerPreviewSlotClass(slot)}">${escapeHtml(slot.t)}</th>`;
+            });
+        });
+
+        html += `<th colspan="2">개인차이용</th><th colspan="2">교회차이용</th></tr>
+            <tr><th>청년BS</th><th>갈때</th><th>올때</th><th>갈때</th><th>올때</th></tr>
+            </thead><tbody>`;
+
+        for (let i = 0; i < 17; i++) {
+            const person = people[i];
+            html += `<tr>
+                <td>${i + 1}</td>
+                <td>${escapeHtml(person ? person.name : '')}</td>
+                <td>${escapeHtml(person ? person.phone : '')}</td>
+                <td>${escapeHtml(person ? person.cat : '')}</td>`;
+            for (let colIndex = 4; colIndex <= 27; colIndex++) {
+                const col = volunteerEncodeCol(colIndex);
+                html += `<td>${person && person.cells[col] ? '1' : ''}</td>`;
+            }
+            html += '</tr>';
+        }
+
+        html += `</tbody></table>`;
+        return html;
+    }
+
+    function openVolunteerPreview() {
+        document.getElementById('volunteer-preview-wrap').innerHTML = buildVolunteerPreviewHtml();
+        document.getElementById('volunteer-preview-modal').classList.add('show');
+    }
+
+    function buildVolunteerWorkbook() {
+        if (!window.XLSX) throw new Error('엑셀 기능을 아직 불러오지 못했습니다.');
+
+        const district = getVolunteerDistrictNumber();
+        if (!district) throw new Error('구역을 입력해주세요.');
+
+        const people = collectVolunteerPeople();
+        if (!people.length) throw new Error('봉사자 정보를 입력해주세요.');
+        if (people.length > 17) throw new Error('한 파일에는 17명까지 가능합니다.');
+
+        const U = XLSX.utils;
+        const encCell = U.encode_cell;
+        const encCol = U.encode_col;
+        const decCol = U.decode_col;
+        const ws = {};
+        const merges = [];
+        const fontName = '맑은 고딕';
+        const borderLine = { style: 'thin', color: { rgb: 'D9E3F0' } };
+        const border = { top: borderLine, bottom: borderLine, left: borderLine, right: borderLine };
+        const center = { horizontal: 'center', vertical: 'center', wrapText: true };
+        const districtLabel = `${district}구역`;
+
+        function setCell(row, col, value, style) {
+            ws[encCell({ r: row, c: col })] = {
+                v: value === undefined ? '' : value,
+                t: typeof value === 'number' ? 'n' : 's',
+                s: style
+            };
+        }
+
+        function headerStyle(fillKey) {
+            return {
+                font: { name: fontName, sz: 9, bold: !fillKey },
+                alignment: center,
+                border,
+                fill: fillKey ? { patternType: 'solid', fgColor: { rgb: VOLUNTEER_FILL[fillKey] } } : undefined
+            };
+        }
+
+        setCell(0, 0, `* ${districtLabel} 봉사자 일자별 참석 파악 *`, { font: { name: fontName, sz: 18, bold: true }, alignment: center });
+        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 27 } });
+        setCell(1, 0, `  ( ${district} ) 구역`, { font: { name: fontName, sz: 11 }, alignment: { horizontal: 'left', vertical: 'center' } });
+        merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 23 } });
+
+        ['No', '성명', '휴대폰'].forEach((label, index) => {
+            setCell(2, index, label, headerStyle());
+            merges.push({ s: { r: 2, c: index }, e: { r: 4, c: index } });
+        });
+
+        setCell(2, 3, '구분', headerStyle());
+        setCell(3, 3, '봉/어', headerStyle());
+        setCell(4, 3, '청년BS', headerStyle());
+
+        VOLUNTEER_DAYS.forEach(day => {
+            const cols = day.slots.map(slot => decCol(slot.c));
+            const min = Math.min.apply(null, cols);
+            const max = Math.max.apply(null, cols);
+            setCell(2, min, `${day.date}(${day.dow})`, headerStyle());
+            if (max > min) merges.push({ s: { r: 2, c: min }, e: { r: 2, c: max } });
+
+            day.slots.forEach(slot => {
+                const col = decCol(slot.c);
+                setCell(3, col, slot.mark ? slot.t : slot.t.replace('~', '\n'), headerStyle(slot.f));
+                merges.push({ s: { r: 3, c: col }, e: { r: 4, c: col } });
+            });
+        });
+
+        setCell(2, decCol('Y'), '차량이용', headerStyle());
+        merges.push({ s: { r: 2, c: decCol('Y') }, e: { r: 2, c: decCol('AB') } });
+        setCell(3, decCol('Y'), '개인차이용', headerStyle());
+        merges.push({ s: { r: 3, c: decCol('Y') }, e: { r: 3, c: decCol('Z') } });
+        setCell(3, decCol('AA'), '교회차이용', headerStyle());
+        merges.push({ s: { r: 3, c: decCol('AA') }, e: { r: 3, c: decCol('AB') } });
+        setCell(4, decCol('Y'), '갈때', headerStyle());
+        setCell(4, decCol('Z'), '올때', headerStyle());
+        setCell(4, decCol('AA'), '갈때', headerStyle());
+        setCell(4, decCol('AB'), '올때', headerStyle());
+
+        const dataStyle = { font: { name: fontName, sz: 10 }, alignment: center, border };
+        for (let i = 0; i < 17; i++) {
+            const row = 5 + i;
+            const person = people[i];
+            setCell(row, 0, i + 1, dataStyle);
+            setCell(row, 1, person ? person.name : '', dataStyle);
+            setCell(row, 2, person ? person.phone : '', dataStyle);
+            setCell(row, 3, person ? person.cat : '', dataStyle);
+            for (let col = 4; col <= 27; col++) {
+                const key = encCol(col);
+                setCell(row, col, person && person.cells[key] ? 1 : '', dataStyle);
+            }
+        }
+
+        const noteStyle = { font: { name: fontName, sz: 9 }, alignment: { horizontal: 'left', vertical: 'center' } };
+        [
+            ' * 참석 차수를 기재하시고, 봉사 가능한 일자와 시간대에 숫자 "1"로 표시 합니다.',
+            ' * 차량이용란은 봉사자들의 차량을 원활하게 지원하기 위한 것이니 숫자 "1"로 해당사항에 체크해주세요.',
+            ' * 파일로 제출 기한 내 제출하여 주시기 바랍니다.'
+        ].forEach((note, index) => {
+            const row = 22 + index;
+            setCell(row, 0, note, noteStyle);
+            merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 23 } });
+        });
+
+        ws['!ref'] = 'A1:AB25';
+        ws['!merges'] = merges;
+        ws['!cols'] = [{ wch: 4 }, { wch: 9 }, { wch: 14 }, { wch: 8 }, { wch: 6.5 }, { wch: 5 }];
+        for (let i = 0; i < 18; i++) ws['!cols'].push({ wch: 3.4 });
+        ws['!cols'].push({ wch: 8 }, { wch: 5.2 }, { wch: 5.2 }, { wch: 5.2 }, { wch: 5.2 });
+        ws['!rows'] = [{ hpt: 27 }, { hpt: 21 }, { hpt: 30 }, { hpt: 17 }, { hpt: 18 }];
+        for (let i = 0; i < 17; i++) ws['!rows'].push({ hpt: 20 });
+
+        const wb = U.book_new();
+        U.book_append_sheet(wb, ws, districtLabel);
+        return { wb, districtLabel };
+    }
+
+    function exportVolunteerWorkbook() {
+        try {
+            saveVolunteerDistrict();
+            const { wb, districtLabel } = buildVolunteerWorkbook();
+            const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true, compression: true });
+            const mmdd = `${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`;
+            const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            downloadBlobFile(blob, `${districtLabel}_봉사자참석_${mmdd}.xlsx`, '하계수양회 봉사자 참석');
+        } catch (err) {
+            alert(err.message || '엑셀 생성 중 오류가 발생했습니다.');
+        }
+    }
+
+    function openVolunteerSection() {
+        initVolunteerUi();
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+
+        const prayerSection = document.getElementById('prayer-section');
+        if (prayerSection) prayerSection.classList.remove('show');
+
+        elAttendance.style.display = 'none';
+        elRecordStatusWrap.style.display = 'none';
+        elSaveIndicator.style.display = 'none';
+
+        const saveActions = document.querySelector('.save-bottom-actions');
+        if (saveActions) saveActions.style.display = 'none';
+
+        elVolunteerSection.classList.add('show');
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+        refreshIcons();
+    }
+
 
     function getPrayerDistrict() {
         return elPrayerDistrict.value || elDistrict.value || '11구역';
@@ -3078,6 +4000,7 @@
 
         const prayerSection = document.getElementById('prayer-section');
         if (prayerSection) prayerSection.classList.remove('show');
+        if (elVolunteerSection) elVolunteerSection.classList.remove('show');
 
         elAttendance.style.display = '';
         elRecordStatusWrap.style.display = '';
@@ -3091,6 +4014,7 @@
 
     function openPrayerSection() {
         const section = document.getElementById('prayer-section');
+        if (elVolunteerSection) elVolunteerSection.classList.remove('show');
 
         elAttendance.style.display = 'none';
         elRecordStatusWrap.style.display = 'none';
@@ -4278,6 +5202,27 @@ document.getElementById('btn-export-prayer-image').addEventListener('click', ope
 document.getElementById('btn-confirm-prayer-image').addEventListener('click', confirmPrayerImageExport);
 document.getElementById('btn-download-prayer-images').addEventListener('click', downloadAllPrayerImages);
 document.getElementById('prayer-upload-input').addEventListener('change', handlePrayerFileUpload);
+
+document.querySelector('.btn-volunteer').addEventListener('click', openVolunteerSection);
+document.getElementById('volunteer-section').addEventListener('click', handleVolunteerClick);
+elVolunteerDistrict.addEventListener('input', saveVolunteerDistrict);
+elVolunteerDistrict.addEventListener('blur', saveVolunteerDistrict);
+elVolunteerName.addEventListener('input', e => {
+volunteerState.form.name = e.target.value;
+updateVolunteerCount();
+});
+elVolunteerPhone.addEventListener('input', e => {
+let value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+if (value.length >= 8) value = value.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
+else if (value.length >= 4) value = value.replace(/(\d{3})(\d{1,4})/, '$1-$2');
+e.target.value = value;
+volunteerState.form.phone = value;
+});
+document.getElementById('volunteer-add-person').addEventListener('click', addVolunteerPerson);
+document.getElementById('volunteer-preview-btn').addEventListener('click', openVolunteerPreview);
+document.getElementById('volunteer-preview-export').addEventListener('click', exportVolunteerWorkbook);
+document.getElementById('volunteer-export-btn').addEventListener('click', exportVolunteerWorkbook);
+document.getElementById('volunteer-reset-btn').addEventListener('click', resetVolunteerCurrentForm);
 
 document.querySelector('.btn-share').addEventListener('click', openShare);
 document.getElementById('btn-share-text').addEventListener('click', shareAsText);
