@@ -675,6 +675,83 @@
         .member-btn.active.mom::after { background: var(--pink); }
         .member-btn.active.youth::after { background: var(--purple); }
 
+        /* 출석 화면 빠른 명단관리 */
+        .member-cell {
+            position: relative;
+            min-width: 0;
+        }
+
+        .member-cell .member-btn {
+            width: 100%;
+            padding-right: 30px;
+        }
+
+        .member-quick-btn {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            z-index: 2;
+            width: 25px;
+            height: 25px;
+            border: 0;
+            border-radius: 8px;
+            background: rgba(89, 101, 120, 0.08);
+            color: #667387;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            font-weight: 950;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .member-quick-btn:active {
+            background: rgba(89, 101, 120, 0.18);
+        }
+
+        .member-btn.inactive {
+            background: #eef1f4 !important;
+            border-color: #d7dde4 !important;
+            color: #8b95a3 !important;
+            font-weight: 800;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .member-btn.inactive::after {
+            display: none !important;
+        }
+
+        .member-btn.inactive .inactive-label {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.62rem;
+            line-height: 1.2;
+            color: #9aa4b0;
+            font-weight: 900;
+        }
+
+        .member-btn.inactive.had-attendance .inactive-label {
+            color: #6f7b89;
+        }
+
+        .member-cell.inactive .member-quick-btn {
+            background: #dde3e9;
+            color: #657180;
+        }
+
+        .member-inactive-note {
+            margin: 2px 0 10px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #f2f4f6;
+            color: #7c8794;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
         .record-status {
             background: #e8f5e9;
             border-left: 4px solid var(--save);
@@ -2415,6 +2492,9 @@
     <div class="modal-content update-modal-content">
         <div class="update-hero">
             <div class="update-badge">새로운 업데이트</div>
+            <div style="margin-top:10px;background:#f2f4f6;border-radius:12px;padding:10px 12px;color:#667387;font-size:.77rem;font-weight:850;line-height:1.5;">
+                출석 화면에서 비활성 인원을 회색으로 확인하고, 이름 옆 버튼으로 바로 비활성화·복구할 수 있습니다.
+            </div>
             <h2>총원 · 전도 · 심방 기능 추가</h2>
             <p>월별 현황을 입력하고, 총원은 관리자 확인 후 공식 통계에 반영됩니다.</p>
         </div>
@@ -2654,7 +2734,7 @@
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
     const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
-    const APP_VERSION = '2026.09.04-monthly-total-evangelism-visit';
+    const APP_VERSION = '2026.09.05-quick-roster-inactive';
     const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
 
     const CATEGORIES = {
@@ -2975,6 +3055,103 @@
         return getMembersForDistrict(elDistrict.value);
     }
 
+    function getFullRosterForDistrict(district = elDistrict.value) {
+        const roster = allRosterData[district];
+        if (roster && Array.isArray(roster.members)) return roster.members;
+
+        // 서버 명단을 아직 못 읽은 경우에는 기존 활동명단만 임시 표시
+        const active = getMembersForDistrict(district);
+        const fallback = [];
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            uniqueNames(active[cat.key] || []).forEach(name => {
+                fallback.push({
+                    id: '',
+                    name,
+                    cat: cat.name,
+                    active: true,
+                    joinedAt: '',
+                    leftAt: '',
+                    reason: ''
+                });
+            });
+        });
+        return fallback;
+    }
+
+    async function quickSetRosterActive(personId, makeActive) {
+        const district = elDistrict.value;
+        if (!personId) {
+            alert('명단 정보를 아직 서버에서 불러오지 못했습니다.\n잠시 후 다시 시도해주세요.');
+            return;
+        }
+
+        let members = [];
+        try {
+            if (typeof window.getRosterFromFirebase === 'function' && navigator.onLine !== false) {
+                const fresh = await window.getRosterFromFirebase(district);
+                members = Array.isArray(fresh?.members) ? fresh.members.map(m => ({ ...m })) : [];
+            } else {
+                members = getFullRosterForDistrict(district).map(m => ({ ...m }));
+            }
+        } catch (err) {
+            members = getFullRosterForDistrict(district).map(m => ({ ...m }));
+        }
+
+        const person = members.find(m => String(m.id) === String(personId));
+        if (!person) {
+            alert('해당 인원을 찾지 못했습니다.\n명단을 새로고침한 후 다시 시도해주세요.');
+            await syncRosterFromFirebase(district);
+            renderAttendanceGrid();
+            return;
+        }
+
+        const actionText = makeActive ? '다시 활성화' : '비활성화';
+        const guide = makeActive
+            ? '현재 출석명단에 다시 표시됩니다.'
+            : '현재 총원과 출석 대상에서는 빠지지만 과거 출석기록은 그대로 남습니다.';
+
+        if (!confirm(`${person.name} 님을 ${actionText}할까요?\n${guide}`)) return;
+
+        person.active = !!makeActive;
+        if (makeActive) {
+            person.leftAt = '';
+            person.reason = '';
+            person.joinedAt = person.joinedAt || rosterToday();
+        } else {
+            person.leftAt = rosterToday();
+            person.reason = person.reason || '구역장 출석화면에서 비활성화';
+
+            const idx = workingRecord.indexOf(person.name);
+            if (idx > -1) {
+                workingRecord.splice(idx, 1);
+                isDirty = true;
+                updateSaveIndicator(false);
+            }
+        }
+
+        try {
+            if (typeof window.saveRosterFromFirebase === 'function' && navigator.onLine !== false) {
+                const updatedAtMs = await window.saveRosterFromFirebase(district, members);
+                allRosterData[district] = { exists: true, members, updatedAtMs };
+            } else {
+                allRosterData[district] = { exists: true, members, updatedAtMs: Date.now() };
+            }
+
+            allMembersData[district] = activeMemberDataFromRoster(members);
+            saveMembers();
+            renderAttendanceGrid();
+
+            if (makeActive) {
+                alert(`${person.name} 님을 다시 활성화했습니다.`);
+            } else {
+                alert(`${person.name} 님을 비활성화했습니다.\n과거 출석기록은 삭제되지 않습니다.`);
+            }
+        } catch (err) {
+            alert('명단 변경에 실패했습니다: ' + err.message);
+        }
+    }
+
     function getRecords() {
         const d = elDistrict.value;
         if (!allAttendanceRecords[d]) allAttendanceRecords[d] = {};
@@ -3098,9 +3275,12 @@
 
     function renderAttendanceGrid() {
         const members = getMembers();
-        const hasAny = CAT_ORDER.some(k => (members[CATEGORIES[k].key] || []).length > 0);
+        const fullRoster = getFullRosterForDistrict(elDistrict.value);
 
-        if (!hasAny) {
+        const hasAnyActive = CAT_ORDER.some(k => (members[CATEGORIES[k].key] || []).length > 0);
+        const hasAnyRoster = fullRoster.length > 0;
+
+        if (!hasAnyActive && !hasAnyRoster) {
             elAttendance.innerHTML = `<div class="card"><div class="empty-msg">${elDistrict.value} 명단이 비어있습니다.<br>하단 명단설정을 눌러 입력해주세요.</div></div>`;
             updateAllVisuals();
             return;
@@ -3108,12 +3288,33 @@
 
         elAttendance.innerHTML = '';
 
+        const inactiveTotal = fullRoster.filter(m => m && m.active === false).length;
+        if (inactiveTotal > 0) {
+            const note = document.createElement('div');
+            note.className = 'member-inactive-note';
+            note.innerHTML = `회색 이름은 <b>비활성 인원 ${inactiveTotal}명</b>입니다. 현재 총원·출석 대상에서는 제외되며 과거 기록은 유지됩니다.`;
+            elAttendance.appendChild(note);
+        }
+
         CAT_ORDER.forEach(k => {
             const cat = CATEGORIES[k];
-            const names = members[cat.key] || [];
-            if (names.length === 0) return;
+            const activeNames = members[cat.key] || [];
+            const categoryRoster = fullRoster.filter(m => m && (m.cat || '은장회') === cat.name);
+            const inactivePeople = categoryRoster.filter(m => m.active === false);
 
-            const attendedCount = names.filter(n => workingRecord.includes(n)).length;
+            // 서버 roster가 없을 때 기존 명단만 표시
+            let displayPeople = categoryRoster.length
+                ? categoryRoster
+                : activeNames.map(name => ({
+                    id: '',
+                    name,
+                    cat: cat.name,
+                    active: true
+                }));
+
+            if (displayPeople.length === 0) return;
+
+            const attendedCount = activeNames.filter(n => workingRecord.includes(n)).length;
 
             const section = document.createElement('section');
             section.className = 'member-section';
@@ -3124,7 +3325,7 @@
             header.innerHTML = `
                 <div class="mini-icon ${cat.cardClass}"><div class="cat-icon" style="width:34px;height:34px;margin:0;"><i data-lucide="${cat.icon}"></i></div></div>
                 <div class="cat-title-text" style="color:${getCatColor(cat.key)}">${cat.name}</div>
-                <div class="cat-sub">전체 ${names.length}명 · 출석 ${attendedCount}명</div>
+                <div class="cat-sub">활동 ${activeNames.length}명 · 출석 ${attendedCount}명${inactivePeople.length ? ` · 비활성 ${inactivePeople.length}명` : ''}</div>
                 <div class="fold-mark"><i data-lucide="chevron-up"></i></div>
             `;
             section.appendChild(header);
@@ -3142,14 +3343,51 @@
                 refreshIcons();
             });
 
-            names.forEach(name => {
+            // 활동 인원 먼저, 비활성 인원은 뒤쪽에 배치
+            displayPeople = [...displayPeople].sort((a, b) => {
+                const activeDiff = (a.active === false ? 1 : 0) - (b.active === false ? 1 : 0);
+                if (activeDiff !== 0) return activeDiff;
+                return String(a.name || '').localeCompare(String(b.name || ''), 'ko');
+            });
+
+            displayPeople.forEach(person => {
+                const name = normalizeNameValue(person.name);
+                if (!name) return;
+
+                const isInactive = person.active === false;
+                const cell = document.createElement('div');
+                cell.className = `member-cell${isInactive ? ' inactive' : ''}`;
+
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = `member-btn ${cat.btnClass}`;
-                if (workingRecord.includes(name)) btn.classList.add('active');
-                btn.textContent = name;
-                btn.addEventListener('click', () => toggleAttendance(name, btn));
-                grid.appendChild(btn);
+
+                if (isInactive) {
+                    btn.classList.add('inactive');
+                    if (workingRecord.includes(name)) btn.classList.add('had-attendance');
+                    btn.disabled = true;
+                    btn.innerHTML = `<span>${name}</span><span class="inactive-label">${workingRecord.includes(name) ? '비활성 · 기존 출석기록 있음' : '비활성'}</span>`;
+                } else {
+                    if (workingRecord.includes(name)) btn.classList.add('active');
+                    btn.textContent = name;
+                    btn.addEventListener('click', () => toggleAttendance(name, btn));
+                }
+
+                cell.appendChild(btn);
+
+                const manageBtn = document.createElement('button');
+                manageBtn.type = 'button';
+                manageBtn.className = 'member-quick-btn';
+                manageBtn.textContent = isInactive ? '↻' : '⋯';
+                manageBtn.setAttribute('aria-label', isInactive ? `${name} 활성화` : `${name} 명단 관리`);
+                manageBtn.title = isInactive ? '다시 활성화' : '비활성화';
+                manageBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    quickSetRosterActive(person.id, isInactive);
+                });
+
+                cell.appendChild(manageBtn);
+                grid.appendChild(cell);
             });
 
             section.appendChild(grid);
