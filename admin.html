@@ -6,7 +6,6 @@
 <title>봉선 출석통계 시스템</title>
 <meta name="theme-color" content="#0b4fb3">
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 :root{--primary:#0b4fb3;--primary-dark:#073b91;--primary-deep:#062c73;--primary-soft:#eaf3ff;--navy:#183a6b;--accent:#4a90e2;--green:#2ECC71;--pink:#EC5F97;--purple:#8E5BE8;--orange:#f39c12;--red:#e74c3c;--bg:#f2f6fc;--card:#fff;--line:#e5edf7;--text:#27364a;--muted:#8b98aa;--shadow:0 12px 30px rgba(25,62,110,.10);--soft-shadow:0 6px 18px rgba(24,55,96,.08)}
 *{box-sizing:border-box;margin:0;padding:0}html,body{max-width:100%;overflow-x:hidden}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:radial-gradient(circle at 20% 0%,rgba(74,144,226,.16),transparent 30%),linear-gradient(180deg,#f4f8ff 0%,#eef4fb 42%,#f7f9fd 100%);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}button,select,input,textarea{font-family:inherit}button{cursor:pointer;border:none}
@@ -65,13 +64,42 @@ main{padding:14px 14px 76px}.filter-card,.card{background:rgba(255,255,255,.96);
 .activity-empty{padding:8px 0;color:#a0a9b5;font-size:.73rem;text-align:center;font-weight:800}
 @media(max-width:390px){.activity-district-grid{grid-template-columns:1fr}.activity-columns{grid-template-columns:1fr 1fr}}
 
+
+/* 통합 명단관리 */
+.roster-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+.roster-summary-item{background:linear-gradient(145deg,#fff,#f6faff);border:1px solid #dce9f8;border-radius:16px;padding:13px 8px;text-align:center}
+.roster-summary-item small{display:block;color:#7d8b9c;font-size:.7rem;font-weight:900;margin-bottom:4px}
+.roster-summary-item b{display:block;color:var(--navy);font-size:1.35rem;font-weight:1000}
+.roster-toolbar{display:grid;grid-template-columns:1.1fr .9fr;gap:8px;margin-bottom:10px}
+.roster-actions-top{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.roster-soft-btn{padding:11px 8px;border-radius:12px;background:#edf5ff;color:var(--primary);border:1px solid #d4e7ff;font-size:.8rem;font-weight:950}
+.roster-soft-btn.green{background:#edfbf3;color:#17894a;border-color:#d5f0df}
+.roster-category{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:10px;background:white}
+.roster-category-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fbff;border-bottom:1px solid var(--line);font-size:.84rem;font-weight:950;color:var(--navy)}
+.roster-cat-badge{display:inline-flex;padding:3px 8px;border-radius:999px;color:#fff;font-size:.69rem;font-weight:950}
+.roster-cat-badge.eun{background:var(--primary)}.roster-cat-badge.bong{background:var(--green)}.roster-cat-badge.mom{background:var(--pink)}.roster-cat-badge.youth{background:var(--purple)}
+.roster-person{display:flex;align-items:center;gap:8px;padding:10px 11px;border-top:1px solid #f0f4f8}.roster-person:first-of-type{border-top:0}
+.roster-person.off{background:#fafbfc;color:#8a96a5}.roster-person.off .roster-name{text-decoration:line-through}
+.roster-name{font-size:.88rem;font-weight:950;color:var(--navy);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster-person.off .roster-name{color:#8a96a5}
+.roster-meta{font-size:.68rem;color:#909dad;white-space:nowrap}
+.roster-person-actions{margin-left:auto;display:flex;gap:5px;flex-shrink:0}
+.roster-mini-btn{padding:7px 8px;border-radius:9px;background:#f0f5fb;color:#52657c;font-size:.7rem;font-weight:950}
+.roster-mini-btn.warn{background:#fff3df;color:#ad6500}.roster-mini-btn.restore{background:#eaf8f0;color:#1d7a48}
+.roster-add-grid{display:grid;grid-template-columns:1.2fr .9fr auto;gap:7px}.roster-add-grid button{padding:0 14px;border-radius:12px;background:var(--primary);color:white;font-weight:950}
+.roster-total-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.roster-total-card{padding:11px;border:1px solid var(--line);border-radius:14px;background:#fbfdff}.roster-total-card b{color:var(--navy);font-size:.86rem}.roster-total-card span{float:right;color:var(--primary);font-weight:1000}
+.roster-total-card small{display:block;clear:both;margin-top:4px;color:#8390a1;font-size:.68rem}
+.roster-state-pill{font-size:.64rem;font-weight:950;padding:3px 7px;border-radius:999px;background:#e9f8ef;color:#1a7e49}.roster-state-pill.off{background:#eef1f4;color:#7b8794}
+@media(max-width:390px){.roster-summary-grid{grid-template-columns:repeat(2,1fr)}.roster-toolbar,.roster-actions-top{grid-template-columns:1fr}.roster-add-grid{grid-template-columns:1fr 1fr}.roster-add-grid button{grid-column:1/-1;padding:11px}.roster-total-list{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <header>
   <div class="top-bar"><div class="left-title-wrap"><button class="home-btn" type="button" id="admin-home-btn" aria-label="홈"><i data-lucide="home"></i></button><h1>봉선 출석통계 시스템</h1></div><div class="header-actions"><button class="notice-btn" type="button" id="open-notice-btn"><span>공지</span><i data-lucide="megaphone"></i></button><button class="excel-btn" type="button" id="export-excel-btn"><span>엑셀</span><i data-lucide="file-spreadsheet"></i></button></div></div>
   <div class="month-context" id="month-context"><i data-lucide="calendar-days"></i><span>월별 통계</span></div>
-  <div class="tab-shell"><div class="tabs"><button class="tab-btn active" data-tab="monthly"><i data-lucide="bar-chart-3"></i>월별 통계</button><button class="tab-btn" data-tab="personal"><i data-lucide="user-round"></i>개인별 현황</button><button class="tab-btn" data-tab="daily"><i data-lucide="clipboard-check"></i>일자별 제출현황</button></div></div>
+  <div class="tab-shell"><div class="tabs"><button class="tab-btn active" data-tab="monthly"><i data-lucide="bar-chart-3"></i>월별 통계</button><button class="tab-btn" data-tab="personal"><i data-lucide="user-round"></i>개인별 현황</button><button class="tab-btn" data-tab="daily"><i data-lucide="clipboard-check"></i>일자별 제출현황</button><button class="tab-btn" data-tab="roster"><i data-lucide="users-round"></i>명단관리</button></div></div>
 </header>
 <main>
   <div id="tab-monthly">
@@ -98,6 +126,42 @@ main{padding:14px 14px 76px}.filter-card,.card{background:rgba(255,255,255,.96);
   </div>
   <div id="tab-personal" style="display:none;"><div class="filter-card"><div class="personal-controls"><select id="personal-district"><option value="all">전체 구역</option></select><select id="personal-cat"><option value="은장회">은장회</option><option value="봉사회">봉사회</option><option value="어머니회">어머니회</option><option value="청년회">청년회</option></select><select id="personal-type"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select><select id="personal-month"><option value="all">전체 기간</option></select></div><button class="refresh-btn" id="refresh-btn-personal">🔄 데이터 새로고침</button></div><div class="card"><div class="card-title"><i data-lucide="user-round-check"></i>개인별 출석 현황</div><div class="note" style="margin-bottom:12px;">제출자가 보낸 전체 명단과 출석 명단 기준입니다.</div><div id="personal-summary"></div><div id="personal-detail" class="personal-detail"></div><div id="personal-wrap"><div class="loading">데이터 불러오는 중...</div></div></div></div>
   <div id="tab-daily" style="display:none;"><div class="filter-card"><div class="filter-row"><input type="date" id="date-select"><select id="type-select"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select></div><button class="refresh-btn" id="refresh-btn-daily">🔄 데이터 새로고침</button></div><div class="card"><div class="card-title"><i data-lucide="folder-check"></i>일자별 제출현황 <span id="submit-badge" class="badge badge-no">0개 제출</span></div><div id="district-table-wrap"><div class="loading">데이터 불러오는 중...</div></div></div><div class="card"><div class="card-title"><i data-lucide="calculator"></i>선택 일자 전체 합산</div><div id="total-wrap"><div class="empty-msg">제출된 데이터가 없습니다</div></div></div></div>
+
+  <div id="tab-roster" style="display:none;">
+    <div class="filter-card">
+      <div class="roster-toolbar">
+        <select id="roster-district"></select>
+        <select id="roster-view-filter"><option value="active">활동 인원만</option><option value="all">비활동 포함</option></select>
+      </div>
+      <button class="refresh-btn" id="refresh-btn-roster">🔄 명단 새로고침</button>
+    </div>
+
+    <div id="roster-summary"></div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="users-round"></i>구역 명단 관리</div>
+      <div class="note" style="margin:0 0 12px;">사람을 완전히 삭제하지 않습니다. 나가신 분은 <b>비활성화</b>하여 현재 명단에서만 제외하고 과거 기록은 보존합니다.</div>
+      <div class="roster-actions-top">
+        <button class="roster-soft-btn" id="roster-import-latest">최근 출석명단에서 가져오기</button>
+        <button class="roster-soft-btn green" id="roster-export-btn">명단 엑셀</button>
+      </div>
+      <div id="roster-list"><div class="loading">명단 불러오는 중...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="user-plus"></i>인원 추가</div>
+      <div class="roster-add-grid">
+        <input type="text" id="roster-new-name" placeholder="이름">
+        <select id="roster-new-cat"><option>은장회</option><option>봉사회</option><option>어머니회</option><option>청년회</option></select>
+        <button id="roster-add-btn">추가</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i data-lucide="calculator"></i>전체 구역 현재 총원</div>
+      <div id="roster-total-wrap"></div>
+    </div>
+  </div>
 </main>
 <div class="modal" id="pin-modal"><div class="modal-box"><h3>🔐 관리자 비밀번호</h3><div class="pin-display"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div></div><div class="pin-pad"><button class="pin-btn" data-n="1">1</button><button class="pin-btn" data-n="2">2</button><button class="pin-btn" data-n="3">3</button><button class="pin-btn" data-n="4">4</button><button class="pin-btn" data-n="5">5</button><button class="pin-btn" data-n="6">6</button><button class="pin-btn" data-n="7">7</button><button class="pin-btn" data-n="8">8</button><button class="pin-btn" data-n="9">9</button><button class="pin-btn" data-n="0" style="grid-column:2;">0</button><button class="pin-btn del" id="pin-del">⌫</button></div><div class="pin-error" id="pin-error"></div><button class="pin-cancel" id="pin-cancel">취소</button></div></div>
 <div class="modal" id="edit-modal"><div class="modal-box"><h3>✏️ 출석 수정 / 삭제</h3><div class="edit-info" id="edit-info"></div><div class="edit-row"><label>구역</label><select id="edit-district"></select></div><div class="edit-row"><label>날짜</label><input type="date" id="edit-date"></div><div class="edit-row"><label>말씀</label><select id="edit-meeting-type"><option value="주일말씀">주일말씀</option><option value="수요말씀">수요말씀</option><option value="구역모임">구역모임</option></select></div><div class="edit-row"><label style="color:#666;">은장회</label><input type="number" id="edit-eun" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--green);">봉사회</label><input type="number" id="edit-bong" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--pink);">어머니회</label><input type="number" id="edit-mom" min="0" max="99"><span>명</span></div><div class="edit-row"><label style="color:var(--purple);">청년회</label><input type="number" id="edit-youth" min="0" max="99"><span>명</span></div><div class="edit-total-preview" id="edit-total-preview">합계: <b>0명</b></div><div class="modal-btn-row"><button class="btn-edit-cancel" id="edit-cancel">취소</button><button class="btn-edit-delete" id="edit-delete">🗑️ 삭제</button><button class="btn-edit-save" id="edit-save">💾 저장</button></div></div></div>
@@ -111,17 +175,43 @@ main{padding:14px 14px 76px}.filter-card,.card{background:rgba(255,255,255,.96);
   <div id="monthly-history" class="monthly-history"></div>
   <div class="modal-btn-row" style="margin-top:14px;"><button class="btn-edit-cancel" id="monthly-confirm-cancel">취소</button><button class="btn-edit-save" id="monthly-confirm-save">확정 저장</button></div>
 </div></div>
+
+<div class="modal" id="roster-edit-modal"><div class="modal-box">
+  <h3>👤 명단 수정</h3>
+  <div class="edit-info" id="roster-edit-info"></div>
+  <div class="edit-row"><label>이름</label><input type="text" id="roster-edit-name"></div>
+  <div class="edit-row"><label>구분</label><select id="roster-edit-cat"><option>은장회</option><option>봉사회</option><option>어머니회</option><option>청년회</option></select></div>
+  <div class="modal-btn-row"><button class="btn-edit-cancel" id="roster-edit-cancel">취소</button><button class="btn-edit-save" id="roster-edit-save">저장</button></div>
+</div></div>
 <div class="modal" id="notice-modal"><div class="modal-box"><h3>📢 전체 공지 보내기</h3><div class="edit-info">공지 저장 후 담당자들이 index 앱을 열면 한 번씩 팝업으로 보입니다.</div><input type="text" id="notice-title" placeholder="공지 제목" value="공지사항"><textarea id="notice-message" placeholder="공지 내용을 입력하세요"></textarea><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.85rem;font-weight:850;color:#52606f;"><input type="checkbox" id="notice-active" checked style="width:18px;height:18px;">공지 활성화</label><div class="notice-preview" id="notice-preview">공지 미리보기</div><div class="notice-actions"><button class="btn-save" id="notice-save">공지 저장</button><button class="btn-save btn-danger" id="notice-stop">공지 중지</button></div><button class="pin-cancel" id="notice-cancel">닫기</button></div></div>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import{getFirestore,collection,getDocs,deleteDoc,doc,updateDoc,setDoc,getDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyCb5ULk6CNFvc24WZXn_PNAurY5F3C3qO4",authDomain:"bongsun-17d80.firebaseapp.com",projectId:"bongsun-17d80",storageBucket:"bongsun-17d80.firebasestorage.app",messagingSenderId:"122450922261",appId:"1:122450922261:web:f552a646f323e3a78b771c"};
-const app=initializeApp(firebaseConfig),db=getFirestore(app);const ALL_DISTRICTS=[];[10,20,30,40].forEach(base=>{for(let i=1;i<=5;i++)ALL_DISTRICTS.push(`${base+i}구역`)});const MEETING_TYPES=['주일말씀','수요말씀','구역모임'];const CAT_NAMES=['은장회','봉사회','어머니회','청년회'];const CAT_META={'은장회':{tdClass:'td-eun',cardClass:'cat-eun',icon:'users-round'},'봉사회':{tdClass:'td-bong',cardClass:'cat-bong',icon:'hand-heart'},'어머니회':{tdClass:'td-mom',cardClass:'cat-mom',icon:'heart'},'청년회':{tdClass:'td-youth',cardClass:'cat-youth',icon:'sparkles'}};const ADMIN_PIN='0000';let pinInput='',pinCallback=null,editingSubmission=null,currentTab='monthly',allSubmissions=[],allMonthlyActivities=[],editingMonthlyActivity=null;
-const elMonth=document.getElementById('month-select'),elDate=document.getElementById('date-select'),elType=document.getElementById('type-select'),elPersonalDistrict=document.getElementById('personal-district'),elPersonalCat=document.getElementById('personal-cat'),elPersonalType=document.getElementById('personal-type'),elPersonalMonth=document.getElementById('personal-month'),elMonthContext=document.getElementById('month-context').querySelector('span'),elSessionRateDistrict=document.getElementById('session-rate-district'),elSessionRateMonth=document.getElementById('session-rate-month');elDate.value=new Date().toISOString().split('T')[0];
-function refreshIcons(){if(window.lucide)window.lucide.createIcons()}function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}function safeRate(n,d){return d?Math.round(n/d*100):0}function clampPct(v){return Math.max(0,Math.min(100,Number(v)||0))}function rateBox(rate){const pct=clampPct(rate);return`<div class="rate-box"><div class="rate-text">${pct}%</div><div class="mini-track"><div class="mini-fill" style="width:${pct}%;"></div></div></div>`}function getCategoryCount(s,c){return s.출석데이터?.[c]?.인원||0}function getCategoryAllNames(s,c){const a=s.출석데이터?.[c]?.전체;return Array.isArray(a)?a:[]}function getCategoryPresentNames(s,c){const a=s.출석데이터?.[c]?.출석;return Array.isArray(a)?a:[]}function getSubmissionTotal(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryCount(s,c),0)}function totalRegisteredInSubmission(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryAllNames(s,c).length,0)}function getMonthlyActivity(district,monthKey){return allMonthlyActivities.find(x=>x.구역===district&&x.월===monthKey)||null}function getSubmissionMonthKey(s){return String(s?.날짜||'').slice(0,7)}function getSubmissionRegisteredTotal(s){const x=getMonthlyActivity(s.구역,getSubmissionMonthKey(s));if(x){const admin=Number(x.관리자확정총원);if(Number.isFinite(admin))return admin;const leader=Number(x.구역장입력총원);if(Number.isFinite(leader))return leader}return totalRegisteredInSubmission(s)}function formatDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return dateKey||'';const[y,m,d]=dateKey.split('-').map(Number);return`${y}. ${m}. ${d}.`}function expectedMeetingTypeByDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return'';const[y,m,d]=dateKey.split('-').map(Number);const day=new Date(y,m-1,d).getDay();if(day===0)return'주일말씀';if(day===3)return'수요말씀';return''}
-function setLoading(){['monthly-summary','monthly-district-list','monthly-district-detail','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap','session-rate-wrap','monthly-check-wrap','activity-board-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading">데이터 불러오는 중...</div>'})}
-function initOptions(){const editDistrictSelect=document.getElementById('edit-district');ALL_DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;elPersonalDistrict.appendChild(o);if(editDistrictSelect){const editOption=document.createElement('option');editOption.value=d;editOption.textContent=d;editDistrictSelect.appendChild(editOption)}if(elSessionRateDistrict){const sr=document.createElement('option');sr.value=d;sr.textContent=d;elSessionRateDistrict.appendChild(sr)}})}
-async function loadAll(){setLoading();try{allSubmissions=[];allMonthlyActivities=[];for(const district of ALL_DISTRICTS){const ref=collection(db,'submissions',district,'records');const snap=await getDocs(ref);snap.forEach(d=>allSubmissions.push({id:d.id,...d.data()}));const mref=collection(db,'monthlyActivities',district,'months');const msnap=await getDocs(mref);msnap.forEach(d=>allMonthlyActivities.push({id:d.id,구역:district,월:d.id,...d.data()}))}updateMonthOptions();renderMonthly();renderDaily();renderPersonal();refreshIcons()}catch(e){const msg=`<div class="empty-msg">오류: ${escapeHtml(e.message)}</div>`;['monthly-summary','district-table-wrap','personal-wrap','session-rate-wrap','monthly-check-wrap','activity-board-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=msg})}}
+const app=initializeApp(firebaseConfig),db=getFirestore(app);const ALL_DISTRICTS=[];[10,20,30,40].forEach(base=>{for(let i=1;i<=5;i++)ALL_DISTRICTS.push(`${base+i}구역`)});const MEETING_TYPES=['주일말씀','수요말씀','구역모임'];const CAT_NAMES=['은장회','봉사회','어머니회','청년회'];const CAT_META={'은장회':{tdClass:'td-eun',cardClass:'cat-eun',icon:'users-round'},'봉사회':{tdClass:'td-bong',cardClass:'cat-bong',icon:'hand-heart'},'어머니회':{tdClass:'td-mom',cardClass:'cat-mom',icon:'heart'},'청년회':{tdClass:'td-youth',cardClass:'cat-youth',icon:'sparkles'}};const ADMIN_PIN='0000';let pinInput='',pinCallback=null,editingSubmission=null,currentTab='monthly',allSubmissions=[],allMonthlyActivities=[],editingMonthlyActivity=null,allRosters={},editingRosterPerson=null;
+const elMonth=document.getElementById('month-select'),elDate=document.getElementById('date-select'),elType=document.getElementById('type-select'),elPersonalDistrict=document.getElementById('personal-district'),elPersonalCat=document.getElementById('personal-cat'),elPersonalType=document.getElementById('personal-type'),elPersonalMonth=document.getElementById('personal-month'),elMonthContext=document.getElementById('month-context').querySelector('span'),elSessionRateDistrict=document.getElementById('session-rate-district'),elSessionRateMonth=document.getElementById('session-rate-month'),elRosterDistrict=document.getElementById('roster-district'),elRosterViewFilter=document.getElementById('roster-view-filter');elDate.value=new Date().toISOString().split('T')[0];
+function refreshIcons(){if(window.lucide)window.lucide.createIcons()}let excelJsLoadPromise=null;function ensureExcelJs(){if(window.ExcelJS)return Promise.resolve(window.ExcelJS);if(excelJsLoadPromise)return excelJsLoadPromise;excelJsLoadPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';s.async=true;s.onload=()=>{if(window.ExcelJS)resolve(window.ExcelJS);else{excelJsLoadPromise=null;reject(new Error('ExcelJS 로딩 실패'))}};s.onerror=()=>{excelJsLoadPromise=null;reject(new Error('ExcelJS 로딩 실패'))};document.head.appendChild(s)});return excelJsLoadPromise;}function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}function safeRate(n,d){return d?Math.round(n/d*100):0}function clampPct(v){return Math.max(0,Math.min(100,Number(v)||0))}function rateBox(rate){const pct=clampPct(rate);return`<div class="rate-box"><div class="rate-text">${pct}%</div><div class="mini-track"><div class="mini-fill" style="width:${pct}%;"></div></div></div>`}function getCategoryCount(s,c){return s.출석데이터?.[c]?.인원||0}function getCategoryAllNames(s,c){const a=s.출석데이터?.[c]?.전체;return Array.isArray(a)?a:[]}function getCategoryPresentNames(s,c){const a=s.출석데이터?.[c]?.출석;return Array.isArray(a)?a:[]}function getSubmissionTotal(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryCount(s,c),0)}function totalRegisteredInSubmission(s){return CAT_NAMES.reduce((sum,c)=>sum+getCategoryAllNames(s,c).length,0)}function getMonthlyActivity(district,monthKey){return allMonthlyActivities.find(x=>x.구역===district&&x.월===monthKey)||null}function getSubmissionMonthKey(s){return String(s?.날짜||'').slice(0,7)}function getSubmissionRegisteredTotal(s){const x=getMonthlyActivity(s.구역,getSubmissionMonthKey(s));if(x){const admin=Number(x.관리자확정총원);if(Number.isFinite(admin))return admin;const leader=Number(x.구역장입력총원);if(Number.isFinite(leader))return leader}return totalRegisteredInSubmission(s)}function formatDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return dateKey||'';const[y,m,d]=dateKey.split('-').map(Number);return`${y}. ${m}. ${d}.`}function expectedMeetingTypeByDate(dateKey){if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey||''))return'';const[y,m,d]=dateKey.split('-').map(Number);const day=new Date(y,m-1,d).getDay();if(day===0)return'주일말씀';if(day===3)return'수요말씀';return''}
+function setLoading(){['monthly-summary','monthly-district-list','monthly-district-detail','meeting-stats-wrap','category-stats-wrap','district-table-wrap','total-wrap','personal-wrap','session-rate-wrap','monthly-check-wrap','activity-board-wrap','roster-list','roster-summary','roster-total-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading">데이터 불러오는 중...</div>'})}
+function initOptions(){const editDistrictSelect=document.getElementById('edit-district');ALL_DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;elPersonalDistrict.appendChild(o);if(editDistrictSelect){const editOption=document.createElement('option');editOption.value=d;editOption.textContent=d;editDistrictSelect.appendChild(editOption)}if(elSessionRateDistrict){const sr=document.createElement('option');sr.value=d;sr.textContent=d;elSessionRateDistrict.appendChild(sr)}if(elRosterDistrict){const rr=document.createElement('option');rr.value=d;rr.textContent=d;elRosterDistrict.appendChild(rr)}})}
+async function loadAll(){setLoading();try{
+const results=await Promise.all(ALL_DISTRICTS.map(async district=>{
+const [snap,msnap,rsnap]=await Promise.all([
+getDocs(collection(db,'submissions',district,'records')),
+getDocs(collection(db,'monthlyActivities',district,'months')),
+getDoc(doc(db,'rosters',district))
+]);
+return{
+district,
+submissions:snap.docs.map(d=>({id:d.id,...d.data()})),
+monthly:msnap.docs.map(d=>({id:d.id,구역:district,월:d.id,...d.data()})),
+roster:rsnap.exists()?{exists:true,members:Array.isArray(rsnap.data().members)?rsnap.data().members:[],updatedAtMs:Number(rsnap.data().updatedAtMs)||0}:{exists:false,members:[],updatedAtMs:0}
+};
+}));
+allSubmissions=results.flatMap(r=>r.submissions);
+allMonthlyActivities=results.flatMap(r=>r.monthly);
+allRosters={};results.forEach(r=>allRosters[r.district]=r.roster);
+updateMonthOptions();renderMonthly();renderDaily();renderPersonal();if(currentTab==='roster')renderRosterAdmin();refreshIcons()
+}catch(e){const msg=`<div class="empty-msg">오류: ${escapeHtml(e.message)}</div>`;['monthly-summary','district-table-wrap','personal-wrap','session-rate-wrap','monthly-check-wrap','activity-board-wrap','roster-list','roster-summary','roster-total-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=msg})}}
 function getMonthLabel(v){if(!v||v==='all')return'전체 기간 월별 통계';const[y,m]=v.split('-');return`${y}년 ${parseInt(m,10)}월 월별 통계`}function updateMonthOptions(){const months=[...new Set([...allSubmissions.filter(s=>s.날짜).map(s=>s.날짜.substring(0,7)),...allMonthlyActivities.filter(x=>x.월).map(x=>x.월)])].sort().reverse();const fill=(sel,keep)=>{sel.innerHTML='<option value="all">전체 기간</option>';months.forEach(ym=>{const[y,m]=ym.split('-');sel.innerHTML+=`<option value="${ym}">${y}년 ${parseInt(m,10)}월</option>`});if([...sel.options].some(o=>o.value===keep))sel.value=keep;else if(months.length)sel.value=months[0]};fill(elMonth,elMonth.value);fill(elPersonalMonth,elPersonalMonth.value);if(elSessionRateMonth)fill(elSessionRateMonth,elSessionRateMonth.value);elMonthContext.textContent=getMonthLabel(elMonth.value)}function getMonthFilteredRows(){const v=elMonth.value;return allSubmissions.filter(s=>s.날짜&&(v==='all'||s.날짜.startsWith(v)))}function expectedSubmissionCount(rows,type){const dates=new Set(rows.filter(s=>s.모임===type).map(s=>s.날짜));return dates.size*ALL_DISTRICTS.length}
 function summarizeRows(rows){const typeStats={},catStats={};MEETING_TYPES.forEach(t=>typeStats[t]={present:0,registered:0,submissions:0,dates:new Set()});CAT_NAMES.forEach(c=>catStats[c]={present:0,registered:0,submissions:0});rows.forEach(s=>{const type=s.모임;if(!typeStats[type])return;typeStats[type].submissions++;typeStats[type].dates.add(s.날짜);typeStats[type].present+=getSubmissionTotal(s);typeStats[type].registered+=getSubmissionRegisteredTotal(s);CAT_NAMES.forEach(cat=>{const p=getCategoryCount(s,cat),r=getCategoryAllNames(s,cat).length;catStats[cat].present+=p;catStats[cat].registered+=r;catStats[cat].submissions++})});return{typeStats,catStats}}
 
@@ -185,10 +275,125 @@ function openPinModal(cb){pinInput='';pinCallback=cb;document.getElementById('pi
 function openEditModal(s){editingSubmission=s;document.getElementById('edit-info').innerHTML=`<b>${s.구역}</b><br>구역, 날짜, 말씀 종류를 바꿔서 다른 위치로 이동 저장할 수 있습니다.`;document.getElementById('edit-district').value=s.구역;document.getElementById('edit-date').value=s.날짜;document.getElementById('edit-meeting-type').value=s.모임;document.getElementById('edit-eun').value=getCategoryCount(s,'은장회');document.getElementById('edit-bong').value=getCategoryCount(s,'봉사회');document.getElementById('edit-mom').value=getCategoryCount(s,'어머니회');document.getElementById('edit-youth').value=getCategoryCount(s,'청년회');updateEditTotal();document.getElementById('edit-modal').classList.add('show')}function updateEditTotal(){const total=['edit-eun','edit-bong','edit-mom','edit-youth'].reduce((a,id)=>a+(parseInt(document.getElementById(id).value)||0),0);document.getElementById('edit-total-preview').innerHTML=`합계: <b>${total}명</b>`}
 async function saveEdit(){if(!editingSubmission)return;const s=editingSubmission,newDistrict=document.getElementById('edit-district').value,newDate=document.getElementById('edit-date').value,newType=document.getElementById('edit-meeting-type').value;if(!newDistrict){alert('구역을 선택해주세요.');return}if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('날짜를 선택해주세요.');return}const expected=expectedMeetingTypeByDate(newDate);if(expected&&['주일말씀','수요말씀'].includes(newType)&&expected!==newType){if(!confirm(`${formatDate(newDate)}은 ${expected}입니다.\n현재 ${newType}으로 저장하려고 합니다.\n그래도 저장할까요?`))return}const newData={...(s.출석데이터||{})};CAT_NAMES.forEach(cat=>{if(!newData[cat])newData[cat]={전체:[],출석:[],인원:0}});newData['은장회'].인원=parseInt(document.getElementById('edit-eun').value)||0;newData['봉사회'].인원=parseInt(document.getElementById('edit-bong').value)||0;newData['어머니회'].인원=parseInt(document.getElementById('edit-mom').value)||0;newData['청년회'].인원=parseInt(document.getElementById('edit-youth').value)||0;const oldId=`${s.날짜}_${s.모임}`,newId=`${newDate}_${newType}`,oldRef=doc(db,'submissions',s.구역,'records',oldId),newRef=doc(db,'submissions',newDistrict,'records',newId),isMoved=newDistrict!==s.구역||newId!==oldId;try{if(isMoved){const snap=await getDoc(newRef);if(snap.exists()&&!confirm(`${newDistrict} ${newDate} ${newType} 기록이 이미 있습니다.\n덮어쓸까요?`))return;await setDoc(newRef,{...s,id:newId,구역:newDistrict,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()},{merge:false});await deleteDoc(oldRef);elDate.value=newDate;elType.value=newType;alert(`${s.구역} ${s.날짜} ${s.모임} 기록을\n${newDistrict} ${newDate} ${newType}(으)로 이동 저장했습니다.`)}else{await updateDoc(oldRef,{구역:newDistrict,날짜:newDate,모임:newType,출석데이터:newData,수정시간:serverTimestamp()});alert('수정되었습니다.')}document.getElementById('edit-modal').classList.remove('show');await loadAll()}catch(e){alert('수정 실패: '+e.message)}}
 async function deleteEdit(){if(!editingSubmission)return;const s=editingSubmission;if(!confirm(`${s.구역} ${s.날짜} ${s.모임} 기록을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`))return;try{await deleteDoc(doc(db,'submissions',s.구역,'records',`${s.날짜}_${s.모임}`));document.getElementById('edit-modal').classList.remove('show');alert('삭제되었습니다.');await loadAll()}catch(e){alert('삭제 실패: '+e.message)}}
-function switchTab(tab){currentTab=tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.getElementById('tab-monthly').style.display=tab==='monthly'?'block':'none';document.getElementById('tab-personal').style.display=tab==='personal'?'block':'none';document.getElementById('tab-daily').style.display=tab==='daily'?'block':'none';if(tab==='monthly'){elMonthContext.textContent=getMonthLabel(elMonth.value);renderMonthly()}if(tab==='personal'){elMonthContext.textContent='개인별 출석 현황';renderPersonal()}if(tab==='daily'){elMonthContext.textContent='일자별 제출현황';renderDaily()}refreshIcons()}
+
+function rosterMembers(d){return Array.isArray(allRosters[d]?.members)?allRosters[d].members:[]}
+function activeRosterMembers(d){return rosterMembers(d).filter(m=>m&&m.active!==false)}
+function rosterNewId(){return'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function rosterToday(){return new Date().toISOString().slice(0,10)}
+function rosterCatClass(cat){return cat==='봉사회'?'bong':cat==='어머니회'?'mom':cat==='청년회'?'youth':'eun'}
+function latestSubmissionForDistrict(d){
+  return allSubmissions.filter(s=>s.구역===d&&s.날짜).sort((a,b)=>(b.날짜||'').localeCompare(a.날짜||'')||(b.제출시간?.seconds||0)-(a.제출시간?.seconds||0))[0]||null
+}
+async function saveRosterWithConflict(d,members){
+  const loaded=allRosters[d]||{exists:false,members:[],updatedAtMs:0};
+  const ref=doc(db,'rosters',d);
+  const snap=await getDoc(ref);
+  const remoteExists=snap.exists();
+  const remoteVersion=remoteExists?(Number(snap.data().updatedAtMs)||0):0;
+  if(remoteExists!==!!loaded.exists||(remoteExists&&remoteVersion!==(Number(loaded.updatedAtMs)||0))){
+    alert('다른 기기에서 이 구역 명단이 먼저 변경되었습니다.\n새로고침 후 다시 수정해주세요.');
+    await loadAll();
+    return false;
+  }
+  const updatedAtMs=Date.now();
+  await setDoc(ref,{members,updatedAtMs,updatedAt:serverTimestamp()},{merge:true});
+  allRosters[d]={exists:true,members:members.map(m=>({...m})),updatedAtMs};
+  return true
+}
+function renderRosterAdmin(){
+  if(!elRosterDistrict)return;
+  if(!elRosterDistrict.value)elRosterDistrict.value=ALL_DISTRICTS[0];
+  const d=elRosterDistrict.value,all=rosterMembers(d),active=activeRosterMembers(d),off=all.filter(m=>m&&m.active===false);
+  const latest=latestSubmissionForDistrict(d),latestTotal=latest?CAT_NAMES.reduce((sum,c)=>sum+getCategoryAllNames(latest,c).length,0):null;
+  document.getElementById('roster-summary').innerHTML=`<div class="roster-summary-grid">
+    <div class="roster-summary-item"><small>${d} 활동</small><b>${active.length}명</b></div>
+    <div class="roster-summary-item"><small>비활동</small><b>${off.length}명</b></div>
+    <div class="roster-summary-item"><small>최근 출석명단</small><b>${latestTotal===null?'—':latestTotal+'명'}</b></div>
+  </div>`;
+
+  const visible=elRosterViewFilter.value==='all'?all:active;
+  const byCat={};CAT_NAMES.forEach(c=>byCat[c]=[]);
+  visible.forEach(m=>{if(!m)return;(byCat[m.cat]||byCat['은장회']).push(m)});
+  const html=CAT_NAMES.map(cat=>{
+    const list=byCat[cat].sort((a,b)=>(a.active===false)-(b.active===false)||(a.name||'').localeCompare(b.name||'','ko'));
+    const actCount=active.filter(m=>m.cat===cat).length,totalCount=all.filter(m=>m.cat===cat).length;
+    return `<div class="roster-category"><div class="roster-category-head"><span class="roster-cat-badge ${rosterCatClass(cat)}">${cat}</span><span>활동 ${actCount}명 · 전체 ${totalCount}명</span></div>${
+      list.length?list.map(m=>`<div class="roster-person ${m.active===false?'off':''}">
+        <span class="roster-name">${escapeHtml(m.name||'')}</span>
+        <span class="roster-state-pill ${m.active===false?'off':''}">${m.active===false?'비활동':'활동'}</span>
+        <span class="roster-meta">${m.active===false?`${escapeHtml(m.leftAt||'')}${m.reason?' · '+escapeHtml(m.reason):''}`:(m.joinedAt?escapeHtml(m.joinedAt)+' 등록':'')}</span>
+        <span class="roster-person-actions"><button class="roster-mini-btn" data-roster-edit="${escapeHtml(m.id)}">수정</button>${m.active===false?`<button class="roster-mini-btn restore" data-roster-on="${escapeHtml(m.id)}">복구</button>`:`<button class="roster-mini-btn warn" data-roster-off="${escapeHtml(m.id)}">비활성화</button>`}</span>
+      </div>`).join(''):'<div class="empty-msg" style="padding:16px 0;">등록 인원 없음</div>'
+    }</div>`
+  }).join('');
+  document.getElementById('roster-list').innerHTML=html;
+
+  document.querySelectorAll('[data-roster-edit]').forEach(b=>b.onclick=()=>openPinModal(()=>openRosterEdit(b.dataset.rosterEdit)));
+  document.querySelectorAll('[data-roster-off]').forEach(b=>b.onclick=()=>openPinModal(()=>deactivateRosterPerson(b.dataset.rosterOff)));
+  document.querySelectorAll('[data-roster-on]').forEach(b=>b.onclick=()=>openPinModal(()=>restoreRosterPerson(b.dataset.rosterOn)));
+
+  const totalActive=ALL_DISTRICTS.reduce((sum,x)=>sum+activeRosterMembers(x).length,0),totalOff=ALL_DISTRICTS.reduce((sum,x)=>sum+rosterMembers(x).filter(m=>m?.active===false).length,0),empty=ALL_DISTRICTS.filter(x=>!activeRosterMembers(x).length).length;
+  document.getElementById('roster-total-wrap').innerHTML=`<div class="roster-summary-grid"><div class="roster-summary-item"><small>전체 활동 총원</small><b>${totalActive}명</b></div><div class="roster-summary-item"><small>전체 비활동</small><b>${totalOff}명</b></div><div class="roster-summary-item"><small>명단 없는 구역</small><b>${empty}개</b></div></div><div class="roster-total-list">${ALL_DISTRICTS.map(x=>{const a=activeRosterMembers(x),o=rosterMembers(x).filter(m=>m?.active===false);const per=CAT_NAMES.map(c=>`${c.replace('회','')} ${a.filter(m=>m.cat===c).length}`).join(' · ');return`<div class="roster-total-card" data-roster-jump="${x}"><b>${x}</b><span>${a.length}명</span><small>${per}${o.length?` · 비활동 ${o.length}`:''}</small></div>`}).join('')}</div>`;
+  document.querySelectorAll('[data-roster-jump]').forEach(c=>c.onclick=()=>{elRosterDistrict.value=c.dataset.rosterJump;renderRosterAdmin();window.scrollTo({top:0,behavior:'smooth'})});
+  refreshIcons()
+}
+function findRosterPerson(d,id){return rosterMembers(d).find(m=>String(m.id)===String(id))||null}
+function openRosterEdit(id){
+  const d=elRosterDistrict.value,m=findRosterPerson(d,id);if(!m)return;
+  editingRosterPerson={district:d,id};
+  document.getElementById('roster-edit-info').innerHTML=`<b>${d}</b> · ${m.active===false?'비활동':'활동'} 인원`;
+  document.getElementById('roster-edit-name').value=m.name||'';
+  document.getElementById('roster-edit-cat').value=CAT_NAMES.includes(m.cat)?m.cat:'은장회';
+  document.getElementById('roster-edit-modal').classList.add('show')
+}
+async function saveRosterEdit(){
+  if(!editingRosterPerson)return;const{district,id}=editingRosterPerson;
+  const name=document.getElementById('roster-edit-name').value.trim(),cat=document.getElementById('roster-edit-cat').value;
+  if(!name){alert('이름을 입력해주세요.');return}
+  const members=rosterMembers(district).map(m=>({...m})),m=members.find(x=>String(x.id)===String(id));if(!m)return;
+  m.name=name;m.cat=cat;
+  try{if(await saveRosterWithConflict(district,members)){document.getElementById('roster-edit-modal').classList.remove('show');editingRosterPerson=null;renderRosterAdmin();alert('명단을 수정했습니다.')}}catch(e){alert('명단 수정 실패: '+e.message)}
+}
+async function deactivateRosterPerson(id){
+  const d=elRosterDistrict.value,members=rosterMembers(d).map(m=>({...m})),m=members.find(x=>String(x.id)===String(id));if(!m)return;
+  const reason=prompt(`${m.name} 님을 비활성화합니다.\n사유를 입력해주세요. (선택)`,'')??null;if(reason===null)return;
+  m.active=false;m.leftAt=rosterToday();m.reason=reason.trim();
+  try{if(await saveRosterWithConflict(d,members)){renderRosterAdmin();alert(`${m.name} 님을 비활성화했습니다.\n과거 기록은 삭제되지 않습니다.`)}}catch(e){alert('비활성화 실패: '+e.message)}
+}
+async function restoreRosterPerson(id){
+  const d=elRosterDistrict.value,members=rosterMembers(d).map(m=>({...m})),m=members.find(x=>String(x.id)===String(id));if(!m)return;
+  if(!confirm(`${m.name} 님을 현재 명단으로 복구할까요?`))return;
+  m.active=true;m.leftAt='';m.reason='';m.joinedAt=m.joinedAt||rosterToday();
+  try{if(await saveRosterWithConflict(d,members)){renderRosterAdmin();alert('복구했습니다.')}}catch(e){alert('복구 실패: '+e.message)}
+}
+async function addRosterPerson(){
+  const d=elRosterDistrict.value,name=document.getElementById('roster-new-name').value.trim(),cat=document.getElementById('roster-new-cat').value;if(!name){alert('이름을 입력해주세요.');return}
+  const members=rosterMembers(d).map(m=>({...m}));
+  const inactive=members.find(m=>m.active===false&&(m.name||'').trim()===name);
+  if(inactive){if(confirm(`${name} 님의 비활동 기록이 있습니다.\n새로 추가하지 않고 복구할까요?`)){inactive.active=true;inactive.cat=cat;inactive.leftAt='';inactive.reason='';inactive.joinedAt=inactive.joinedAt||rosterToday()}else members.push({id:rosterNewId(),name,cat,active:true,joinedAt:rosterToday(),leftAt:'',reason:''})}
+  else members.push({id:rosterNewId(),name,cat,active:true,joinedAt:rosterToday(),leftAt:'',reason:''});
+  try{if(await saveRosterWithConflict(d,members)){document.getElementById('roster-new-name').value='';renderRosterAdmin();alert('인원을 추가했습니다.')}}catch(e){alert('추가 실패: '+e.message)}
+}
+async function importLatestRoster(){
+  const d=elRosterDistrict.value,s=latestSubmissionForDistrict(d);if(!s){alert('가져올 출석 기록이 없습니다.');return}
+  if(!confirm(`${d}의 최근 출석기록(${s.날짜}) 명단을 가져올까요?\n기존 비활동 기록은 삭제하지 않습니다.`))return;
+  const members=rosterMembers(d).map(m=>({...m})),used=new Set();let added=0,restored=0;
+  CAT_NAMES.forEach(cat=>getCategoryAllNames(s,cat).forEach(raw=>{const name=String(raw||'').trim();if(!name)return;let idx=members.findIndex((m,i)=>!used.has(i)&&m.active!==false&&m.name===name);if(idx<0)idx=members.findIndex((m,i)=>!used.has(i)&&m.active===false&&m.name===name);if(idx>=0){if(members[idx].active===false)restored++;members[idx].active=true;members[idx].cat=cat;members[idx].leftAt='';members[idx].reason='';used.add(idx)}else{members.push({id:rosterNewId(),name,cat,active:true,joinedAt:s.날짜||rosterToday(),leftAt:'',reason:''});used.add(members.length-1);added++}}));
+  try{if(await saveRosterWithConflict(d,members)){renderRosterAdmin();alert(`가져오기 완료\n신규 ${added}명 · 복구 ${restored}명`)}}catch(e){alert('가져오기 실패: '+e.message)}
+}
+async function exportRosterExcel(){
+  try{await ensureExcelJs()}catch(e){alert('엑셀 기능을 불러오지 못했습니다.');return}
+  const wb=new window.ExcelJS.Workbook(),ws=wb.addWorksheet('명단');
+  ws.addRow(['구역','구분','이름','상태','등록일','비활성일','사유']);
+  ALL_DISTRICTS.forEach(d=>rosterMembers(d).forEach(m=>ws.addRow([d,m.cat||'',m.name||'',m.active===false?'비활동':'활동',m.joinedAt||'',m.leftAt||'',m.reason||''])));
+  ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4FB3'}};ws.columns.forEach(c=>c.width=16);
+  const buffer=await wb.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`봉선_구역명단_${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
+}
+
+function switchTab(tab){currentTab=tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.getElementById('tab-monthly').style.display=tab==='monthly'?'block':'none';document.getElementById('tab-personal').style.display=tab==='personal'?'block':'none';document.getElementById('tab-daily').style.display=tab==='daily'?'block':'none';document.getElementById('tab-roster').style.display=tab==='roster'?'block':'none';if(tab==='monthly'){elMonthContext.textContent=getMonthLabel(elMonth.value);renderMonthly()}if(tab==='personal'){elMonthContext.textContent='개인별 출석 현황';renderPersonal()}if(tab==='daily'){elMonthContext.textContent='일자별 제출현황';renderDaily()}if(tab==='roster'){elMonthContext.textContent='구역 명단 관리';renderRosterAdmin()}refreshIcons()}
 async function openNoticeModal(){document.getElementById('notice-modal').classList.add('show');try{const snap=await getDoc(doc(db,'notices','global'));if(snap.exists()){const n=snap.data();document.getElementById('notice-title').value=n.title||'공지사항';document.getElementById('notice-message').value=n.message||'';document.getElementById('notice-active').checked=n.active!==false;updateNoticePreview()}}catch(e){console.warn(e)}}function updateNoticePreview(){const t=document.getElementById('notice-title').value||'공지사항',m=document.getElementById('notice-message').value||'공지 내용 미입력';document.getElementById('notice-preview').textContent=`[${t}]\n${m}`}async function saveNotice(){const title=document.getElementById('notice-title').value.trim()||'공지사항',message=document.getElementById('notice-message').value.trim();if(!message){alert('공지 내용을 입력해주세요.');return}const noticeId=`notice_${Date.now()}`;try{await setDoc(doc(db,'notices','global'),{noticeId,title,message,active:document.getElementById('notice-active').checked,createdAt:serverTimestamp()},{merge:false});alert('전체 공지를 저장했습니다.');document.getElementById('notice-modal').classList.remove('show')}catch(e){alert('공지 저장 실패: '+e.message)}}async function stopNotice(){if(!confirm('현재 공지를 중지할까요?'))return;try{await setDoc(doc(db,'notices','global'),{active:false,stoppedAt:serverTimestamp()},{merge:true});alert('공지 중지 완료');document.getElementById('notice-modal').classList.remove('show')}catch(e){alert('공지 중지 실패: '+e.message)}}
-async function exportExcelReport(){const rows=getMonthFilteredRows();if(!rows.length){alert('추출할 제출 데이터가 없습니다.');return}if(!window.ExcelJS){alert('엑셀 라이브러리를 불러오지 못했습니다.');return}const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('제출기록');ws.addRow(['날짜','모임','구역','은장회','봉사회','어머니회','청년회','합계','총원기준','총원상태','전도','심방','참여율']);rows.sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||'')||(a.모임||'').localeCompare(b.모임||'')||(a.구역||'').localeCompare(b.구역||'ko')).forEach(s=>{const vals=CAT_NAMES.map(c=>getCategoryCount(s,c)),total=vals.reduce((a,b)=>a+b,0),registered=getSubmissionRegisteredTotal(s),rate=safeRate(total,registered),x=getMonthlyActivity(s.구역,getSubmissionMonthKey(s)),ev=x&&Array.isArray(x.전도)?x.전도.length:0,vi=x&&Array.isArray(x.심방)?x.심방.length:0,status=x?(x.상태||''):'미입력';ws.addRow([s.날짜,s.모임,s.구역,...vals,total,registered,status,ev,vi,`${rate}%`])});ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4FB3'}};ws.columns.forEach(c=>c.width=14);const buffer=await wb.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=`봉선출석통계_${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-function initEvents(){document.getElementById('admin-home-btn').onclick=()=>{switchTab('monthly');window.scrollTo({top:0,behavior:'smooth'})};document.getElementById('export-excel-btn').onclick=exportExcelReport;document.getElementById('open-notice-btn').onclick=()=>openPinModal(openNoticeModal);document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));document.getElementById('refresh-btn-monthly').onclick=loadAll;document.getElementById('refresh-btn-personal').onclick=loadAll;document.getElementById('refresh-btn-daily').onclick=loadAll;document.getElementById('close-monthly-district-detail').onclick=()=>{document.getElementById('monthly-district-detail-card').style.display='none'};elMonth.onchange=()=>{if(elSessionRateMonth)elSessionRateMonth.value=elMonth.value;renderMonthly()};elDate.onchange=renderDaily;elType.onchange=renderDaily;[elPersonalDistrict,elPersonalCat,elPersonalType,elPersonalMonth].forEach(el=>el.onchange=renderPersonal);if(elSessionRateDistrict)elSessionRateDistrict.onchange=renderSessionRateStats;if(elSessionRateMonth)elSessionRateMonth.onchange=renderSessionRateStats;document.querySelectorAll('.pin-btn[data-n]').forEach(b=>b.onclick=()=>handlePin(b.dataset.n));document.getElementById('pin-del').onclick=()=>{pinInput=pinInput.slice(0,-1);updatePinDots()};document.getElementById('pin-cancel').onclick=()=>document.getElementById('pin-modal').classList.remove('show');['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id=>document.getElementById(id).addEventListener('input',updateEditTotal));document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-modal').classList.remove('show');document.getElementById('edit-save').onclick=saveEdit;document.getElementById('edit-delete').onclick=deleteEdit;document.getElementById('monthly-confirm-cancel').onclick=()=>document.getElementById('monthly-confirm-modal').classList.remove('show');document.getElementById('monthly-confirm-save').onclick=saveMonthlyConfirm;document.getElementById('notice-cancel').onclick=()=>document.getElementById('notice-modal').classList.remove('show');document.getElementById('notice-save').onclick=saveNotice;document.getElementById('notice-stop').onclick=stopNotice;['notice-title','notice-message'].forEach(id=>document.getElementById(id).addEventListener('input',updateNoticePreview));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}))}
+async function exportExcelReport(){const rows=getMonthFilteredRows();if(!rows.length){alert('추출할 제출 데이터가 없습니다.');return}try{await ensureExcelJs()}catch(e){alert('엑셀 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.');return}if(!window.ExcelJS){alert('엑셀 라이브러리를 불러오지 못했습니다.');return}const wb=new window.ExcelJS.Workbook(),ws=wb.addWorksheet('제출기록');ws.addRow(['날짜','모임','구역','은장회','봉사회','어머니회','청년회','합계','총원기준','총원상태','전도','심방','참여율']);rows.sort((a,b)=>(a.날짜||'').localeCompare(b.날짜||'')||(a.모임||'').localeCompare(b.모임||'')||(a.구역||'').localeCompare(b.구역||'ko')).forEach(s=>{const vals=CAT_NAMES.map(c=>getCategoryCount(s,c)),total=vals.reduce((a,b)=>a+b,0),registered=getSubmissionRegisteredTotal(s),rate=safeRate(total,registered),x=getMonthlyActivity(s.구역,getSubmissionMonthKey(s)),ev=x&&Array.isArray(x.전도)?x.전도.length:0,vi=x&&Array.isArray(x.심방)?x.심방.length:0,status=x?(x.상태||''):'미입력';ws.addRow([s.날짜,s.모임,s.구역,...vals,total,registered,status,ev,vi,`${rate}%`])});ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4FB3'}};ws.columns.forEach(c=>c.width=14);const buffer=await wb.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=`봉선출석통계_${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function initEvents(){document.getElementById('admin-home-btn').onclick=()=>{switchTab('monthly');window.scrollTo({top:0,behavior:'smooth'})};document.getElementById('export-excel-btn').onclick=exportExcelReport;document.getElementById('open-notice-btn').onclick=()=>openPinModal(openNoticeModal);document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));document.getElementById('refresh-btn-monthly').onclick=loadAll;document.getElementById('refresh-btn-personal').onclick=loadAll;document.getElementById('refresh-btn-daily').onclick=loadAll;document.getElementById('refresh-btn-roster').onclick=loadAll;elRosterDistrict.onchange=renderRosterAdmin;elRosterViewFilter.onchange=renderRosterAdmin;document.getElementById('roster-add-btn').onclick=()=>openPinModal(addRosterPerson);document.getElementById('roster-import-latest').onclick=()=>openPinModal(importLatestRoster);document.getElementById('roster-export-btn').onclick=exportRosterExcel;document.getElementById('close-monthly-district-detail').onclick=()=>{document.getElementById('monthly-district-detail-card').style.display='none'};elMonth.onchange=()=>{if(elSessionRateMonth)elSessionRateMonth.value=elMonth.value;renderMonthly()};elDate.onchange=renderDaily;elType.onchange=renderDaily;[elPersonalDistrict,elPersonalCat,elPersonalType,elPersonalMonth].forEach(el=>el.onchange=renderPersonal);if(elSessionRateDistrict)elSessionRateDistrict.onchange=renderSessionRateStats;if(elSessionRateMonth)elSessionRateMonth.onchange=renderSessionRateStats;document.querySelectorAll('.pin-btn[data-n]').forEach(b=>b.onclick=()=>handlePin(b.dataset.n));document.getElementById('pin-del').onclick=()=>{pinInput=pinInput.slice(0,-1);updatePinDots()};document.getElementById('pin-cancel').onclick=()=>document.getElementById('pin-modal').classList.remove('show');['edit-eun','edit-bong','edit-mom','edit-youth'].forEach(id=>document.getElementById(id).addEventListener('input',updateEditTotal));document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-modal').classList.remove('show');document.getElementById('edit-save').onclick=saveEdit;document.getElementById('edit-delete').onclick=deleteEdit;document.getElementById('monthly-confirm-cancel').onclick=()=>document.getElementById('monthly-confirm-modal').classList.remove('show');document.getElementById('monthly-confirm-save').onclick=saveMonthlyConfirm;document.getElementById('roster-edit-cancel').onclick=()=>document.getElementById('roster-edit-modal').classList.remove('show');document.getElementById('roster-edit-save').onclick=saveRosterEdit;document.getElementById('notice-cancel').onclick=()=>document.getElementById('notice-modal').classList.remove('show');document.getElementById('notice-save').onclick=saveNotice;document.getElementById('notice-stop').onclick=stopNotice;['notice-title','notice-message'].forEach(id=>document.getElementById(id).addEventListener('input',updateNoticePreview));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}))}
 initOptions();initEvents();updateNoticePreview();refreshIcons();loadAll();
 </script>
 </body>
