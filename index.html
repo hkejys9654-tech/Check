@@ -56,6 +56,24 @@
             snap.forEach(docSnap => rows.push({ id: docSnap.id, ...docSnap.data() }));
             return rows;
         };
+
+        window.getMonthlyActivityFromFirebase = async function(district, monthKey) {
+            const snap = await getDoc(doc(firestoreDb, 'monthlyActivities', district, 'months', monthKey));
+            return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+        };
+
+        window.saveMonthlyActivityToFirebase = async function(district, monthKey, data) {
+            await setDoc(
+                doc(firestoreDb, 'monthlyActivities', district, 'months', monthKey),
+                {
+                    ...data,
+                    구역: district,
+                    월: monthKey,
+                    수정시간: serverTimestamp()
+                },
+                { merge: true }
+            );
+        };
     </script>
 
     <style>
@@ -1987,6 +2005,192 @@
         .volunteer-preview-table .fill-night { background: #F8F7F3; color: #403a2c; }
         .volunteer-preview-table .fill-mark { background: #eaf3ff; color: var(--primary); }
 
+
+        .monthly-activity-card {
+            padding: 14px;
+            border: 1.5px solid #d7e8ff;
+            background: linear-gradient(145deg, #ffffff, #f4f8ff);
+        }
+
+        .monthly-activity-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 11px;
+        }
+
+        .monthly-activity-head i {
+            width: 22px;
+            height: 22px;
+            color: var(--primary);
+            stroke-width: 2.4;
+        }
+
+        .monthly-activity-title {
+            color: var(--navy);
+            font-size: 0.98rem;
+            font-weight: 950;
+        }
+
+        .monthly-activity-month {
+            margin-left: auto;
+            color: var(--primary);
+            background: var(--primary-soft);
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 0.72rem;
+            font-weight: 950;
+        }
+
+        .monthly-activity-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+            margin-bottom: 10px;
+        }
+
+        .monthly-activity-kpi {
+            min-width: 0;
+            text-align: center;
+            padding: 9px 4px;
+            border: 1px solid #e2ebf6;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .monthly-activity-kpi small {
+            display: block;
+            color: #7d8ca0;
+            font-size: 0.64rem;
+            font-weight: 850;
+            margin-bottom: 3px;
+            white-space: nowrap;
+        }
+
+        .monthly-activity-kpi b {
+            display: block;
+            color: var(--navy);
+            font-size: 1rem;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .monthly-activity-kpi b.wait { color: #d97706; }
+        .monthly-activity-kpi b.ok { color: #168448; }
+
+        .monthly-activity-note {
+            color: #687789;
+            font-size: 0.74rem;
+            line-height: 1.45;
+            font-weight: 750;
+            margin-bottom: 9px;
+        }
+
+        .monthly-activity-edit {
+            width: 100%;
+            min-height: 42px;
+            border-radius: 11px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.86rem;
+            font-weight: 950;
+        }
+
+        .monthly-form-section {
+            padding: 12px;
+            margin-bottom: 11px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #f8fbff;
+        }
+
+        .monthly-form-section h3 {
+            color: var(--navy);
+            font-size: 0.91rem;
+            font-weight: 950;
+            margin-bottom: 8px;
+        }
+
+        .monthly-form-label {
+            display: block;
+            color: #667789;
+            font-size: 0.74rem;
+            font-weight: 900;
+            margin: 7px 0 5px;
+        }
+
+        .monthly-total-input {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 2px solid #dce6f2;
+            border-radius: 11px;
+            background: white;
+            color: var(--navy);
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 950;
+            outline: none;
+        }
+
+        .monthly-confirm-info {
+            margin-top: 8px;
+            padding: 9px 10px;
+            border: 1px solid #d6eadf;
+            border-radius: 10px;
+            background: #eff9f3;
+            color: #347052;
+            font-size: 0.76rem;
+            line-height: 1.5;
+            font-weight: 800;
+        }
+
+        .monthly-pair-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 36px;
+            gap: 6px;
+            margin-bottom: 7px;
+        }
+
+        .monthly-pair-row input {
+            width: 100%;
+            min-width: 0;
+            min-height: 42px;
+            padding: 9px 7px;
+            border: 1.5px solid #dce6f2;
+            border-radius: 10px;
+            background: white;
+            color: var(--text);
+            text-align: center;
+            font-size: 0.84rem;
+            font-weight: 850;
+            outline: none;
+        }
+
+        .monthly-row-delete {
+            width: 36px;
+            border-radius: 10px;
+            background: #fee2e2;
+            color: #c0392b;
+            font-size: 1.05rem;
+            font-weight: 950;
+        }
+
+        .monthly-add-row {
+            width: 100%;
+            min-height: 39px;
+            border: 1.5px dashed #cfd9e7;
+            border-radius: 10px;
+            background: white;
+            color: #5f7086;
+            font-size: 0.8rem;
+            font-weight: 900;
+        }
+
+        @media (max-width: 390px) {
+            .monthly-activity-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
         @media (max-width: 390px) {
             header h1 { font-size: 1.08rem; }
             .brand-icon { width: 42px; height: 42px; border-radius: 50%; }
@@ -2037,6 +2241,23 @@
 <main>
     <div id="record-status-wrap"></div>
 
+    <section class="card monthly-activity-card" id="monthly-activity-card">
+        <div class="monthly-activity-head">
+            <i data-lucide="calendar-range"></i>
+            <div class="monthly-activity-title">월간 총원 · 전도 · 심방</div>
+            <div class="monthly-activity-month" id="monthly-activity-month">-</div>
+        </div>
+        <div class="monthly-activity-grid">
+            <div class="monthly-activity-kpi"><small>구역장 총원</small><b id="monthly-leader-total">—</b></div>
+            <div class="monthly-activity-kpi"><small>관리자 확정</small><b id="monthly-admin-total">—</b></div>
+            <div class="monthly-activity-kpi"><small>전도</small><b id="monthly-evangelism-count">0명</b></div>
+            <div class="monthly-activity-kpi"><small>심방</small><b id="monthly-visit-count">0명</b></div>
+        </div>
+        <div class="monthly-activity-note" id="monthly-activity-note">선택한 날짜의 월 기준으로 기록합니다.</div>
+        <button class="monthly-activity-edit" id="btn-monthly-activity" type="button">입력 / 수정</button>
+    </section>
+
+
     <section id="attendance-content"></section>
 
     <div class="save-indicator save-indicator-bottom" id="save-indicator">&nbsp;</div>
@@ -2050,6 +2271,7 @@
             </div>
         </button>
     </div>
+
 
     <section class="card prayer-section-card" id="prayer-section">
         <div class="prayer-head">
@@ -2154,7 +2376,7 @@
 <div class="bottom-tools">
     <button class="tool-btn btn-setup" type="button"><i data-lucide="users-round"></i>명단설정</button>
     <button class="tool-btn btn-share" type="button"><i data-lucide="share-2"></i>공유하기</button>
-    <button class="tool-btn btn-volunteer" type="button"><i data-lucide="calendar-check-2"></i>봉사참석</button>
+    <button class="tool-btn btn-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
     <button class="tool-btn btn-more" type="button"><i data-lucide="menu"></i>더보기</button>
 </div>
 
@@ -2167,7 +2389,7 @@
         <div class="more-menu-grid">
             <button class="more-menu-btn primary" id="more-home" type="button"><i data-lucide="house"></i>출석체크 홈</button>
             <button class="more-menu-btn" id="more-prayer" type="button"><i data-lucide="clipboard-list"></i>기도명단</button>
-            <button class="more-menu-btn" id="more-stats" type="button"><i data-lucide="bar-chart-3"></i>통계보기</button>
+            <button class="more-menu-btn" id="more-volunteer" type="button"><i data-lucide="calendar-check-2"></i>봉사참석</button>
         </div>
     </div>
 </div>
@@ -2176,29 +2398,36 @@
     <div class="modal-content update-modal-content">
         <div class="update-hero">
             <div class="update-badge">새로운 업데이트</div>
-            <h2>하계수양회 봉사자 접수 가능</h2>
-            <p>아래 봉사참석 탭에서 입력·확인·엑셀 저장까지 할 수 있어요.</p>
+            <h2>총원 · 전도 · 심방 기능 추가</h2>
+            <p>월별 현황을 입력하고, 총원은 관리자 확인 후 공식 통계에 반영됩니다.</p>
         </div>
         <div class="update-body">
             <div class="update-item">
                 <div class="update-item-mark">1</div>
                 <div>
-                    <div class="update-item-title">봉사참석 탭 추가</div>
-                    <div class="update-item-text">아래 탭을 눌러 봉사자 참석 가능 시간을 접수하세요.</div>
+                    <div class="update-item-title">월별 총원 입력</div>
+                    <div class="update-item-text">구역장이 총원을 입력하면 관리자에게 확인대기로 표시됩니다.</div>
                 </div>
             </div>
             <div class="update-item">
                 <div class="update-item-mark">2</div>
                 <div>
-                    <div class="update-item-title">입력상황 바로 확인</div>
-                    <div class="update-item-text">엑셀 원본 모양으로 접수 현황을 한눈에 볼 수 있습니다.</div>
+                    <div class="update-item-title">전도 기록</div>
+                    <div class="update-item-text">전도 대상자의 이름과 인도자를 월별로 기록할 수 있습니다.</div>
                 </div>
             </div>
             <div class="update-item">
                 <div class="update-item-mark">3</div>
                 <div>
-                    <div class="update-item-title">구역 자동 저장</div>
-                    <div class="update-item-text">한 번 입력한 구역은 다음 접속 때 자동으로 불러옵니다.</div>
+                    <div class="update-item-title">심방 기록</div>
+                    <div class="update-item-text">심방 대상자의 이름과 날짜를 월별로 기록할 수 있습니다.</div>
+                </div>
+            </div>
+            <div class="update-item">
+                <div class="update-item-mark">4</div>
+                <div>
+                    <div class="update-item-title">관리자 최종 확정</div>
+                    <div class="update-item-text">총원 변경 이력은 남겨두고, 관리자가 최종 확정한 총원을 공식 통계 기준으로 사용합니다.</div>
                 </div>
             </div>
             <button class="btn-save" id="btn-update-confirm" type="button" style="margin-top:14px;">확인했어요</button>
@@ -2243,6 +2472,38 @@
 
         <div id="setup-cat-list"></div>
         <button class="btn-save" id="save-setup" style="margin-top:4px;">저장하기</button>
+    </div>
+</div>
+
+
+<div class="modal" id="monthly-activity-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="monthly-activity-modal-title">월간 기록 입력</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="help-text">총원은 구역장이 입력한 뒤 관리자 확인을 거쳐 공식값으로 사용됩니다. 전도·심방은 매월 누적해서 입력합니다.</div>
+
+        <div class="monthly-form-section">
+            <h3>총원</h3>
+            <label class="monthly-form-label" for="monthly-total-input">구역장 입력 총원</label>
+            <input class="monthly-total-input" type="number" id="monthly-total-input" min="0" max="999" inputmode="numeric" placeholder="예: 25">
+            <div class="monthly-confirm-info" id="monthly-confirm-info">관리자 확정 전입니다.</div>
+        </div>
+
+        <div class="monthly-form-section">
+            <h3>전도 · 이름 / 인도자</h3>
+            <div id="monthly-evangelism-rows"></div>
+            <button class="monthly-add-row" id="btn-add-evangelism" type="button">+ 전도 인원 추가</button>
+        </div>
+
+        <div class="monthly-form-section">
+            <h3>심방 · 이름 / 날짜</h3>
+            <div id="monthly-visit-rows"></div>
+            <button class="monthly-add-row" id="btn-add-visit" type="button">+ 심방 인원 추가</button>
+        </div>
+
+        <button class="btn-save" id="btn-save-monthly-activity" type="button">월간 기록 저장</button>
     </div>
 </div>
 
@@ -2372,7 +2633,7 @@
     const STORAGE_KEY_UPDATE_NOTICE = 'guAttendance_updateNotice';
     const STORAGE_KEY_GLOBAL_NOTICE = 'guAttendance_globalNoticeSeen';
     const STORAGE_KEY_SERVER_SYNCED_DISTRICTS = 'guAttendance_serverSyncedDistricts_v1';
-    const APP_VERSION = '2026.07.01-volunteer-registration';
+    const APP_VERSION = '2026.09.04-monthly-total-evangelism-visit';
     const SILENT_UPDATE_VERSION = '2026.06.11-admin-auto-sync-save-all-merge';
 
     const CATEGORIES = {
@@ -2416,6 +2677,7 @@
     let currentPersonalCat = 'EUN';
     let currentPersonalType = '주일말씀';
     let currentPersonalMonth = 'all';
+    let currentMonthlyActivity = null;
 
     const elDistrict = document.getElementById('district-select');
     const elDate = document.getElementById('date-select');
@@ -2431,6 +2693,7 @@
     const elSaveIndicator = document.getElementById('save-indicator');
     const elBtnSaveRecord = document.getElementById('btn-save-record');
     const elRecordStatusWrap = document.getElementById('record-status-wrap');
+    const elMonthlyActivityCard = document.getElementById('monthly-activity-card');
 
     function refreshIcons() {
         if (window.lucide) window.lucide.createIcons();
@@ -2711,6 +2974,217 @@
             const sub = section.querySelector('.cat-sub');
             if (sub) sub.textContent = `전체 ${names.length}명 · 출석 ${attended}명`;
         });
+    }
+
+
+    function getSelectedMonthKey() {
+        const value = elDate.value || new Date().toISOString().slice(0, 10);
+        return value.slice(0, 7);
+    }
+
+    function parseMonthlyNumber(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const n = Number(value);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function getMonthlyOfficialTotal(data = currentMonthlyActivity) {
+        if (!data) return null;
+        const admin = parseMonthlyNumber(data.관리자확정총원);
+        if (admin !== null) return admin;
+        return parseMonthlyNumber(data.구역장입력총원);
+    }
+
+    async function loadMonthlyActivity() {
+        const monthKey = getSelectedMonthKey();
+        document.getElementById('monthly-activity-month').textContent = `${Number(monthKey.slice(5))}월`;
+
+        try {
+            if (typeof window.getMonthlyActivityFromFirebase === 'function') {
+                currentMonthlyActivity = await window.getMonthlyActivityFromFirebase(elDistrict.value, monthKey);
+            } else {
+                currentMonthlyActivity = null;
+            }
+        } catch (err) {
+            console.warn('monthly activity load failed', err);
+            currentMonthlyActivity = null;
+        }
+
+        renderMonthlyActivitySummary();
+    }
+
+    function renderMonthlyActivitySummary() {
+        const x = currentMonthlyActivity || {};
+        const leader = parseMonthlyNumber(x.구역장입력총원);
+        const admin = parseMonthlyNumber(x.관리자확정총원);
+        const evangelism = Array.isArray(x.전도) ? x.전도 : [];
+        const visits = Array.isArray(x.심방) ? x.심방 : [];
+
+        const leaderEl = document.getElementById('monthly-leader-total');
+        const adminEl = document.getElementById('monthly-admin-total');
+        leaderEl.textContent = leader === null ? '—' : `${leader}명`;
+        adminEl.textContent = admin === null ? '미확정' : `${admin}명`;
+        adminEl.className = x.상태 === '확인대기' ? 'wait' : (admin !== null ? 'ok' : '');
+
+        document.getElementById('monthly-evangelism-count').textContent = `${evangelism.length}명`;
+        document.getElementById('monthly-visit-count').textContent = `${visits.length}명`;
+
+        const note = document.getElementById('monthly-activity-note');
+        if (!currentMonthlyActivity) {
+            note.textContent = '아직 월간 기록이 없습니다. 총원·전도·심방을 입력해주세요.';
+        } else if (x.상태 === '확인대기') {
+            note.textContent = admin === null
+                ? '총원은 관리자 확인 대기 중입니다.'
+                : `총원 변경 확인 대기 중입니다. 현재 공식값은 관리자 확정 ${admin}명입니다.`;
+        } else if (admin !== null) {
+            note.textContent = `관리자가 ${admin}명으로 확정했습니다. 이 값이 통계 기준입니다.`;
+        } else {
+            note.textContent = '총원은 관리자 확인 전입니다.';
+        }
+    }
+
+    function addMonthlyEvangelismRow(item = {}) {
+        const wrap = document.getElementById('monthly-evangelism-rows');
+        const row = document.createElement('div');
+        row.className = 'monthly-pair-row';
+        row.innerHTML = `
+            <input type="text" class="monthly-evangelism-name" placeholder="이름" value="${escapeAttr(item.이름 || '')}">
+            <input type="text" class="monthly-evangelism-guide" placeholder="인도자" value="${escapeAttr(item.인도자 || '')}">
+            <button class="monthly-row-delete" type="button">×</button>`;
+        row.querySelector('.monthly-row-delete').addEventListener('click', () => row.remove());
+        wrap.appendChild(row);
+    }
+
+    function addMonthlyVisitRow(item = {}) {
+        const wrap = document.getElementById('monthly-visit-rows');
+        const row = document.createElement('div');
+        row.className = 'monthly-pair-row';
+        row.innerHTML = `
+            <input type="text" class="monthly-visit-name" placeholder="이름" value="${escapeAttr(item.이름 || '')}">
+            <input type="date" class="monthly-visit-date" value="${escapeAttr(item.날짜 || elDate.value || '')}">
+            <button class="monthly-row-delete" type="button">×</button>`;
+        row.querySelector('.monthly-row-delete').addEventListener('click', () => row.remove());
+        wrap.appendChild(row);
+    }
+
+    function openMonthlyActivityModal() {
+        const monthKey = getSelectedMonthKey();
+        const x = currentMonthlyActivity || {};
+        const leader = parseMonthlyNumber(x.구역장입력총원);
+        const admin = parseMonthlyNumber(x.관리자확정총원);
+
+        document.getElementById('monthly-activity-modal-title').textContent = `${elDistrict.value} · ${monthKey} 월간 기록`;
+        document.getElementById('monthly-total-input').value = leader === null ? '' : leader;
+
+        const info = document.getElementById('monthly-confirm-info');
+        if (admin === null) {
+            info.innerHTML = '관리자 확정 전입니다.<br>총원을 저장하면 관리자에게 확인 대기로 표시됩니다.';
+        } else if (x.상태 === '확인대기') {
+            info.innerHTML = `현재 관리자 확정 총원 <b>${admin}명</b><br>새 구역장 입력값은 관리자 재확인 대기 중입니다.`;
+        } else {
+            info.innerHTML = `관리자 확정 총원 <b>${admin}명</b><br>현재 통계는 이 값을 기준으로 계산합니다.`;
+        }
+
+        const evWrap = document.getElementById('monthly-evangelism-rows');
+        evWrap.innerHTML = '';
+        const evangelism = Array.isArray(x.전도) ? x.전도 : [];
+        if (evangelism.length) evangelism.forEach(addMonthlyEvangelismRow);
+        else addMonthlyEvangelismRow();
+
+        const visitWrap = document.getElementById('monthly-visit-rows');
+        visitWrap.innerHTML = '';
+        const visits = Array.isArray(x.심방) ? x.심방 : [];
+        if (visits.length) visits.forEach(addMonthlyVisitRow);
+        else addMonthlyVisitRow();
+
+        document.getElementById('monthly-activity-modal').classList.add('show');
+    }
+
+    function collectMonthlyEvangelism() {
+        return Array.from(document.querySelectorAll('#monthly-evangelism-rows .monthly-pair-row'))
+            .map(row => ({
+                이름: normalizeNameValue(row.querySelector('.monthly-evangelism-name').value),
+                인도자: normalizeNameValue(row.querySelector('.monthly-evangelism-guide').value)
+            }))
+            .filter(item => item.이름);
+    }
+
+    function collectMonthlyVisits() {
+        return Array.from(document.querySelectorAll('#monthly-visit-rows .monthly-pair-row'))
+            .map(row => ({
+                이름: normalizeNameValue(row.querySelector('.monthly-visit-name').value),
+                날짜: row.querySelector('.monthly-visit-date').value || ''
+            }))
+            .filter(item => item.이름);
+    }
+
+    async function saveMonthlyActivity() {
+        const totalInput = document.getElementById('monthly-total-input');
+        const total = Number(totalInput.value);
+
+        if (!Number.isFinite(total) || total < 0) {
+            alert('총원을 입력해주세요.');
+            totalInput.focus();
+            return;
+        }
+
+        const monthKey = getSelectedMonthKey();
+        let old = currentMonthlyActivity || null;
+
+        if (!old && typeof window.getMonthlyActivityFromFirebase === 'function') {
+            try {
+                old = await window.getMonthlyActivityFromFirebase(elDistrict.value, monthKey);
+            } catch (err) {
+                console.warn('monthly activity pre-load failed', err);
+            }
+        }
+
+        old = old || {};
+        const oldLeader = parseMonthlyNumber(old.구역장입력총원);
+        const admin = parseMonthlyNumber(old.관리자확정총원);
+        const totalChanged = oldLeader === null || oldLeader !== total;
+        const history = Array.isArray(old.총원이력) ? [...old.총원이력] : [];
+
+        if (totalChanged) {
+            history.push({
+                구분: '구역장입력',
+                값: total,
+                일시: new Date().toISOString()
+            });
+        }
+
+        let status = old.상태 || '확인대기';
+        if (totalChanged) {
+            status = admin !== null && admin === total ? '확정' : '확인대기';
+        }
+
+        const data = {
+            구역장입력총원: total,
+            전도: collectMonthlyEvangelism(),
+            심방: collectMonthlyVisits(),
+            상태: status,
+            총원이력: history,
+            구역장입력일시: totalChanged ? new Date().toISOString() : (old.구역장입력일시 || ''),
+            구역장마지막수정일시: new Date().toISOString()
+        };
+
+        try {
+            if (typeof window.saveMonthlyActivityToFirebase !== 'function') {
+                throw new Error('서버 저장 기능을 불러오지 못했습니다.');
+            }
+
+            await window.saveMonthlyActivityToFirebase(elDistrict.value, monthKey, data);
+            document.getElementById('monthly-activity-modal').classList.remove('show');
+            await loadMonthlyActivity();
+
+            if (totalChanged && status === '확인대기') {
+                alert('월간 기록을 저장했습니다.\n총원 변경 내용은 관리자 확인 대기로 등록되었습니다.');
+            } else {
+                alert('월간 기록을 저장했습니다.');
+            }
+        } catch (err) {
+            alert('월간 기록 저장에 실패했습니다: ' + err.message);
+        }
     }
 
     function buildFirebaseSubmissionPayload(options = {}) {
@@ -3990,6 +4464,7 @@
 
         const prayerSection = document.getElementById('prayer-section');
         if (prayerSection) prayerSection.classList.remove('show');
+        if (elMonthlyActivityCard) elMonthlyActivityCard.style.display = 'none';
 
         elAttendance.style.display = 'none';
         elRecordStatusWrap.style.display = 'none';
@@ -4049,6 +4524,7 @@
         const prayerSection = document.getElementById('prayer-section');
         if (prayerSection) prayerSection.classList.remove('show');
         if (elVolunteerSection) elVolunteerSection.classList.remove('show');
+        if (elMonthlyActivityCard) elMonthlyActivityCard.style.display = '';
 
         elAttendance.style.display = '';
         elRecordStatusWrap.style.display = '';
@@ -4063,6 +4539,7 @@
     function openPrayerSection() {
         const section = document.getElementById('prayer-section');
         if (elVolunteerSection) elVolunteerSection.classList.remove('show');
+        if (elMonthlyActivityCard) elMonthlyActivityCard.style.display = 'none';
 
         elAttendance.style.display = 'none';
         elRecordStatusWrap.style.display = 'none';
@@ -4936,11 +5413,11 @@
 
     function showUpdateNotice() {
         if (localStorage.getItem(STORAGE_KEY_UPDATE_NOTICE) === APP_VERSION) return;
+        localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
         setTimeout(() => document.getElementById('update-modal').classList.add('show'), 350);
     }
 
     function confirmUpdateNotice() {
-        localStorage.setItem(STORAGE_KEY_UPDATE_NOTICE, APP_VERSION);
         document.getElementById('update-modal').classList.remove('show');
     }
 
@@ -5217,6 +5694,7 @@ await syncDistrictFromFirebase(elDistrict.value);
 syncLocalMeetingMismatchesOnOpen();
 loadWorkingRecord();
 renderAttendanceGrid();
+await loadMonthlyActivity();
 if (document.getElementById('prayer-section').classList.contains('show')) renderPrayerList();
 });
 
@@ -5226,6 +5704,7 @@ await syncDistrictFromFirebase(elDistrict.value);
 syncLocalMeetingMismatchesOnOpen();
 loadWorkingRecord();
 renderAttendanceGrid();
+await loadMonthlyActivity();
 });
 
 elType.addEventListener('change', handleMeetingTypeChange);
@@ -5238,6 +5717,10 @@ document.getElementById('btn-member-upload').addEventListener('click', () => tri
 document.getElementById('member-upload-input').addEventListener('change', handleMemberFileUpload);
 document.getElementById('save-setup').addEventListener('click', saveSetup);
 elBtnSaveRecord.addEventListener('click', saveCurrentRecord);
+document.getElementById('btn-monthly-activity').addEventListener('click', openMonthlyActivityModal);
+document.getElementById('btn-add-evangelism').addEventListener('click', () => addMonthlyEvangelismRow());
+document.getElementById('btn-add-visit').addEventListener('click', () => addMonthlyVisitRow());
+document.getElementById('btn-save-monthly-activity').addEventListener('click', saveMonthlyActivity);
 
 elPrayerDistrict.addEventListener('change', e => selectPrayerDistrict(e.target.value));
 elPrayerImageDistrict.addEventListener('change', updatePrayerImageConfirmSummary);
@@ -5250,7 +5733,7 @@ document.getElementById('btn-confirm-prayer-image').addEventListener('click', co
 document.getElementById('btn-download-prayer-images').addEventListener('click', downloadAllPrayerImages);
 document.getElementById('prayer-upload-input').addEventListener('change', handlePrayerFileUpload);
 
-document.querySelector('.btn-volunteer').addEventListener('click', openVolunteerSection);
+document.querySelector('.btn-stats').addEventListener('click', openStats);
 document.getElementById('volunteer-section').addEventListener('click', handleVolunteerClick);
 elVolunteerDistrict.addEventListener('input', saveVolunteerDistrict);
 elVolunteerDistrict.addEventListener('blur', saveVolunteerDistrict);
@@ -5285,9 +5768,9 @@ document.getElementById('more-prayer').addEventListener('click', () => {
 document.getElementById('more-modal').classList.remove('show');
 openPrayerSection();
 });
-document.getElementById('more-stats').addEventListener('click', () => {
+document.getElementById('more-volunteer').addEventListener('click', () => {
 document.getElementById('more-modal').classList.remove('show');
-openStats();
+openVolunteerSection();
 });
 document.getElementById('btn-update-confirm').addEventListener('click', confirmUpdateNotice);
 
@@ -5364,6 +5847,7 @@ await syncDistrictFromFirebase(elDistrict.value);
 syncLocalMeetingMismatchesOnOpen();
 loadWorkingRecord();
 renderAttendanceGrid();
+await loadMonthlyActivity();
 initEventListeners();
 refreshIcons();
 if (APP_VERSION === SILENT_UPDATE_VERSION) {
