@@ -9,8 +9,6 @@
     <link rel="apple-touch-icon" href="./icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
@@ -55,6 +53,25 @@
             const rows = [];
             snap.forEach(docSnap => rows.push({ id: docSnap.id, ...docSnap.data() }));
             return rows;
+        };
+
+        window.getRosterFromFirebase = async function(district) {
+            const snap = await getDoc(doc(firestoreDb, 'rosters', district));
+            return snap.exists() ? { exists: true, ...snap.data() } : { exists: false, members: [], updatedAtMs: 0 };
+        };
+
+        window.saveRosterFromFirebase = async function(district, members) {
+            const updatedAtMs = Date.now();
+            await setDoc(
+                doc(firestoreDb, 'rosters', district),
+                {
+                    members,
+                    updatedAtMs,
+                    updatedAt: serverTimestamp()
+                },
+                { merge: true }
+            );
+            return updatedAtMs;
         };
 
         window.getMonthlyActivityFromFirebase = async function(district, monthKey) {
@@ -2457,6 +2474,10 @@
             <button class="close-modal" type="button">&times;</button>
         </div>
 
+        <div style="background:#eef7ff;border:1.5px solid #d5e9ff;border-radius:13px;padding:11px 12px;margin-bottom:13px;color:#31557e;font-size:.78rem;line-height:1.5;font-weight:800;">
+            명단에서 이름을 빼도 과거 기록은 삭제되지 않습니다. 현재 명단에서만 <b>비활성화</b>되고, 관리자가 필요하면 다시 복구할 수 있습니다.
+        </div>
+
         <div class="setup-import-panel">
             <div class="setup-import-title"><i data-lucide="file-spreadsheet"></i> 엑셀/CSV로 명단 한 번에 넣기</div>
             <div class="setup-import-note">
@@ -2663,6 +2684,7 @@
     let allMembersData = {};
     let allAttendanceRecords = {};
     let allPrayerData = {};
+    let allRosterData = {};
     let workingRecord = [];
     let isDirty = false;
     let lastGeneratedImageBlob = null;
@@ -2697,6 +2719,49 @@
 
     function refreshIcons() {
         if (window.lucide) window.lucide.createIcons();
+    }
+
+    const lazyScriptPromises = {};
+
+    function loadScriptWhenNeeded(key, src, globalName) {
+        if (globalName && window[globalName]) return Promise.resolve(window[globalName]);
+        if (lazyScriptPromises[key]) return lazyScriptPromises[key];
+
+        lazyScriptPromises[key] = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = () => {
+                if (!globalName || window[globalName]) resolve(globalName ? window[globalName] : true);
+                else {
+                    delete lazyScriptPromises[key];
+                    reject(new Error(`${key} 라이브러리를 불러오지 못했습니다.`));
+                }
+            };
+            script.onerror = () => {
+                delete lazyScriptPromises[key];
+                reject(new Error(`${key} 라이브러리를 불러오지 못했습니다.`));
+            };
+            document.head.appendChild(script);
+        });
+
+        return lazyScriptPromises[key];
+    }
+
+    function ensureXlsxLibrary() {
+        return loadScriptWhenNeeded(
+            'XLSX',
+            'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
+            'XLSX'
+        );
+    }
+
+    function ensureHtml2CanvasLibrary() {
+        return loadScriptWhenNeeded(
+            'html2canvas',
+            'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+            'html2canvas'
+        );
     }
 
     function getDistrictOptionsHtml() {
@@ -2735,6 +2800,165 @@
 
     function saveMembers() {
         localStorage.setItem(STORAGE_KEY_MEMBERS, JSON.stringify(allMembersData));
+    }
+
+    function rosterToday() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function newRosterId() {
+        return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function rosterCatNameToKey(catName) {
+        const found = CAT_ORDER.find(k => CATEGORIES[k].name === catName);
+        return found ? CATEGORIES[found].key : 'eun';
+    }
+
+    function rosterKeyToCatName(key) {
+        const found = CAT_ORDER.find(k => CATEGORIES[k].key === key);
+        return found ? CATEGORIES[found].name : '은장회';
+    }
+
+    function activeMemberDataFromRoster(members) {
+        const data = { eun: [], bong: [], mom: [], youth: [] };
+        (Array.isArray(members) ? members : []).forEach(m => {
+            if (!m || m.active === false || !m.name) return;
+            const key = rosterCatNameToKey(m.cat);
+            data[key].push(normalizeNameValue(m.name));
+        });
+        Object.keys(data).forEach(k => data[k] = uniqueNames(data[k]));
+        return data;
+    }
+
+    function makeRosterFromLocalMembers(district) {
+        const src = getMembersForDistrict(district);
+        const members = [];
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            uniqueNames(src[cat.key] || []).forEach(name => {
+                members.push({
+                    id: newRosterId(),
+                    name,
+                    cat: cat.name,
+                    active: true,
+                    joinedAt: rosterToday(),
+                    leftAt: '',
+                    reason: ''
+                });
+            });
+        });
+        return members;
+    }
+
+    async function syncRosterFromFirebase(district = elDistrict.value) {
+        if (typeof window.getRosterFromFirebase !== 'function' || navigator.onLine === false) return false;
+        try {
+            const remote = await window.getRosterFromFirebase(district);
+            let members = Array.isArray(remote?.members) ? remote.members : [];
+
+            if (!remote?.exists) {
+                members = makeRosterFromLocalMembers(district);
+                if (members.length && typeof window.saveRosterFromFirebase === 'function') {
+                    const updatedAtMs = await window.saveRosterFromFirebase(district, members);
+                    allRosterData[district] = { exists: true, members, updatedAtMs };
+                } else {
+                    allRosterData[district] = { exists: false, members: [], updatedAtMs: 0 };
+                }
+            } else {
+                allRosterData[district] = {
+                    exists: true,
+                    members,
+                    updatedAtMs: Number(remote.updatedAtMs) || 0
+                };
+            }
+
+            if (members.length || remote?.exists) {
+                allMembersData[district] = activeMemberDataFromRoster(members);
+                saveMembers();
+            }
+            return true;
+        } catch (err) {
+            console.warn('roster sync failed', err);
+            return false;
+        }
+    }
+
+    async function saveActiveMemberDataToRoster(district, newData, reasonText = '구역장 명단에서 제외') {
+        let remoteMembers = [];
+        try {
+            if (typeof window.getRosterFromFirebase === 'function' && navigator.onLine !== false) {
+                const remote = await window.getRosterFromFirebase(district);
+                remoteMembers = Array.isArray(remote?.members) ? remote.members.map(m => ({ ...m })) : [];
+            }
+        } catch (err) {
+            console.warn('roster fresh read failed', err);
+        }
+
+        if (!remoteMembers.length) {
+            remoteMembers = (allRosterData[district]?.members || makeRosterFromLocalMembers(district)).map(m => ({ ...m }));
+        }
+
+        const used = new Set();
+        const result = remoteMembers.map(m => ({ ...m }));
+        const desired = [];
+
+        CAT_ORDER.forEach(k => {
+            const cat = CATEGORIES[k];
+            uniqueNames(newData[cat.key] || []).forEach(name => desired.push({ name, cat: cat.name }));
+        });
+
+        desired.forEach(item => {
+            let idx = result.findIndex((m, i) => !used.has(i) && m.active !== false && normalizeNameValue(m.name) === item.name);
+            if (idx < 0) idx = result.findIndex((m, i) => !used.has(i) && m.active === false && normalizeNameValue(m.name) === item.name);
+
+            if (idx >= 0) {
+                result[idx] = {
+                    ...result[idx],
+                    name: item.name,
+                    cat: item.cat,
+                    active: true,
+                    leftAt: '',
+                    reason: '',
+                    joinedAt: result[idx].joinedAt || rosterToday()
+                };
+                used.add(idx);
+            } else {
+                result.push({
+                    id: newRosterId(),
+                    name: item.name,
+                    cat: item.cat,
+                    active: true,
+                    joinedAt: rosterToday(),
+                    leftAt: '',
+                    reason: ''
+                });
+                used.add(result.length - 1);
+            }
+        });
+
+        result.forEach((m, i) => {
+            if (m.active !== false && !used.has(i)) {
+                m.active = false;
+                m.leftAt = rosterToday();
+                m.reason = m.reason || reasonText;
+            }
+        });
+
+        if (typeof window.saveRosterFromFirebase === 'function' && navigator.onLine !== false) {
+            const updatedAtMs = await window.saveRosterFromFirebase(district, result);
+            allRosterData[district] = { exists: true, members: result, updatedAtMs };
+        } else {
+            allRosterData[district] = { exists: true, members: result, updatedAtMs: Date.now() };
+        }
+
+        allMembersData[district] = activeMemberDataFromRoster(result);
+        saveMembers();
+
+        return {
+            members: result,
+            inactiveCount: result.filter(m => m.active === false).length
+        };
     }
 
     function saveRecords() {
@@ -3357,22 +3581,10 @@
         updateRecordStatusBanner(!!stillExists);
         updateAllVisuals();
 
-        let serverSaved = false;
-
-        if (serverSynced) {
-            if (!stillExists && typeof window.deleteAttendanceFromFirebase === 'function') {
-                try {
-                    await window.deleteAttendanceFromFirebase(district, date, type);
-                } catch (err) {
-                    console.warn('current record delete failed', err);
-                }
-            }
-
-            const fullResult = await syncCurrentDistrictRecordsToFirebase(district);
-            serverSaved = fullResult.fail === 0;
-        } else {
-            serverSaved = await syncCurrentRecordToFirebase(date, type, currentNames, !!stillExists);
-        }
+        // 현재 저장한 회차만 서버에 반영한다.
+        // 과거 모든 회차를 현재 명단으로 다시 올리지 않아,
+        // 명단 비활성화가 과거 출석기록의 '전체 명단'을 덮어쓰지 않는다.
+        const serverSaved = await syncCurrentRecordToFirebase(date, type, currentNames, !!stillExists);
 
         if (serverSaved) {
             markServerSyncedDistrict(district);
@@ -3494,7 +3706,8 @@
         return row;
     }
 
-    function openSetup() {
+    async function openSetup() {
+        await syncRosterFromFirebase(elDistrict.value);
         const members = getMembers();
         elSetupDistrictLabel.textContent = `(${elDistrict.value})`;
 
@@ -3597,7 +3810,12 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    function downloadMemberTemplate() {
+    async function downloadMemberTemplate() {
+        try {
+            await ensureXlsxLibrary();
+        } catch (err) {
+            console.warn('XLSX lazy load failed', err);
+        }
         const rows = [
             ['은장회', '봉사회', '어머니회', '청년회'],
             ['홍길동', '김봉사', '이어머니', '박청년'],
@@ -3737,7 +3955,7 @@
         return CAT_ORDER.reduce((sum, k) => sum + (data[CATEGORIES[k].key] || []).length, 0);
     }
 
-    function applyUploadedMembers(newData) {
+    async function applyUploadedMembers(newData) {
         const total = countUploadedMembers(newData);
 
         if (total === 0) {
@@ -3753,19 +3971,18 @@
             if (!ok) return;
         }
 
-        allMembersData[elDistrict.value] = {
+        await saveActiveMemberDataToRoster(elDistrict.value, {
             eun: newData.eun || [],
             bong: newData.bong || [],
             mom: newData.mom || [],
             youth: newData.youth || []
-        };
+        }, '구역장 명단 업로드에서 제외');
 
-        saveMembers();
         loadWorkingRecord();
         renderAttendanceGrid();
 
         if (document.getElementById('setup-modal').classList.contains('show')) {
-            openSetup();
+            await openSetup();
         }
 
         alert(
@@ -3828,6 +4045,13 @@
                 const text = await readFileAsText(file);
                 rows = parseCSVText(text.replace(/^\ufeff/, ''));
             } else {
+                try {
+                    await ensureXlsxLibrary();
+                } catch (loadErr) {
+                    alert('엑셀 읽기 기능을 불러오지 못했습니다.\nCSV 파일로 다시 시도해주세요.');
+                    return;
+                }
+
                 if (!window.XLSX) {
                     alert('엑셀 읽기 기능을 불러오지 못했습니다.\nCSV 파일로 다시 시도해주세요.');
                     return;
@@ -3841,28 +4065,40 @@
             }
 
             const newData = parseMemberRows(rows);
-            applyUploadedMembers(newData);
+            await applyUploadedMembers(newData);
         } catch (err) {
             alert('명단 업로드에 실패했습니다: ' + err.message);
         }
     }
 
-    function saveSetup() {
+    async function saveSetup() {
         const newData = { eun: [], bong: [], mom: [], youth: [] };
 
         CAT_ORDER.forEach(k => {
             const cat = CATEGORIES[k];
             const inputs = document.querySelectorAll(`#setup-list-${cat.key} .setup-name-input`);
-            newData[cat.key] = Array.from(inputs).map(i => i.value.trim()).filter(n => n.length > 0);
+            newData[cat.key] = uniqueNames(Array.from(inputs).map(i => i.value.trim()).filter(n => n.length > 0));
         });
 
-        allMembersData[elDistrict.value] = newData;
-        saveMembers();
+        const before = getMembers();
+        const beforeTotal = CAT_ORDER.reduce((sum, k) => sum + (before[CATEGORIES[k].key] || []).length, 0);
+        const afterTotal = CAT_ORDER.reduce((sum, k) => sum + (newData[CATEGORIES[k].key] || []).length, 0);
 
-        document.getElementById('setup-modal').classList.remove('show');
+        try {
+            await saveActiveMemberDataToRoster(elDistrict.value, newData, '구역장 명단에서 제외');
+            document.getElementById('setup-modal').classList.remove('show');
+            loadWorkingRecord();
+            renderAttendanceGrid();
 
-        loadWorkingRecord();
-        renderAttendanceGrid();
+            const removed = Math.max(beforeTotal - afterTotal, 0);
+            if (removed > 0) {
+                alert(`명단을 저장했습니다.\n빠진 ${removed}명은 삭제하지 않고 비활성화했습니다.\n과거 출석 기록은 그대로 유지됩니다.`);
+            } else {
+                alert('명단을 저장했습니다.');
+            }
+        } catch (err) {
+            alert('명단 저장에 실패했습니다: ' + err.message);
+        }
     }
 
     function getSummary() {
@@ -3933,7 +4169,13 @@
         });
     }
 
-    function shareAsImage() {
+    async function shareAsImage() {
+        try {
+            await ensureHtml2CanvasLibrary();
+        } catch (err) {
+            alert('이미지 생성 기능을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+            return;
+        }
         const s = getSummary();
         const members = getMembers();
         const card = document.getElementById('capture-card');
@@ -4445,8 +4687,9 @@
         return { wb, districtLabel };
     }
 
-    function exportVolunteerWorkbook() {
+    async function exportVolunteerWorkbook() {
         try {
+            await ensureXlsxLibrary();
             saveVolunteerDistrict();
             const { wb, districtLabel } = buildVolunteerWorkbook();
             const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true, compression: true });
@@ -4702,6 +4945,12 @@
                 const text = await readFileAsText(file);
                 rows = parseCSVText(text.replace(/^\ufeff/, ''));
             } else {
+                try {
+                    await ensureXlsxLibrary();
+                } catch (loadErr) {
+                    alert('엑셀 읽기 기능을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                    return;
+                }
                 if (!window.XLSX) {
                     alert('엑셀 읽기 기능을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
                     return;
@@ -4848,7 +5097,12 @@
         ws['!printOptions'] = { horizontalCentered: true, gridLines: false };
     }
 
-    function downloadPrayerTemplate() {
+    async function downloadPrayerTemplate() {
+        try {
+            await ensureXlsxLibrary();
+        } catch (err) {
+            console.warn('XLSX lazy load failed', err);
+        }
         const districtNum = getPrayerDistrictNumberText();
         const rows = [
             [`${new Date().getFullYear()}년 ${districtNum}구역 기도명단`, '', '', '', '', '', '', '', ''],
@@ -4881,7 +5135,12 @@
         downloadBlobFile(blob, `${getPrayerDistrict()}_기도명단_업로드서식.xlsx`, '기도명단 엑셀 서식');
     }
 
-    function exportPrayerList() {
+    async function exportPrayerList() {
+        try {
+            await ensureXlsxLibrary();
+        } catch (err) {
+            console.warn('XLSX lazy load failed', err);
+        }
         const list = getPrayerList();
         if (list.length === 0) {
             alert('추출할 기도명단이 없습니다.');
@@ -5047,6 +5306,13 @@
         const list = getPrayerList(district);
         if (list.length === 0) {
             alert('추출할 기도명단이 없습니다.');
+            return;
+        }
+
+        try {
+            await ensureHtml2CanvasLibrary();
+        } catch (err) {
+            alert('이미지 생성 기능을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.');
             return;
         }
 
@@ -5690,6 +5956,7 @@ return;
 }
 
 localStorage.setItem(STORAGE_KEY_LASTDISTRICT, elDistrict.value);
+await syncRosterFromFirebase(elDistrict.value);
 await syncDistrictFromFirebase(elDistrict.value);
 syncLocalMeetingMismatchesOnOpen();
 loadWorkingRecord();
@@ -5843,6 +6110,7 @@ buildDistrictDropdown();
 elDate.value = new Date().toISOString().split('T')[0];
 previousMeetingType = elType.value;
 loadData();
+await syncRosterFromFirebase(elDistrict.value);
 await syncDistrictFromFirebase(elDistrict.value);
 syncLocalMeetingMismatchesOnOpen();
 loadWorkingRecord();
